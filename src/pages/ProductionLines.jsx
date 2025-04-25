@@ -54,11 +54,6 @@ const ProductionLineCard = ({ line, onRenameClick, onDeleteClick }) => {
   const recipe = config?.recipe ? PRODUCTION_RECIPES[config.recipe] : null;
   const navigate = useNavigate();
 
-  // Berechne den Fortschritt in Prozent
-  const progressPercent = status?.isActive && recipe
-    ? (status.currentPings / recipe.productionTime) * 100
-    : 0;
-
   const outputTarget = config?.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE;
   const outputResource = recipe ? RESOURCES[recipe.output.resourceId] : null;
 
@@ -117,7 +112,7 @@ const ProductionLineCard = ({ line, onRenameClick, onDeleteClick }) => {
 
   // Berechne die Bilanz dieser Produktionslinie
   const calculateLineBalance = () => {
-    if (!recipe || !config || !status?.isActive) return { income: 0, expenses: 0, balance: 0 };
+    if (!recipe || !config || !status?.isActive) return { balance: 0 };
 
     let income = 0;
     let expenses = 0;
@@ -137,13 +132,11 @@ const ProductionLineCard = ({ line, onRenameClick, onDeleteClick }) => {
     }
 
     return {
-      income: Math.round(income * 100) / 100,
-      expenses: Math.round(expenses * 100) / 100,
       balance: Math.round((income - expenses) * 100) / 100
     };
   };
 
-  const { income, expenses, balance } = calculateLineBalance();
+  const { balance } = calculateLineBalance();
 
   const handleToggleProduction = () => {
     dispatch(toggleProduction(line.id));
@@ -165,87 +158,28 @@ const ProductionLineCard = ({ line, onRenameClick, onDeleteClick }) => {
           </IconButton>
         </Box>
 
-        <Typography variant="body2" color="text.secondary" gutterBottom>
-          Rezept: {recipe ? recipe.name : 'Kein Rezept ausgewählt'}
-        </Typography>
-        
-        <Typography 
-          variant="body2" 
-          color={status?.isActive ? (canProduce ? "success.main" : "error.main") : "text.secondary"} 
-          gutterBottom
-        >
-          Status: {status?.isActive ? (canProduce ? 'Aktiv' : 'Gestoppt') : 'Inaktiv'}
-          {status?.isActive && !canProduce && (
-            <Tooltip title={missingResources.map(r => `${r.name}: ${r.reason}`).join(', ')}>
-              <Box component="span" sx={{ ml: 1, cursor: 'help' }}>⚠️</Box>
-            </Tooltip>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+          <Box sx={{ 
+            width: 12, 
+            height: 12, 
+            borderRadius: '50%', 
+            bgcolor: status?.isActive ? (canProduce ? 'success.main' : 'warning.main') : 'text.disabled' 
+          }} />
+          {outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE ? (
+            <StorageIcon fontSize="small" color="action" />
+          ) : (
+            <SellIcon fontSize="small" color="success" />
           )}
-        </Typography>
-
-        {recipe && (
-          <>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-              <Typography variant="body2" color="text.secondary">
-                Output: {recipe.output.amount}x {outputResource.icon} {outputResource.name}
-              </Typography>
-              <Tooltip title={
-                outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE 
-                  ? `In globales Lager (${resources[recipe.output.resourceId].amount}/${resources[recipe.output.resourceId].capacity})` 
-                  : `Automatischer Verkauf (${outputResource.basePrice * recipe.output.amount} Credits pro Produktion)`
-              }>
-                {outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE ? (
-                  <StorageIcon fontSize="small" color="action" />
-                ) : (
-                  <SellIcon fontSize="small" color="success" />
-                )}
-              </Tooltip>
-            </Box>
-
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 1 }}>
-              {income > 0 && (
-                <Typography variant="body2" color="success.main" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <IncomeIcon fontSize="small" />
-                  +{income}/Ping
-                </Typography>
-              )}
-              {expenses > 0 && (
-                <Typography variant="body2" color="error.main" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                  <ExpenseIcon fontSize="small" />
-                  -{expenses}/Ping
-                </Typography>
-              )}
-              {(income > 0 || expenses > 0) && (
-                <Typography 
-                  variant="body2" 
-                  color={balance >= 0 ? "success.main" : "error.main"}
-                  sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-                >
-                  <BalanceIcon fontSize="small" />
-                  {balance >= 0 ? '+' : ''}{balance}/Ping
-                </Typography>
-              )}
-            </Box>
-          </>
-        )}
-
-        {status?.isActive && recipe && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-            <CircularProgress
-              variant="determinate"
-              value={progressPercent}
-              size={16}
-              sx={{
-                color: canProduce ? 'primary.main' : 'error.main',
-                '& .MuiCircularProgress-circle': {
-                  strokeLinecap: 'round',
-                }
-              }}
-            />
-            <Typography variant="caption" color="text.secondary">
-              {Math.round(progressPercent)}% ({status.currentPings}/{recipe.productionTime} Pings)
+          {balance !== 0 && (
+            <Typography 
+              variant="body2" 
+              color={balance >= 0 ? "success.main" : "error.main"}
+              sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+            >
+              {balance >= 0 ? '+' : ''}{balance}/Ping
             </Typography>
-          </Box>
-        )}
+          )}
+        </Box>
 
         {status?.error && (
           <Typography variant="body2" color="error" sx={{ mt: 1 }}>

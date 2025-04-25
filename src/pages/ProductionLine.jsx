@@ -40,7 +40,8 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
   Sell as SellIcon,
-  KeyboardArrowDown as ArrowDownIcon
+  KeyboardArrowDown as ArrowDownIcon,
+  MonetizationOn
 } from '@mui/icons-material';
 import {
   PRODUCTION_RECIPES,
@@ -92,7 +93,15 @@ const styles = `
   }
 
   .production-animation.animate {
-    animation: popEffect 0.5s ease-out forwards;
+    animation: popEffect 1s ease-out forwards;
+  }
+
+  .credits-text {
+    color: #4caf50;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 4px;
   }
 `;
 
@@ -168,7 +177,7 @@ const ProductionLine = () => {
       const timer = setTimeout(() => {
         console.log('Animation ended');
         setShowProductionAnimation(false);
-      }, 500);
+      }, 1000);
 
       return () => clearTimeout(timer);
     }
@@ -249,6 +258,25 @@ const ProductionLine = () => {
     setIsDeleteDialogOpen(false);
     navigate('/production');
     dispatch(removeProductionLine(productionLineId));
+  };
+
+  const getAnimationContent = () => {
+    if (!selectedRecipe) return null;
+
+    const outputTarget = productionConfig?.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE;
+    const outputResource = RESOURCES[selectedRecipe.output.resourceId];
+
+    if (outputTarget === OUTPUT_TARGETS.AUTO_SELL) {
+      const creditValue = outputResource.basePrice * selectedRecipe.output.amount;
+      return (
+        <div className="credits-text">
+          <MonetizationOn sx={{ fontSize: 'inherit', color: 'inherit' }} />
+          +{creditValue}
+        </div>
+      );
+    }
+
+    return outputResource.icon;
   };
 
   if (!productionLine || !selectedRecipe) {
@@ -402,7 +430,7 @@ const ProductionLine = () => {
                 key={animationKey}
                 className={`production-animation animate`}
               >
-                {RESOURCES[selectedRecipe.output.resourceId].icon}
+                {getAnimationContent()}
               </div>
             )}
           </Box>
