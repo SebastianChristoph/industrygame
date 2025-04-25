@@ -1,0 +1,38 @@
+.ping-indicator {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(0, 0, 0, 0.8);
+  padding: 6px 12px;
+  border-radius: 20px;
+  color: white;
+  height: 32px;
+}
+
+.ping-circle {
+  width: 12px;
+  height: 12px;
+  background-color: #4CAF50;
+  border-radius: 50%;
+  animation: pulse 1s infinite;
+}
+
+.ping-count {
+  font-family: monospace;
+  font-size: 14px;
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+} 
