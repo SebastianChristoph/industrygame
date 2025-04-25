@@ -37,7 +37,8 @@ import {
   Stop,
   Edit as EditIcon,
   Delete as DeleteIcon,
-  Sell as SellIcon
+  Sell as SellIcon,
+  KeyboardArrowDown as ArrowDownIcon
 } from '@mui/icons-material';
 import {
   PRODUCTION_RECIPES,
@@ -185,9 +186,12 @@ const ProductionLine = () => {
         >
           Zurück
         </Button>
-        <Typography variant="h4" sx={{ flex: 1 }}>
-          {productionLine.name}
-        </Typography>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
+          {RESOURCES[selectedRecipe.output.resourceId].icon}
+          <Typography variant="h4">
+            {productionLine.name}
+          </Typography>
+        </Box>
 
         <Box sx={{ display: 'flex', gap: 1 }}>
           <Tooltip title="Umbenennen">
@@ -204,20 +208,8 @@ const ProductionLine = () => {
         </Box>
       </Box>
 
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            <Settings sx={{ mr: 1, verticalAlign: 'middle' }} />
-            Produktionskonfiguration
-          </Typography>
-          <Typography variant="body1" color="text.secondary" gutterBottom>
-            {selectedRecipe.name} ({selectedRecipe.productionTime} Pings)
-          </Typography>
-        </CardContent>
-      </Card>
-
-      <Grid container spacing={3}>
-        <Grid item xs={12} md={6}>
+      <Grid container spacing={3} direction="column" alignItems="center">
+        <Grid item xs={12} md={6} style={{ width: '100%' }}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -278,16 +270,45 @@ const ProductionLine = () => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={6}>
+        <Grid item xs={12} display="flex" justifyContent="center" alignItems="center">
+          <Box sx={{ 
+            display: 'flex', 
+            alignItems: 'center',
+            gap: 2,
+            my: 2
+          }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <ArrowDownIcon sx={{ fontSize: 40, color: 'error.main' }} />
+              <Typography variant="body1" color="error.main" fontWeight="bold">
+                {selectedRecipe.productionTime} Pings
+              </Typography>
+            </Box>
+            {productionStatus?.isActive && (
+              <CircularProgress
+                variant="determinate"
+                value={progressPercent}
+                size={24}
+                sx={{
+                  color: canStartProduction() ? 'primary.main' : 'error.main'
+                }}
+              />
+            )}
+          </Box>
+        </Grid>
+
+        <Grid item xs={12} md={6} style={{ width: '100%' }}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
                 Ausgangskonfiguration
               </Typography>
               <Box sx={{ mt: 2 }}>
-                <Typography variant="body1" gutterBottom>
-                  {selectedRecipe.output.amount}x {RESOURCES[selectedRecipe.output.resourceId].name}
-                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                  {RESOURCES[selectedRecipe.output.resourceId].icon}
+                  <Typography variant="body1">
+                    {selectedRecipe.output.amount}x {RESOURCES[selectedRecipe.output.resourceId].name}
+                  </Typography>
+                </Box>
                 
                 <ToggleButtonGroup
                   value={productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE}
@@ -329,10 +350,7 @@ const ProductionLine = () => {
         </Grid>
       </Grid>
 
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6">
-          Produktion
-        </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2 }}>
         <Tooltip title={
           productionStatus?.error ? productionStatus.error :
           !canStartProduction() ?
@@ -359,19 +377,6 @@ const ProductionLine = () => {
         <Box sx={{ mt: 2, p: 1, bgcolor: 'error.light', borderRadius: 1 }}>
           <Typography color="error">
             Fehler: {productionStatus.error}
-          </Typography>
-        </Box>
-      )}
-
-      {productionStatus?.isActive && (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-          <CircularProgress
-            variant="determinate"
-            value={progressPercent}
-            size={40}
-          />
-          <Typography>
-            {Math.round(progressPercent)}% ({productionStatus.currentPings}/{selectedRecipe.productionTime} Pings)
           </Typography>
         </Box>
       )}

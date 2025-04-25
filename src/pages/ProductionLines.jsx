@@ -32,12 +32,21 @@ import {
   Sell as SellIcon,
   TrendingUp as IncomeIcon,
   TrendingDown as ExpenseIcon,
-  AccountBalance as BalanceIcon
+  AccountBalance as BalanceIcon,
+  PlayArrow,
+  Stop
 } from '@mui/icons-material';
-import { addProductionLine, removeProductionLine, setProductionRecipe, renameProductionLine } from '../store/gameSlice';
+import { 
+  addProductionLine, 
+  removeProductionLine, 
+  setProductionRecipe, 
+  renameProductionLine,
+  toggleProduction 
+} from '../store/gameSlice';
 import { PRODUCTION_RECIPES, RESOURCES, OUTPUT_TARGETS, INPUT_SOURCES } from '../config/resources';
 
 const ProductionLineCard = ({ line, onRenameClick, onDeleteClick }) => {
+  const dispatch = useDispatch();
   const config = useSelector(state => state.game.productionConfigs[line.id]);
   const status = useSelector(state => state.game.productionStatus[line.id]);
   const resources = useSelector(state => state.game.resources);
@@ -52,37 +61,6 @@ const ProductionLineCard = ({ line, onRenameClick, onDeleteClick }) => {
 
   const outputTarget = config?.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE;
   const outputResource = recipe ? RESOURCES[recipe.output.resourceId] : null;
-
-  // Berechne die Bilanz dieser Produktionslinie
-  const calculateLineBalance = () => {
-    if (!recipe || !config || !status?.isActive) return { income: 0, expenses: 0, balance: 0 };
-
-    let income = 0;
-    let expenses = 0;
-
-    // Berechne Kosten für Inputs
-    recipe.inputs.forEach((input, index) => {
-      const inputConfig = config.inputs[index];
-      if (inputConfig?.source === INPUT_SOURCES.PURCHASE_MODULE) {
-        const resource = RESOURCES[input.resourceId];
-        expenses += (resource.basePrice * input.amount) / recipe.productionTime;
-      }
-    });
-
-    // Berechne Einnahmen aus Verkäufen
-    const outputResource = RESOURCES[recipe.output.resourceId];
-    if (config.outputTarget === OUTPUT_TARGETS.AUTO_SELL) {
-      income += (outputResource.basePrice * recipe.output.amount) / recipe.productionTime;
-    }
-
-    return {
-      income: Math.round(income * 100) / 100,
-      expenses: Math.round(expenses * 100) / 100,
-      balance: Math.round((income - expenses) * 100) / 100
-    };
-  };
-
-  const { income, expenses, balance } = calculateLineBalance();
 
   // Prüfe Ressourcenverfügbarkeit
   const checkResourceAvailability = () => {
@@ -137,10 +115,45 @@ const ProductionLineCard = ({ line, onRenameClick, onDeleteClick }) => {
 
   const { canProduce, missingResources } = checkResourceAvailability();
 
+  // Berechne die Bilanz dieser Produktionslinie
+  const calculateLineBalance = () => {
+    if (!recipe || !config || !status?.isActive) return { income: 0, expenses: 0, balance: 0 };
+
+    let income = 0;
+    let expenses = 0;
+
+    // Berechne Kosten für Inputs
+    recipe.inputs.forEach((input, index) => {
+      const inputConfig = config.inputs[index];
+      if (inputConfig?.source === INPUT_SOURCES.PURCHASE_MODULE) {
+        const resource = RESOURCES[input.resourceId];
+        expenses += (resource.basePrice * input.amount) / recipe.productionTime;
+      }
+    });
+
+    // Berechne Einnahmen aus Verkäufen
+    if (config.outputTarget === OUTPUT_TARGETS.AUTO_SELL) {
+      income += (outputResource.basePrice * recipe.output.amount) / recipe.productionTime;
+    }
+
+    return {
+      income: Math.round(income * 100) / 100,
+      expenses: Math.round(expenses * 100) / 100,
+      balance: Math.round((income - expenses) * 100) / 100
+    };
+  };
+
+  const { income, expenses, balance } = calculateLineBalance();
+
+  const handleToggleProduction = () => {
+    dispatch(toggleProduction(line.id));
+  };
+
   return (
-    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative' }}>
+    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative', bgcolor: 'background.paper' }}>
       <CardContent sx={{ flexGrow: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: '', mb: 1, gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1 }}>
+          {recipe && outputResource && outputResource.icon}
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
             {line.name}
           </Typography>
@@ -240,15 +253,35 @@ const ProductionLineCard = ({ line, onRenameClick, onDeleteClick }) => {
           </Typography>
         )}
 
-        <Button
-          variant="outlined"
-          startIcon={<SettingsIcon />}
-          onClick={() => navigate(`/production/${line.id}`)}
-          sx={{ mt: 2 }}
-          fullWidth
-        >
-          KONFIGURIEREN
-        </Button>
+        <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
+          <Tooltip title={
+            !recipe ? "Kein Rezept ausgewählt" :
+            !canProduce && status?.isActive ? missingResources.map(r => `${r.name}: ${r.reason}`).join(', ') :
+            status?.isActive ? "Produktion stoppen" : "Produktion starten"
+          }>
+            <span>
+              <Button
+                variant="contained"
+                color={status?.isActive ? "error" : "primary"}
+                startIcon={status?.isActive ? <Stop /> : <PlayArrow />}
+                onClick={handleToggleProduction}
+                disabled={!recipe || (!canProduce && !status?.isActive)}
+                size="small"
+              >
+                {status?.isActive ? "Stop" : "Start"}
+              </Button>
+            </span>
+          </Tooltip>
+
+          <Button
+            variant="outlined"
+            startIcon={<SettingsIcon />}
+            onClick={() => navigate(`/production/${line.id}`)}
+            size="small"
+          >
+            KONFIGURIEREN
+          </Button>
+        </Box>
       </CardContent>
     </Card>
   );
