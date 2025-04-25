@@ -1,108 +1,100 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSelector, useDispatch } from 'react-redux';
-import { 
-  Box, 
-  Typography, 
-  Button, 
-  Card, 
+import {
+  Box,
+  Typography,
+  Button,
+  Card,
   CardContent,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
   Grid,
+  CircularProgress,
+  Tooltip,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  IconButton,
+  Paper,
+  Switch,
+  FormControlLabel,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
-  List,
-  ListItem,
-  ListItemText,
-  ListItemIcon,
-  CircularProgress,
-  Tooltip
+  TextField,
+  DialogContentText
 } from '@mui/material';
-import { 
-  ArrowBack, 
-  Settings, 
-  Storage, 
+import {
+  ArrowBack,
+  Storage,
   ShoppingCart,
+  Settings,
   ArrowForward,
   PlayArrow,
-  Stop
+  Stop,
+  Edit as EditIcon,
+  Delete as DeleteIcon
 } from '@mui/icons-material';
-import { 
-  PRODUCTION_RECIPES, 
-  RESOURCES, 
-  INPUT_SOURCES 
+import {
+  PRODUCTION_RECIPES,
+  RESOURCES,
+  INPUT_SOURCES
 } from '../config/resources';
-import { 
-  setProductionRecipe, 
+import {
   setInputSource,
   toggleProduction,
-  updateProductionProgress
+  removeProductionLine,
+  renameProductionLine
 } from '../store/gameSlice';
 
 const ProductionLine = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [isSourceDialogOpen, setIsSourceDialogOpen] = useState(false);
-  const [selectedInputIndex, setSelectedInputIndex] = useState(null);
+  const productionLineId = parseInt(id);
 
-  const productionLine = useSelector(state => 
-    state.game.productionLines.find(line => line.id === Number(id))
+  const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [newName, setNewName] = useState('');
+
+  const productionLine = useSelector(state =>
+    state.game.productionLines.find(line => line.id === productionLineId)
   );
-  
-  const productionConfig = useSelector(state => 
-    state.game.productionConfigs[Number(id)] || { recipe: null, inputs: [] }
+
+  const productionConfig = useSelector(state =>
+    state.game.productionConfigs[productionLineId]
   );
 
   const productionStatus = useSelector(state =>
-    state.game.productionStatus[Number(id)] || { isActive: false, progress: 0 }
+    state.game.productionStatus[productionLineId]
   );
 
   const resources = useSelector(state => state.game.resources);
+  const credits = useSelector(state => state.game.credits);
+  const selectedRecipe = PRODUCTION_RECIPES[productionConfig?.recipe];
 
-  // Aktualisiere den Fortschritt regelmäßig
+  // Berechne den Fortschritt in Prozent
+  const progressPercent = productionStatus?.currentPings 
+    ? (productionStatus.currentPings / selectedRecipe?.productionTime) * 100 
+    : 0;
+
+  // Setze automatisch die Einkaufsmodule für die Inputs, wenn noch nicht konfiguriert
   useEffect(() => {
-    if (productionStatus.isActive) {
-      const interval = setInterval(() => {
-        dispatch(updateProductionProgress({
-          productionLineId: Number(id),
-          currentTime: Date.now()
+    if (productionConfig?.recipe && (!productionConfig.inputs || productionConfig.inputs.length === 0)) {
+      PRODUCTION_RECIPES[productionConfig.recipe].inputs.forEach((_, index) => {
+        dispatch(setInputSource({
+          productionLineId,
+          inputIndex: index,
+          source: INPUT_SOURCES.PURCHASE_MODULE,
+          resourceId: PRODUCTION_RECIPES[productionConfig.recipe].inputs[index].resourceId
         }));
-      }, 1000); // Aktualisiere jede Sekunde
-
-      return () => clearInterval(interval);
+      });
     }
-  }, [productionStatus.isActive, id, dispatch]);
-
-  const handleRecipeChange = (event) => {
-    dispatch(setProductionRecipe({
-      productionLineId: Number(id),
-      recipeId: event.target.value
-    }));
-  };
-
-  const handleInputSourceSelect = (source, resourceId) => {
-    dispatch(setInputSource({
-      productionLineId: Number(id),
-      inputIndex: selectedInputIndex,
-      source,
-      resourceId
-    }));
-    setIsSourceDialogOpen(false);
-  };
+  }, [productionConfig?.recipe, dispatch, productionLineId]);
 
   const handleToggleProduction = () => {
-    dispatch(toggleProduction(Number(id)));
-  };
-
-  const openSourceDialog = (inputIndex) => {
-    setSelectedInputIndex(inputIndex);
-    setIsSourceDialogOpen(true);
+    dispatch(toggleProduction(productionLineId));
   };
 
   const canStartProduction = () => {
@@ -129,20 +121,45 @@ const ProductionLine = () => {
     });
 
     // Prüfe Credits für automatische Einkäufe
-    if (requiredCredits > 0 && resources.credits < requiredCredits) {
+    if (requiredCredits > 0 && credits < requiredCredits) {
       return false;
     }
 
     return hasEnoughResources;
   };
 
-  if (!productionLine) {
+  const handleRenameClick = () => {
+    setNewName(productionLine.name);
+    setIsRenameDialogOpen(true);
+  };
+
+  const handleConfirmRename = () => {
+    if (newName.trim()) {
+      dispatch(renameProductionLine({
+        id: productionLineId,
+        name: newName.trim()
+      }));
+      setIsRenameDialogOpen(false);
+    }
+  };
+
+  const handleDeleteClick = () => {
+    setIsDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = () => {
+    setIsDeleteDialogOpen(false);
+    navigate('/production');
+    dispatch(removeProductionLine(productionLineId));
+  };
+
+  if (!productionLine || !selectedRecipe) {
     return (
       <Box sx={{ p: 3 }}>
         <Typography color="error">
           Produktionslinie nicht gefunden
         </Typography>
-        <Button 
+        <Button
           startIcon={<ArrowBack />}
           onClick={() => navigate('/production')}
           sx={{ mt: 2 }}
@@ -153,24 +170,36 @@ const ProductionLine = () => {
     );
   }
 
-  const selectedRecipe = PRODUCTION_RECIPES[productionConfig.recipe];
-
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-        <Button 
+        <Button
           startIcon={<ArrowBack />}
           onClick={() => navigate('/production')}
         >
           Zurück
         </Button>
-        <Typography variant="h4">
+        <Typography variant="h4" sx={{ flex: 1 }}>
           {productionLine.name}
         </Typography>
+
+        <Box sx={{ display: 'flex', gap: 1 }}>
+          <Tooltip title="Umbenennen">
+            <IconButton onClick={handleRenameClick}>
+              <EditIcon />
+            </IconButton>
+          </Tooltip>
+          
+          <Tooltip title="Löschen">
+            <IconButton color="error" onClick={handleDeleteClick}>
+              <DeleteIcon />
+            </IconButton>
+          </Tooltip>
+        </Box>
       </Box>
 
       <Grid container spacing={3}>
-        {/* Rezeptauswahl */}
+        {/* Rezeptanzeige */}
         <Grid item xs={12}>
           <Card>
             <CardContent>
@@ -178,178 +207,211 @@ const ProductionLine = () => {
                 <Settings sx={{ mr: 1, verticalAlign: 'middle' }} />
                 Produktionskonfiguration
               </Typography>
-              <FormControl fullWidth>
-                <InputLabel>Rezept auswählen</InputLabel>
-                <Select
-                  value={productionConfig.recipe || ''}
-                  onChange={handleRecipeChange}
-                  label="Rezept auswählen"
-                  disabled={productionStatus.isActive}
-                >
-                  {Object.values(PRODUCTION_RECIPES).map(recipe => (
-                    <MenuItem key={recipe.id} value={recipe.id}>
-                      {recipe.name} ({recipe.productionTime} Pings)
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+              <Typography variant="subtitle1" color="primary" gutterBottom>
+                {selectedRecipe.name} ({selectedRecipe.productionTime} Pings)
+              </Typography>
             </CardContent>
           </Card>
         </Grid>
 
         {/* Input Konfiguration */}
-        {selectedRecipe && (
-          <Grid item xs={12}>
-            <Card>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  Eingänge konfigurieren
-                </Typography>
-                <List>
-                  {selectedRecipe.inputs.map((input, index) => {
-                    const inputConfig = productionConfig.inputs[index];
-                    const resource = RESOURCES[input.resourceId];
-                    const currentAmount = resources[input.resourceId].amount;
-                    
-                    return (
-                      <ListItem key={index}>
-                        <ListItemIcon>
-                          {inputConfig?.source === INPUT_SOURCES.GLOBAL_STORAGE ? (
-                            <Storage />
-                          ) : inputConfig?.source === INPUT_SOURCES.PURCHASE_MODULE ? (
-                            <ShoppingCart />
-                          ) : (
-                            <Settings />
-                          )}
-                        </ListItemIcon>
-                        <ListItemText
-                          primary={`${resource.name} (${input.amount}x)`}
-                          secondary={
-                            <>
-                              {inputConfig ? (
-                                inputConfig.source === INPUT_SOURCES.GLOBAL_STORAGE ? 
-                                  `Aus globalem Lager (Verfügbar: ${currentAmount})` : 
-                                  'Wird eingekauft'
-                              ) : 'Quelle nicht konfiguriert'}
-                            </>
-                          }
-                        />
-                        <Button
-                          variant="outlined"
-                          onClick={() => openSourceDialog(index)}
-                          disabled={productionStatus.isActive}
+        <Grid item xs={12}>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              Eingangskonfiguration
+            </Typography>
+            <List>
+              {selectedRecipe.inputs.map((input, index) => {
+                const inputConfig = productionConfig.inputs[index];
+                const resource = RESOURCES[input.resourceId];
+                const currentAmount = resources[input.resourceId].amount;
+                const purchaseCost = resource.basePrice * input.amount;
+                const isGlobalStorage = inputConfig?.source === INPUT_SOURCES.GLOBAL_STORAGE;
+                
+                return (
+                  <ListItem 
+                    key={index}
+                    secondaryAction={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Tooltip title={isGlobalStorage ? "Aus globalem Lager" : "Automatisch einkaufen"}>
+                          <FormControlLabel
+                            control={
+                              <Switch
+                                checked={isGlobalStorage}
+                                onChange={(e) => dispatch(setInputSource({
+                                  productionLineId,
+                                  inputIndex: index,
+                                  source: e.target.checked ? INPUT_SOURCES.GLOBAL_STORAGE : INPUT_SOURCES.PURCHASE_MODULE,
+                                  resourceId: input.resourceId
+                                }))}
+                                size="small"
+                              />
+                            }
+                            label={
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                {isGlobalStorage ? <Storage fontSize="small" /> : <ShoppingCart fontSize="small" />}
+                              </Box>
+                            }
+                            labelPlacement="start"
+                          />
+                        </Tooltip>
+                      </Box>
+                    }
+                  >
+                    <ListItemIcon>
+                      {resource.icon}
+                    </ListItemIcon>
+                    <ListItemText
+                      primary={
+                        <Typography>
+                          {resource.name} ({input.amount}x)
+                        </Typography>
+                      }
+                      secondary={
+                        <Typography
+                          component="span"
+                          variant="body2"
+                          sx={{
+                            display: 'block',
+                            color: isGlobalStorage 
+                              ? (currentAmount >= input.amount ? 'success.main' : 'error.main')
+                              : 'info.main'
+                          }}
                         >
-                          Quelle wählen
-                        </Button>
-                      </ListItem>
-                    );
-                  })}
-                </List>
-              </CardContent>
-            </Card>
-          </Grid>
-        )}
+                          {isGlobalStorage
+                            ? `Aus globalem Lager (Verfügbar: ${currentAmount}/${input.amount} benötigt)`
+                            : `Wird automatisch eingekauft (${purchaseCost} Credits pro Produktion)`
+                          }
+                        </Typography>
+                      }
+                    />
+                  </ListItem>
+                );
+              })}
+            </List>
+          </Paper>
+        </Grid>
 
         {/* Output und Produktionssteuerung */}
-        {selectedRecipe && (
-          <Grid item xs={12}>
-            <Card>
-              <CardContent>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                  <Typography variant="h6">
-                    Produktion
+        <Grid item xs={12}>
+          <Card>
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                <Typography variant="h6">
+                  Produktion
+                </Typography>
+                <Tooltip title={
+                  productionStatus?.error ? productionStatus.error :
+                  !canStartProduction() ?
+                  "Nicht genügend Ressourcen, Lagerkapazität oder Credits" :
+                  productionStatus?.isActive ?
+                  "Produktion stoppen" :
+                  "Produktion starten"
+                }>
+                  <span>
+                    <Button
+                      variant="contained"
+                      color={productionStatus?.isActive ? "error" : "primary"}
+                      startIcon={productionStatus?.isActive ? <Stop /> : <PlayArrow />}
+                      onClick={handleToggleProduction}
+                      disabled={!canStartProduction() && !productionStatus?.isActive}
+                    >
+                      {productionStatus?.isActive ? "Stop" : "Start"}
+                    </Button>
+                  </span>
+                </Tooltip>
+              </Box>
+
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                <Typography>
+                  {selectedRecipe.inputs.map(input =>
+                    `${input.amount}x ${RESOURCES[input.resourceId].name}`
+                  ).join(' + ')}
+                </Typography>
+                <ArrowForward />
+                <Typography>
+                  {`${selectedRecipe.output.amount}x ${RESOURCES[selectedRecipe.output.resourceId].name}`}
+                </Typography>
+              </Box>
+
+              {productionStatus?.error && (
+                <Box sx={{ mt: 2, p: 1, bgcolor: 'error.light', borderRadius: 1 }}>
+                  <Typography color="error">
+                    Fehler: {productionStatus.error}
                   </Typography>
-                  <Tooltip title={
-                    productionStatus.error ? productionStatus.error :
-                    !canStartProduction() ? 
-                    "Nicht genügend Ressourcen, Lagerkapazität oder Credits" : 
-                    productionStatus.isActive ? 
-                    "Produktion stoppen" : 
-                    "Produktion starten"
-                  }>
-                    <span>
-                      <Button
-                        variant="contained"
-                        color={productionStatus.isActive ? "error" : "primary"}
-                        startIcon={productionStatus.isActive ? <Stop /> : <PlayArrow />}
-                        onClick={handleToggleProduction}
-                        disabled={!canStartProduction() && !productionStatus.isActive}
-                      >
-                        {productionStatus.isActive ? "Stop" : "Start"}
-                      </Button>
-                    </span>
-                  </Tooltip>
                 </Box>
+              )}
 
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+              {productionStatus?.isActive && (
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                  <CircularProgress
+                    variant="determinate"
+                    value={progressPercent}
+                    size={40}
+                  />
                   <Typography>
-                    {selectedRecipe.inputs.map(input => 
-                      `${input.amount}x ${RESOURCES[input.resourceId].name}`
-                    ).join(' + ')}
-                  </Typography>
-                  <ArrowForward />
-                  <Typography>
-                    {`${selectedRecipe.output.amount}x ${RESOURCES[selectedRecipe.output.resourceId].name}`}
+                    {Math.round(progressPercent)}% ({productionStatus.currentPings}/{selectedRecipe.productionTime} Pings)
                   </Typography>
                 </Box>
-
-                {productionStatus.error && (
-                  <Box sx={{ mt: 2, p: 1, bgcolor: 'error.light', borderRadius: 1 }}>
-                    <Typography color="error">
-                      Fehler: {productionStatus.error}
-                    </Typography>
-                  </Box>
-                )}
-
-                {productionStatus.isActive && (
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <CircularProgress 
-                      variant="determinate" 
-                      value={productionStatus.progress} 
-                      size={40}
-                    />
-                    <Typography>
-                      {Math.round(productionStatus.progress)}%
-                    </Typography>
-                  </Box>
-                )}
-              </CardContent>
-            </Card>
-          </Grid>
-        )}
+              )}
+            </CardContent>
+          </Card>
+        </Grid>
       </Grid>
 
-      {/* Dialog für die Auswahl der Input-Quelle */}
-      <Dialog 
-        open={isSourceDialogOpen} 
-        onClose={() => setIsSourceDialogOpen(false)}
+      {/* Dialog für Umbenennen */}
+      <Dialog
+        open={isRenameDialogOpen}
+        onClose={() => setIsRenameDialogOpen(false)}
       >
-        <DialogTitle>Quelle für Input wählen</DialogTitle>
+        <DialogTitle>Produktionslinie umbenennen</DialogTitle>
         <DialogContent>
-          <List>
-            <ListItem button onClick={() => handleInputSourceSelect(INPUT_SOURCES.GLOBAL_STORAGE, selectedRecipe?.inputs[selectedInputIndex]?.resourceId)}>
-              <ListItemIcon>
-                <Storage />
-              </ListItemIcon>
-              <ListItemText 
-                primary="Aus globalem Lager"
-                secondary="Nutze Ressourcen aus dem Hauptlager"
-              />
-            </ListItem>
-            <ListItem button onClick={() => handleInputSourceSelect(INPUT_SOURCES.PURCHASE_MODULE, selectedRecipe?.inputs[selectedInputIndex]?.resourceId)}>
-              <ListItemIcon>
-                <ShoppingCart />
-              </ListItemIcon>
-              <ListItemText 
-                primary="Automatisch einkaufen"
-                secondary="Kaufe Ressourcen automatisch ein"
-              />
-            </ListItem>
-          </List>
+          <TextField
+            autoFocus
+            margin="dense"
+            label="Neuer Name"
+            fullWidth
+            variant="outlined"
+            value={newName}
+            onChange={(e) => setNewName(e.target.value)}
+          />
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setIsSourceDialogOpen(false)}>
+          <Button onClick={() => setIsRenameDialogOpen(false)}>
             Abbrechen
+          </Button>
+          <Button 
+            onClick={handleConfirmRename}
+            variant="contained"
+            disabled={!newName.trim()}
+          >
+            Umbenennen
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Dialog für Löschen bestätigen */}
+      <Dialog
+        open={isDeleteDialogOpen}
+        onClose={() => setIsDeleteDialogOpen(false)}
+      >
+        <DialogTitle>Produktionslinie löschen</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Möchtest du diese Produktionslinie wirklich löschen? 
+            Diese Aktion kann nicht rückgängig gemacht werden.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setIsDeleteDialogOpen(false)}>
+            Abbrechen
+          </Button>
+          <Button 
+            onClick={handleConfirmDelete}
+            color="error"
+            variant="contained"
+          >
+            Löschen
           </Button>
         </DialogActions>
       </Dialog>

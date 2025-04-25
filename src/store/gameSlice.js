@@ -1,5 +1,12 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { INITIAL_RESOURCES, STORAGE_CONFIG, calculateUpgradeCost, PRODUCTION_RECIPES, RESOURCES } from '../config/resources';
+import { 
+  INITIAL_RESOURCES, 
+  STORAGE_CONFIG, 
+  calculateUpgradeCost, 
+  PRODUCTION_RECIPES, 
+  RESOURCES,
+  INPUT_SOURCES 
+} from '../config/resources';
 
 const initialState = {
   credits: 1000, // Starting credits
@@ -12,19 +19,9 @@ const initialState = {
     }
   }), {}),
   warehouses: 0, // Number of warehouses owned
-  productionLines: [
-    // Beispiel-Produktionslinien
-    { id: 1, name: 'Eisenverarbeitung' },
-    { id: 2, name: 'Kupferproduktion' }
-  ],
-  productionConfigs: {
-    // Speichert die Konfiguration für jede Produktionslinie
-    // Format: { [productionLineId]: { recipe, inputs: [{ source, resourceId }] } }
-  },
-  productionStatus: {
-    // Speichert den Status jeder Produktionslinie
-    // Format: { [productionLineId]: { isActive: boolean, progress: number, lastPingTime: number, error: string | null } }
-  }
+  productionLines: [],
+  productionConfigs: {},
+  productionStatus: {}
 };
 
 const gameSlice = createSlice({
@@ -71,22 +68,30 @@ const gameSlice = createSlice({
     addProductionLine: (state, action) => {
       const { id, name } = action.payload;
       state.productionLines.push({ id, name });
+      // Initialisiere die Konfiguration und den Status
       state.productionConfigs[id] = {
         recipe: null,
         inputs: []
       };
       state.productionStatus[id] = {
         isActive: false,
-        progress: 0,
-        lastPingTime: 0,
+        currentPings: 0,
         error: null
       };
     },
     removeProductionLine: (state, action) => {
       const idToRemove = action.payload;
       state.productionLines = state.productionLines.filter(line => line.id !== idToRemove);
+      // Cleanup related configurations
       delete state.productionConfigs[idToRemove];
       delete state.productionStatus[idToRemove];
+    },
+    renameProductionLine: (state, action) => {
+      const { id, name } = action.payload;
+      const line = state.productionLines.find(line => line.id === id);
+      if (line) {
+        line.name = name;
+      }
     },
     setProductionRecipe: (state, action) => {
       const { productionLineId, recipeId } = action.payload;
@@ -96,8 +101,7 @@ const gameSlice = createSlice({
         // Reset production status when recipe changes
         state.productionStatus[productionLineId] = {
           isActive: false,
-          progress: 0,
-          lastPingTime: 0,
+          currentPings: 0,
           error: null
         };
       }
@@ -117,88 +121,88 @@ const gameSlice = createSlice({
     },
     toggleProduction: (state, action) => {
       const productionLineId = action.payload;
-      if (state.productionStatus[productionLineId]) {
+      if (!state.productionStatus[productionLineId]) {
+        state.productionStatus[productionLineId] = {
+          isActive: true,
+          currentPings: 0,
+          error: null
+        };
+      } else {
         state.productionStatus[productionLineId].isActive = 
           !state.productionStatus[productionLineId].isActive;
         
         if (state.productionStatus[productionLineId].isActive) {
-          state.productionStatus[productionLineId].lastPingTime = Date.now();
           state.productionStatus[productionLineId].error = null;
         }
       }
     },
-    updateProductionProgress: (state, action) => {
-      const { productionLineId, currentTime } = action.payload;
-      const status = state.productionStatus[productionLineId];
-      const config = state.productionConfigs[productionLineId];
-      
-      if (!status?.isActive || !config?.recipe) return;
+    handlePing: (state) => {
+      // Aktualisiere alle aktiven Produktionslinien
+      Object.entries(state.productionStatus).forEach(([productionLineId, status]) => {
+        if (!status.isActive) return;
 
-      const recipe = PRODUCTION_RECIPES[config.recipe];
-      const elapsedPings = Math.floor((currentTime - status.lastPingTime) / 1000);
-      
-      if (elapsedPings > 0) {
-        // Prüfe Lagerkapazität für Output
+        const config = state.productionConfigs[productionLineId];
+        if (!config?.recipe) return;
+
+        const recipe = PRODUCTION_RECIPES[config.recipe];
+        
+        // Prüfe ob genug Lagerplatz für Output vorhanden ist
         const outputResource = state.resources[recipe.output.resourceId];
         if (outputResource.amount + recipe.output.amount > outputResource.capacity) {
-          status.error = `Nicht genügend Lagerkapazität für ${RESOURCES[recipe.output.resourceId].name}`;
+          status.error = "Nicht genug Lagerplatz für Output";
           status.isActive = false;
           return;
         }
 
-        // Prüfe Ressourcen und Credits
+        // Prüfe und reserviere Input Ressourcen
         let requiredCredits = 0;
-        const hasEnoughResources = recipe.inputs.every((input, index) => {
+        let canProduce = recipe.inputs.every((input, index) => {
           const inputConfig = config.inputs[index];
           if (!inputConfig) return false;
-          
-          if (inputConfig.source === 'GLOBAL_STORAGE') {
-            return state.resources[input.resourceId].amount >= input.amount;
+
+          if (inputConfig.source === INPUT_SOURCES.GLOBAL_STORAGE) {
+            const resource = state.resources[input.resourceId];
+            return resource.amount >= input.amount;
           } else {
-            // Berechne benötigte Credits für Einkauf
             requiredCredits += RESOURCES[input.resourceId].basePrice * input.amount;
             return true;
           }
         });
 
-        // Prüfe ob genug Credits für Einkäufe da sind
+        // Prüfe Credits für automatische Einkäufe
         if (requiredCredits > 0 && state.credits < requiredCredits) {
-          status.error = `Nicht genügend Credits für Einkäufe (${requiredCredits} benötigt)`;
+          status.error = "Nicht genug Credits für automatische Einkäufe";
           status.isActive = false;
           return;
         }
 
-        if (hasEnoughResources) {
-          status.error = null;
-          // Aktualisiere den Fortschritt
-          status.progress += (elapsedPings * 100) / recipe.productionTime;
-          status.lastPingTime = currentTime;
-
-          // Wenn Produktion abgeschlossen
-          if (status.progress >= 100) {
-            // Verarbeite Inputs
-            recipe.inputs.forEach((input, index) => {
-              const inputConfig = config.inputs[index];
-              if (inputConfig?.source === 'GLOBAL_STORAGE') {
-                state.resources[input.resourceId].amount -= input.amount;
-              } else {
-                // Kaufe Ressourcen
-                state.credits -= RESOURCES[input.resourceId].basePrice * input.amount;
-              }
-            });
-
-            // Füge Output hinzu
-            const { resourceId, amount } = recipe.output;
-            state.resources[resourceId].amount += amount;
-
-            // Reset Progress
-            status.progress = 0;
-          }
-        } else {
-          status.error = 'Nicht genügend Ressourcen im Lager';
+        if (!canProduce) {
+          status.error = "Nicht genug Ressourcen verfügbar";
           status.isActive = false;
+          return;
         }
-      }
+
+        // Erhöhe den Ping-Zähler
+        status.currentPings++;
+        
+        // Wenn genug Pings für eine Produktion erreicht wurden
+        if (status.currentPings >= recipe.productionTime) {
+          status.currentPings = 0;
+          
+          // Verarbeite Inputs
+          recipe.inputs.forEach((input, index) => {
+            const inputConfig = config.inputs[index];
+            if (inputConfig.source === INPUT_SOURCES.GLOBAL_STORAGE) {
+              state.resources[input.resourceId].amount -= input.amount;
+            } else {
+              state.credits -= RESOURCES[input.resourceId].basePrice * input.amount;
+            }
+          });
+
+          // Füge Output hinzu
+          state.resources[recipe.output.resourceId].amount += recipe.output.amount;
+        }
+      });
     }
   },
 });
@@ -212,10 +216,11 @@ export const {
   upgradeStorage,
   addProductionLine,
   removeProductionLine,
+  renameProductionLine,
   setProductionRecipe,
   setInputSource,
   toggleProduction,
-  updateProductionProgress
+  handlePing
 } = gameSlice.actions;
 
 export default gameSlice.reducer; 
