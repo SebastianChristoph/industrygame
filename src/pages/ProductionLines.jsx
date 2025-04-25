@@ -29,7 +29,10 @@ import {
   Settings as SettingsIcon,
   Edit as EditIcon,
   Storage as StorageIcon,
-  Sell as SellIcon
+  Sell as SellIcon,
+  TrendingUp as IncomeIcon,
+  TrendingDown as ExpenseIcon,
+  AccountBalance as BalanceIcon
 } from '@mui/icons-material';
 import { addProductionLine, removeProductionLine, setProductionRecipe, renameProductionLine } from '../store/gameSlice';
 import { PRODUCTION_RECIPES, RESOURCES, OUTPUT_TARGETS, INPUT_SOURCES } from '../config/resources';
@@ -49,6 +52,37 @@ const ProductionLineCard = ({ line, onRenameClick, onDeleteClick }) => {
 
   const outputTarget = config?.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE;
   const outputResource = recipe ? RESOURCES[recipe.output.resourceId] : null;
+
+  // Berechne die Bilanz dieser Produktionslinie
+  const calculateLineBalance = () => {
+    if (!recipe || !config || !status?.isActive) return { income: 0, expenses: 0, balance: 0 };
+
+    let income = 0;
+    let expenses = 0;
+
+    // Berechne Kosten für Inputs
+    recipe.inputs.forEach((input, index) => {
+      const inputConfig = config.inputs[index];
+      if (inputConfig?.source === INPUT_SOURCES.PURCHASE_MODULE) {
+        const resource = RESOURCES[input.resourceId];
+        expenses += (resource.basePrice * input.amount) / recipe.productionTime;
+      }
+    });
+
+    // Berechne Einnahmen aus Verkäufen
+    const outputResource = RESOURCES[recipe.output.resourceId];
+    if (config.outputTarget === OUTPUT_TARGETS.AUTO_SELL) {
+      income += (outputResource.basePrice * recipe.output.amount) / recipe.productionTime;
+    }
+
+    return {
+      income: Math.round(income * 100) / 100,
+      expenses: Math.round(expenses * 100) / 100,
+      balance: Math.round((income - expenses) * 100) / 100
+    };
+  };
+
+  const { income, expenses, balance } = calculateLineBalance();
 
   // Prüfe Ressourcenverfügbarkeit
   const checkResourceAvailability = () => {
@@ -136,22 +170,49 @@ const ProductionLineCard = ({ line, onRenameClick, onDeleteClick }) => {
         </Typography>
 
         {recipe && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-            <Typography variant="body2" color="text.secondary">
-              Output: {recipe.output.amount}x {outputResource.icon} {outputResource.name}
-            </Typography>
-            <Tooltip title={
-              outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE 
-                ? `In globales Lager (${resources[recipe.output.resourceId].amount}/${resources[recipe.output.resourceId].capacity})` 
-                : `Automatischer Verkauf (${outputResource.basePrice * recipe.output.amount} Credits pro Produktion)`
-            }>
-              {outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE ? (
-                <StorageIcon fontSize="small" color="action" />
-              ) : (
-                <SellIcon fontSize="small" color="success" />
+          <>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
+              <Typography variant="body2" color="text.secondary">
+                Output: {recipe.output.amount}x {outputResource.icon} {outputResource.name}
+              </Typography>
+              <Tooltip title={
+                outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE 
+                  ? `In globales Lager (${resources[recipe.output.resourceId].amount}/${resources[recipe.output.resourceId].capacity})` 
+                  : `Automatischer Verkauf (${outputResource.basePrice * recipe.output.amount} Credits pro Produktion)`
+              }>
+                {outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE ? (
+                  <StorageIcon fontSize="small" color="action" />
+                ) : (
+                  <SellIcon fontSize="small" color="success" />
+                )}
+              </Tooltip>
+            </Box>
+
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 1 }}>
+              {income > 0 && (
+                <Typography variant="body2" color="success.main" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <IncomeIcon fontSize="small" />
+                  +{income}/Ping
+                </Typography>
               )}
-            </Tooltip>
-          </Box>
+              {expenses > 0 && (
+                <Typography variant="body2" color="error.main" sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <ExpenseIcon fontSize="small" />
+                  -{expenses}/Ping
+                </Typography>
+              )}
+              {(income > 0 || expenses > 0) && (
+                <Typography 
+                  variant="body2" 
+                  color={balance >= 0 ? "success.main" : "error.main"}
+                  sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
+                >
+                  <BalanceIcon fontSize="small" />
+                  {balance >= 0 ? '+' : ''}{balance}/Ping
+                </Typography>
+              )}
+            </Box>
+          </>
         )}
 
         {status?.isActive && recipe && (

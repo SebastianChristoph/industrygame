@@ -16,7 +16,9 @@ import {
   ListItemText,
   Button,
   Stack,
-  Chip
+  Chip,
+  Tooltip,
+  Paper
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -26,10 +28,13 @@ import {
   Settings,
   Info,
   Warehouse,
-  AttachMoney
+  TrendingUp as IncomeIcon,
+  TrendingDown as ExpenseIcon,
+  AccountBalance as BalanceIcon
 } from '@mui/icons-material';
 import { PingIndicator } from './PingIndicator';
 import StorageDrawer from './StorageDrawer';
+import { PRODUCTION_RECIPES, RESOURCES, OUTPUT_TARGETS, INPUT_SOURCES } from '../config/resources';
 
 const drawerWidth = 240;
 
@@ -45,10 +50,51 @@ const Layout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [storageOpen, setStorageOpen] = useState(false);
   const credits = useSelector(state => state.game.credits);
+  const productionLines = useSelector(state => state.game.productionLines);
+  const productionConfigs = useSelector(state => state.game.productionConfigs);
+  const productionStatus = useSelector(state => state.game.productionStatus);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
   };
+
+  // Berechne Einnahmen und Ausgaben pro Ping
+  const calculateBalance = () => {
+    let income = 0;
+    let expenses = 0;
+
+    productionLines.forEach(line => {
+      const config = productionConfigs[line.id];
+      const status = productionStatus[line.id];
+      
+      if (!config?.recipe || !status?.isActive) return;
+
+      const recipe = PRODUCTION_RECIPES[config.recipe];
+      const outputResource = RESOURCES[recipe.output.resourceId];
+      
+      // Berechne Kosten für Inputs
+      recipe.inputs.forEach((input, index) => {
+        const inputConfig = config.inputs[index];
+        if (inputConfig?.source === INPUT_SOURCES.PURCHASE_MODULE) {
+          const resource = RESOURCES[input.resourceId];
+          expenses += (resource.basePrice * input.amount) / recipe.productionTime;
+        }
+      });
+
+      // Berechne Einnahmen aus Verkäufen
+      if (config.outputTarget === OUTPUT_TARGETS.AUTO_SELL) {
+        income += (outputResource.basePrice * recipe.output.amount) / recipe.productionTime;
+      }
+    });
+
+    return {
+      income: Math.round(income * 100) / 100,
+      expenses: Math.round(expenses * 100) / 100,
+      balance: Math.round((income - expenses) * 100) / 100
+    };
+  };
+
+  const { income, expenses, balance } = calculateBalance();
 
   const drawer = (
     <div>
@@ -94,18 +140,55 @@ const Layout = () => {
           </Typography>
           <Stack direction="row" spacing={2} alignItems="center">
             <PingIndicator />
-            <Chip
-              icon={<AttachMoney />}
-              label={credits}
-              color="secondary"
-              sx={{ 
-                bgcolor: 'secondary.main',
-                color: 'secondary.contrastText',
-                '& .MuiChip-icon': { 
-                  color: 'secondary.contrastText' 
-                }
-              }}
-            />
+            
+            <Tooltip title="Einnahmen pro Ping">
+              <Paper elevation={0} sx={{ 
+                p: 1, 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 1,
+                bgcolor: 'success.main',
+                color: 'success.contrastText'
+              }}>
+                <IncomeIcon />
+                <Typography variant="body2">
+                  +{income}/Ping
+                </Typography>
+              </Paper>
+            </Tooltip>
+
+            <Tooltip title="Ausgaben pro Ping">
+              <Paper elevation={0} sx={{ 
+                p: 1, 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 1,
+                bgcolor: 'error.main',
+                color: 'error.contrastText'
+              }}>
+                <ExpenseIcon />
+                <Typography variant="body2">
+                  -{expenses}/Ping
+                </Typography>
+              </Paper>
+            </Tooltip>
+
+            <Tooltip title="Bilanz pro Ping">
+              <Paper elevation={0} sx={{ 
+                p: 1, 
+                display: 'flex', 
+                alignItems: 'center', 
+                gap: 1,
+                bgcolor: balance >= 0 ? 'success.main' : 'error.main',
+                color: balance >= 0 ? 'success.contrastText' : 'error.contrastText'
+              }}>
+                <BalanceIcon />
+                <Typography variant="body2">
+                  {balance >= 0 ? '+' : ''}{balance}/Ping
+                </Typography>
+              </Paper>
+            </Tooltip>
+
             <Button
               color="inherit"
               startIcon={<Warehouse />}
