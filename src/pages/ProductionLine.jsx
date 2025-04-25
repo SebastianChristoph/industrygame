@@ -401,11 +401,11 @@ const ProductionLine = () => {
             position: 'relative',
             minHeight: '100px'
           }}>
+            <Typography variant="body1" color="text.primary" fontWeight="bold" sx={{ mb: -1 }}>
+              {selectedRecipe.productionTime} Pings
+            </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <ArrowDownIcon color="error" sx={{ fontSize: 40 }} />
-              <Typography variant="body1" color="error.main" fontWeight="bold">
-                {selectedRecipe.productionTime} Pings
-              </Typography>
+              <ArrowDownIcon color="primary" sx={{ fontSize: 40 }} />
             </Box>
             
             {(productionStatus?.isActive || productionStatus?.currentPings >= selectedRecipe?.productionTime) && (
@@ -514,9 +514,18 @@ const ProductionLine = () => {
       </Box>
 
       {productionStatus?.error && (
-        <Box sx={{ mt: 2, p: 1, bgcolor: 'error.light', borderRadius: 1 }}>
-          <Typography color="error">
-            Fehler: {productionStatus.error}
+        <Box sx={{ 
+          mt: 2, 
+          p: 2, 
+          bgcolor: 'rgba(255, 68, 68, 0.1)', 
+          borderRadius: 1,
+          border: '1px solid #ff4444',
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1
+        }}>
+          <Typography color="error.main" sx={{ fontWeight: 500 }}>
+            {productionStatus.error}
           </Typography>
         </Box>
       )}

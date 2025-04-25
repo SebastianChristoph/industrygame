@@ -143,8 +143,18 @@ const ProductionLineCard = ({ line, onRenameClick, onDeleteClick }) => {
   };
 
   return (
-    <Card sx={{ height: '100%', display: 'flex', flexDirection: 'column', position: 'relative', bgcolor: 'background.paper' }}>
-      <CardContent sx={{ flexGrow: 1 }}>
+    <Card sx={{ 
+      height: '100%', 
+      display: 'flex', 
+      flexDirection: 'column', 
+      position: 'relative', 
+      bgcolor: 'background.paper',
+      minHeight: '200px' // Mindesthöhe für Konsistenz
+    }}>
+      <CardContent sx={{ 
+        flexGrow: 1,
+        pb: 1 // Reduziertes padding-bottom da CardActions eigenes Padding hat
+      }}>
         <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1 }}>
           {recipe && outputResource && outputResource.icon}
           <Typography variant="h6" sx={{ flexGrow: 1 }}>
@@ -186,37 +196,48 @@ const ProductionLineCard = ({ line, onRenameClick, onDeleteClick }) => {
             {status.error}
           </Typography>
         )}
-
-        <Box sx={{ display: 'flex', gap: 1, mt: 2 }}>
-          <Tooltip title={
-            !recipe ? "Kein Rezept ausgewählt" :
-            !canProduce && status?.isActive ? missingResources.map(r => `${r.name}: ${r.reason}`).join(', ') :
-            status?.isActive ? "Produktion stoppen" : "Produktion starten"
-          }>
-            <span>
-              <Button
-                variant="contained"
-                color={status?.isActive ? "error" : "primary"}
-                startIcon={status?.isActive ? <Stop /> : <PlayArrow />}
-                onClick={handleToggleProduction}
-                disabled={!recipe || (!canProduce && !status?.isActive)}
-                size="small"
-              >
-                {status?.isActive ? "Stop" : "Start"}
-              </Button>
-            </span>
-          </Tooltip>
-
-          <Button
-            variant="outlined"
-            startIcon={<SettingsIcon />}
-            onClick={() => navigate(`/production/${line.id}`)}
-            size="small"
-          >
-            KONFIGURIEREN
-          </Button>
-        </Box>
       </CardContent>
+
+      <CardActions sx={{ 
+        mt: 'auto',
+        pt: 2,
+        pb: 2,
+        px: 2,
+        borderTop: '1px solid',
+        borderColor: 'divider',
+        gap: 1
+      }}>
+        <Tooltip title={
+          !recipe ? "Kein Rezept ausgewählt" :
+          !canProduce && status?.isActive ? missingResources.map(r => `${r.name}: ${r.reason}`).join(', ') :
+          status?.isActive ? "Produktion stoppen" : "Produktion starten"
+        }>
+          <span style={{ flex: '1 1 auto' }}>
+            <Button
+              variant="contained"
+              color={status?.isActive ? "error" : "primary"}
+              startIcon={status?.isActive ? <Stop /> : <PlayArrow />}
+              onClick={handleToggleProduction}
+              disabled={!recipe || (!canProduce && !status?.isActive)}
+              size="small"
+              fullWidth
+            >
+              {status?.isActive ? "Stop" : "Start"}
+            </Button>
+          </span>
+        </Tooltip>
+
+        <Button
+          variant="outlined"
+          startIcon={<SettingsIcon />}
+          onClick={() => navigate(`/production/${line.id}`)}
+          size="small"
+          sx={{ flex: '1 1 auto' }}
+          fullWidth
+        >
+          KONFIGURIEREN
+        </Button>
+      </CardActions>
     </Card>
   );
 };

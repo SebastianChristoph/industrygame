@@ -54,15 +54,28 @@ const StorageDrawer = ({ open, onClose }) => {
         </Box>
         <Divider sx={{ mb: 2 }} />
         
-        <TableContainer component={Paper} variant="outlined">
-          <Table size="small">
+        <TableContainer 
+          component={Paper} 
+          variant="outlined"
+          sx={{ 
+            maxWidth: '100%',
+            overflowX: 'hidden'
+          }}
+        >
+          <Table 
+            size="small"
+            sx={{
+              minWidth: '100%',
+              tableLayout: 'fixed'
+            }}
+          >
             <TableHead>
               <TableRow>
-                <TableCell>Rohstoff</TableCell>
-                <TableCell align="right">Bestand</TableCell>
-                <TableCell>Auslastung</TableCell>
-                <TableCell align="right">Level</TableCell>
-                <TableCell align="right">Aktion</TableCell>
+                <TableCell width="20%">Rohstoff</TableCell>
+                <TableCell width="20%" align="right">Bestand</TableCell>
+                <TableCell width="25%">Auslastung</TableCell>
+                <TableCell width="15%" align="right">Level</TableCell>
+                <TableCell width="20%" align="right">Aktion</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -129,7 +142,11 @@ const StorageDrawer = ({ open, onClose }) => {
                         startIcon={<Warehouse />}
                         onClick={() => handleUpgradeStorage(id)}
                         disabled={credits < nextUpgradeCost}
-                        sx={{ whiteSpace: 'nowrap' }}
+                        sx={{ 
+                          whiteSpace: 'nowrap',
+                          fontSize: '0.75rem',
+                          padding: '4px 8px'
+                        }}
                       >
                         {nextUpgradeCost} Credits
                       </Button>
