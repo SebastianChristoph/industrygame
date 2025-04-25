@@ -1,5 +1,5 @@
 import { Drawer, List, ListItem, ListItemIcon, ListItemText, Box } from '@mui/material';
-import { Home, Settings, Info, Warehouse } from '@mui/icons-material';
+import { Home, Settings, Info, Warehouse, Factory } from '@mui/icons-material';
 import { Link } from 'react-router-dom';
 
 const Navbar = () => {
@@ -8,6 +8,7 @@ const Navbar = () => {
   const menuItems = [
     { text: 'Home', icon: <Home />, path: '/' },
     { text: 'Lager', icon: <Warehouse />, path: '/storage' },
+    { text: 'Produktion', icon: <Factory />, path: '/production' },
     { text: 'Settings', icon: <Settings />, path: '/settings' },
     { text: 'About', icon: <Info />, path: '/about' },
   ];

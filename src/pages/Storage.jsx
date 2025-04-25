@@ -1,18 +1,23 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { 
-  Box, 
-  Typography, 
-  Card, 
-  CardContent, 
-  Button, 
-  Grid, 
+import {
+  Box,
+  Typography,
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Paper,
   LinearProgress,
-  Stack
+  Tooltip,
+  IconButton
 } from '@mui/material';
-import { RESOURCES } from '../config/resources';
+import { RESOURCES, calculateUpgradeCost } from '../config/resources';
 import { upgradeStorage } from '../store/gameSlice';
-import { Warehouse } from '@mui/icons-material';
+import { Warehouse, Info } from '@mui/icons-material';
 
 const Storage = () => {
   const dispatch = useDispatch();
@@ -24,69 +29,106 @@ const Storage = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
-        Rohstofflager
-      </Typography>
-      
-      <Typography variant="h6" color="text.secondary" gutterBottom sx={{ mb: 3 }}>
-        Credits verfügbar: {credits}
-      </Typography>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+        <Typography variant="h4">
+          Rohstofflager
+        </Typography>
+        <Typography variant="h6" color="text.secondary">
+          Credits verfügbar: {credits}
+        </Typography>
+      </Box>
 
-      <Grid container spacing={2}>
-        {Object.entries(RESOURCES).map(([id, resource]) => {
-          const resourceData = resources[id];
-          const percentage = (resourceData.amount / resourceData.capacity) * 100;
-          
-          return (
-            <Grid item xs={12} sm={6} md={4} key={id}>
-              <Card>
-                <CardContent>
-                  <Stack spacing={2}>
+      <TableContainer component={Paper}>
+        <Table>
+          <TableHead>
+            <TableRow>
+              <TableCell>Rohstoff</TableCell>
+              <TableCell>Beschreibung</TableCell>
+              <TableCell align="right">Lagerbestand</TableCell>
+              <TableCell>Auslastung</TableCell>
+              <TableCell align="right">Level</TableCell>
+              <TableCell align="right">Aktion</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {Object.entries(RESOURCES).map(([id, resource]) => {
+              const resourceData = resources[id];
+              const percentage = (resourceData.amount / resourceData.capacity) * 100;
+              const nextUpgradeCost = calculateUpgradeCost(resourceData.storageLevel);
+
+              return (
+                <TableRow 
+                  key={id}
+                  sx={{
+                    '&:nth-of-type(odd)': { bgcolor: 'action.hover' },
+                    '& > *': { borderBottom: 'unset' }
+                  }}
+                >
+                  <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Typography variant="h6" sx={{ mr: 1 }}>
-                        {resource.icon}
-                      </Typography>
-                      <Typography variant="h6">
-                        {resource.name}
-                      </Typography>
+                      {resource.icon}
+                      <Typography>{resource.name}</Typography>
                     </Box>
-                    
-                    <Typography variant="body2" color="text.secondary">
+                  </TableCell>
+                  <TableCell>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       {resource.description}
-                    </Typography>
-                    
-                    <Box>
-                      <Typography variant="body2" sx={{ mb: 1 }}>
-                        Lagerbestand: {resourceData.amount} / {resourceData.capacity}
-                      </Typography>
-                      <LinearProgress 
-                        variant="determinate" 
-                        value={percentage} 
-                        sx={{ mb: 2 }}
-                      />
+                      <Tooltip title="Klicke auf Upgrade um die Lagerkapazität zu erhöhen">
+                        <IconButton size="small">
+                          <Info fontSize="small" />
+                        </IconButton>
+                      </Tooltip>
                     </Box>
-
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <Typography variant="body2" color="text.secondary">
-                        Lagerstufe: {resourceData.storageLevel}
-                      </Typography>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        startIcon={<Warehouse />}
-                        onClick={() => handleUpgradeStorage(id)}
-                        disabled={credits < 200}
-                      >
-                        Upgrade (200 Credits)
-                      </Button>
+                  </TableCell>
+                  <TableCell align="right">
+                    {resourceData.amount} / {resourceData.capacity}
+                  </TableCell>
+                  <TableCell sx={{ width: '200px' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Box sx={{ width: '100%', mr: 1 }}>
+                        <LinearProgress 
+                          variant="determinate" 
+                          value={percentage}
+                          sx={{
+                            height: 8,
+                            borderRadius: 1,
+                            bgcolor: 'grey.200',
+                            '& .MuiLinearProgress-bar': {
+                              bgcolor: percentage > 90 ? 'error.main' : 
+                                      percentage > 75 ? 'warning.main' : 
+                                      'primary.main'
+                            }
+                          }}
+                        />
+                      </Box>
+                      <Box sx={{ minWidth: 35 }}>
+                        <Typography variant="body2" color="text.secondary">
+                          {Math.round(percentage)}%
+                        </Typography>
+                      </Box>
                     </Box>
-                  </Stack>
-                </CardContent>
-              </Card>
-            </Grid>
-          );
-        })}
-      </Grid>
+                  </TableCell>
+                  <TableCell align="right">
+                    {resourceData.storageLevel}
+                  </TableCell>
+                  <TableCell align="right">
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      startIcon={<Warehouse />}
+                      onClick={() => handleUpgradeStorage(id)}
+                      disabled={credits < nextUpgradeCost}
+                      sx={{ whiteSpace: 'nowrap' }}
+                    >
+                      Upgrade ({nextUpgradeCost} Credits)
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              );
+            })}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </Box>
   );
 };
