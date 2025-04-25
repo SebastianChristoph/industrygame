@@ -23,6 +23,7 @@ import {
   Toolbar,
   Tooltip,
   Typography,
+  useTheme,
 } from "@mui/material";
 import React, { useState } from "react";
 import { useSelector } from "react-redux";
@@ -52,6 +53,7 @@ const Layout = () => {
     (state) => state.game.productionConfigs
   );
   const productionStatus = useSelector((state) => state.game.productionStatus);
+  const theme = useTheme();
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -122,7 +124,7 @@ const Layout = () => {
         sx={{
           width: { sm: `calc(100% - ${drawerWidth}px)` },
           ml: { sm: `${drawerWidth}px` },
-          bgcolor: '#c62828',
+          bgcolor: theme.palette.primary.main,
           height: '48px',
           boxShadow: 'none',
         }}
@@ -143,8 +145,8 @@ const Layout = () => {
               flexGrow: 1,
               fontSize: '1.1rem',
               fontWeight: 500,
-              color: '#fff',
-              fontFamily: 'system-ui, -apple-system, sans-serif',
+              color: theme.palette.primary.contrastText,
+              fontFamily: theme.typography.fontFamily,
             }}
           >
             Industry Game
@@ -162,12 +164,12 @@ const Layout = () => {
                   px: 1.5,
                   py: 0.5,
                   bgcolor: 'rgba(0,0,0,0.2)',
-                  borderRadius: 1,
-                  border: '1px solid rgba(255,255,255,0.1)'
+                  borderRadius: theme.shape.borderRadius,
+                  border: `1px solid ${theme.palette.primary.light}`
                 }}
               >
-                <MoneyIcon sx={{ color: '#fff', fontSize: '1.1rem' }} />
-                <Typography sx={{ color: '#fff', fontSize: '0.9rem' }}>
+                <MoneyIcon sx={{ color: theme.palette.primary.contrastText, fontSize: '1.1rem' }} />
+                <Typography sx={{ color: theme.palette.primary.contrastText, fontSize: '0.9rem' }}>
                   +{income}
                 </Typography>
               </Box>
@@ -182,12 +184,12 @@ const Layout = () => {
                   px: 1.5,
                   py: 0.5,
                   bgcolor: 'rgba(0,0,0,0.2)',
-                  borderRadius: 1,
-                  border: '1px solid rgba(255,255,255,0.1)'
+                  borderRadius: theme.shape.borderRadius,
+                  border: `1px solid ${theme.palette.primary.light}`
                 }}
               >
-                <ExpensesIcon sx={{ color: '#fff', fontSize: '1.1rem' }} />
-                <Typography sx={{ color: '#fff', fontSize: '0.9rem' }}>
+                <ExpensesIcon sx={{ color: theme.palette.primary.contrastText, fontSize: '1.1rem' }} />
+                <Typography sx={{ color: theme.palette.primary.contrastText, fontSize: '0.9rem' }}>
                   -{expenses}
                 </Typography>
               </Box>
@@ -202,12 +204,12 @@ const Layout = () => {
                   px: 1.5,
                   py: 0.5,
                   bgcolor: 'rgba(0,0,0,0.2)',
-                  borderRadius: 1,
-                  border: '1px solid rgba(255,255,255,0.1)'
+                  borderRadius: theme.shape.borderRadius,
+                  border: `1px solid ${theme.palette.primary.light}`
                 }}
               >
-                <BalanceIcon sx={{ color: '#fff', fontSize: '1.1rem' }} />
-                <Typography sx={{ color: '#fff', fontSize: '0.9rem' }}>
+                <BalanceIcon sx={{ color: theme.palette.primary.contrastText, fontSize: '1.1rem' }} />
+                <Typography sx={{ color: theme.palette.primary.contrastText, fontSize: '0.9rem' }}>
                   {balance >= 0 ? '+' : ''}{balance}
                 </Typography>
               </Box>
@@ -222,13 +224,13 @@ const Layout = () => {
                   px: 1.5,
                   py: 0.5,
                   bgcolor: 'rgba(0,0,0,0.2)',
-                  borderRadius: 1,
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  borderRadius: theme.shape.borderRadius,
+                  border: `1px solid ${theme.palette.primary.light}`,
                   minWidth: '100px',
                 }}
               >
-                <MoneyIcon sx={{ color: '#fff', fontSize: '1.1rem' }} />
-                <Typography sx={{ color: '#fff', fontSize: '0.9rem', fontWeight: 500 }}>
+                <MoneyIcon sx={{ color: theme.palette.primary.contrastText, fontSize: '1.1rem' }} />
+                <Typography sx={{ color: theme.palette.primary.contrastText, fontSize: '0.9rem', fontWeight: 500 }}>
                   ${credits.toLocaleString()}
                 </Typography>
               </Box>
@@ -237,9 +239,9 @@ const Layout = () => {
             <Tooltip title="Lager öffnen">
               <Button
                 sx={{
-                  color: '#fff',
+                  color: theme.palette.primary.contrastText,
                   bgcolor: 'rgba(0,0,0,0.2)',
-                  border: '1px solid rgba(255,255,255,0.1)',
+                  border: `1px solid ${theme.palette.primary.light}`,
                   '&:hover': {
                     bgcolor: 'rgba(0,0,0,0.3)',
                   }

@@ -12,38 +12,37 @@ import {
   TableRow,
   Paper,
   LinearProgress,
-  Tooltip,
-  IconButton
+  useTheme
 } from '@mui/material';
 import { RESOURCES, calculateUpgradeCost } from '../config/resources';
 import { upgradeStorage } from '../store/gameSlice';
-import { Warehouse, Info } from '@mui/icons-material';
+import { Warehouse } from '@mui/icons-material';
 
 const Storage = () => {
   const dispatch = useDispatch();
   const { credits, resources } = useSelector(state => state.game);
+  const theme = useTheme();
 
   const handleUpgradeStorage = (resourceId) => {
     dispatch(upgradeStorage(resourceId));
   };
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4">
+    <Box sx={{ p: 2 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+        <Typography variant="h5" color="text.primary">
           Rohstofflager
         </Typography>
-        <Typography variant="h6" color="text.secondary">
+        <Typography variant="subtitle1" color="text.secondary">
           Credits verfügbar: {credits}
         </Typography>
       </Box>
 
       <TableContainer component={Paper}>
-        <Table>
+        <Table size="small">
           <TableHead>
             <TableRow>
               <TableCell>Rohstoff</TableCell>
-              <TableCell>Beschreibung</TableCell>
               <TableCell align="right">Lagerbestand</TableCell>
               <TableCell>Auslastung</TableCell>
               <TableCell align="right">Level</TableCell>
@@ -60,67 +59,70 @@ const Storage = () => {
                 <TableRow 
                   key={id}
                   sx={{
-                    '&:nth-of-type(odd)': { bgcolor: 'action.hover' },
-                    '& > *': { borderBottom: 'unset' }
+                    '&:nth-of-type(odd)': { bgcolor: theme.palette.action.hover },
+                    '& > *': { 
+                      borderBottom: `1px solid ${theme.palette.divider}`,
+                      padding: '8px'
+                    }
                   }}
                 >
                   <TableCell>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       {resource.icon}
-                      <Typography>{resource.name}</Typography>
-                    </Box>
-                  </TableCell>
-                  <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      {resource.description}
-                      <Tooltip title="Klicke auf Upgrade um die Lagerkapazität zu erhöhen">
-                        <IconButton size="small">
-                          <Info fontSize="small" />
-                        </IconButton>
-                      </Tooltip>
+                      <Typography variant="body2" color="text.primary">{resource.name}</Typography>
                     </Box>
                   </TableCell>
                   <TableCell align="right">
-                    {resourceData.amount} / {resourceData.capacity}
+                    <Typography variant="body2">{resourceData.amount} / {resourceData.capacity}</Typography>
                   </TableCell>
-                  <TableCell sx={{ width: '200px' }}>
+                  <TableCell sx={{ width: '150px' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                       <Box sx={{ width: '100%', mr: 1 }}>
                         <LinearProgress 
                           variant="determinate" 
                           value={percentage}
                           sx={{
-                            height: 8,
-                            borderRadius: 1,
-                            bgcolor: 'grey.200',
+                            height: 6,
+                            borderRadius: theme.shape.borderRadius,
+                            bgcolor: theme.palette.background.default,
                             '& .MuiLinearProgress-bar': {
-                              bgcolor: percentage > 90 ? 'error.main' : 
-                                      percentage > 75 ? 'warning.main' : 
-                                      'primary.main'
+                              bgcolor: percentage > 90 ? theme.palette.error.main : 
+                                      percentage > 75 ? theme.palette.warning.main : 
+                                      theme.palette.primary.main
                             }
                           }}
                         />
                       </Box>
-                      <Box sx={{ minWidth: 35 }}>
-                        <Typography variant="body2" color="text.secondary">
-                          {Math.round(percentage)}%
-                        </Typography>
-                      </Box>
+                      <Typography variant="body2" color="text.secondary" sx={{ minWidth: 35 }}>
+                        {Math.round(percentage)}%
+                      </Typography>
                     </Box>
                   </TableCell>
                   <TableCell align="right">
-                    {resourceData.storageLevel}
+                    <Typography variant="body2">{resourceData.storageLevel}</Typography>
                   </TableCell>
                   <TableCell align="right">
                     <Button
                       variant="outlined"
                       size="small"
-                      startIcon={<Warehouse />}
+                      startIcon={<Warehouse sx={{ fontSize: '1rem' }} />}
                       onClick={() => handleUpgradeStorage(id)}
                       disabled={credits < nextUpgradeCost}
-                      sx={{ whiteSpace: 'nowrap' }}
+                      sx={{ 
+                        whiteSpace: 'nowrap',
+                        color: theme.palette.primary.main,
+                        borderColor: theme.palette.primary.main,
+                        padding: '2px 8px',
+                        '& .MuiButton-startIcon': {
+                          marginRight: 0.5
+                        },
+                        '&:hover': {
+                          borderColor: theme.palette.primary.dark,
+                          bgcolor: theme.palette.action.hover
+                        }
+                      }}
                     >
-                      Upgrade ({nextUpgradeCost} Credits)
+                      {nextUpgradeCost}
                     </Button>
                   </TableCell>
                 </TableRow>

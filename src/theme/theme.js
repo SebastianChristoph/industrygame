@@ -2,32 +2,32 @@ import { createTheme } from '@mui/material/styles';
 
 export const theme = createTheme({
   palette: {
-    mode: 'dark',
+    mode: 'light',
     primary: {
-      main: '#c62828', // Deep red for primary actions
-      light: '#ff5f52',
-      dark: '#8e0000',
+      main: '#2e7d32', // Forest green for primary actions
+      light: '#4caf50',
+      dark: '#1b5e20',
     },
     secondary: {
-      main: '#37474f', // Blue grey for secondary elements
-      light: '#62727b',
-      dark: '#102027',
+      main: '#795548', // Brown for secondary elements
+      light: '#a1887f',
+      dark: '#4b2c20',
     },
     background: {
-      default: '#1c2025', // Dark background like in the game
-      paper: '#262b32',   // Slightly lighter for cards/elements
+      default: '#f5f5dc', // Light beige background
+      paper: '#ffffff',   // White for cards/elements
     },
     text: {
-      primary: '#ffffff',
-      secondary: 'rgba(255, 255, 255, 0.7)',
+      primary: '#2e7d32', // Green text for primary
+      secondary: '#795548', // Brown for secondary text
     },
     success: {
-      main: '#4caf50', // Green for positive numbers/growth
-      light: '#80e27e',
+      main: '#2e7d32', // Green for positive indicators
+      light: '#4caf50',
     },
     error: {
-      main: '#f44336', // Red for negative numbers/loss
-      light: '#ff7961',
+      main: '#c62828', // Keep red for errors/negative indicators
+      light: '#ff5f52',
     }
   },
   typography: {
@@ -63,8 +63,8 @@ export const theme = createTheme({
     MuiCssBaseline: {
       styleOverrides: {
         body: {
-          backgroundColor: '#1c2025',
-          color: '#ffffff',
+          backgroundColor: '#f5f5dc',
+          color: '#2e7d32',
         },
       },
     },
@@ -72,19 +72,29 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           backgroundImage: 'none',
+          boxShadow: 'none',
+          border: '1px solid #2e7d32',
         },
       },
     },
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 0, // Sharp edges like in the industrial design
+          borderRadius: 4, // Slightly rounded corners like in the screenshot
           textTransform: 'none',
+          border: '1px solid #2e7d32',
+        },
+      },
+    },
+    MuiIconButton: {
+      styleOverrides: {
+        root: {
+          color: '#2e7d32',
         },
       },
     },
   },
   shape: {
-    borderRadius: 0, // Sharp edges throughout the app
+    borderRadius: 4, // Slightly rounded corners throughout the app
   },
 }); 

@@ -9,6 +9,7 @@ import {
   CardContent,
   Grid,
   CircularProgress,
+  LinearProgress,
   Tooltip,
   List,
   ListItem,
@@ -82,7 +83,9 @@ const ProductionLine = () => {
 
   // Berechne den Fortschritt in Prozent
   const progressPercent = productionStatus?.currentPings 
-    ? (productionStatus.currentPings / selectedRecipe?.productionTime) * 100 
+    ? (productionStatus.currentPings >= selectedRecipe?.productionTime 
+        ? 100 
+        : (productionStatus.currentPings / selectedRecipe?.productionTime) * 100)
     : 0;
 
   // Setze automatisch die Einkaufsmodule für die Inputs, wenn noch nicht konfiguriert
@@ -270,26 +273,34 @@ const ProductionLine = () => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} display="flex" justifyContent="center" alignItems="center">
+        <Grid item xs={12} md={6} style={{ width: '100%' }}>
           <Box sx={{ 
             display: 'flex', 
+            flexDirection: 'column',
             alignItems: 'center',
+            width: '100%',
             gap: 2,
             my: 2
           }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <ArrowDownIcon sx={{ fontSize: 40, color: 'error.main' }} />
+              <ArrowDownIcon color="error" sx={{ fontSize: 40 }} />
               <Typography variant="body1" color="error.main" fontWeight="bold">
                 {selectedRecipe.productionTime} Pings
               </Typography>
             </Box>
-            {productionStatus?.isActive && (
-              <CircularProgress
-                variant="determinate"
+            {(productionStatus?.isActive || productionStatus?.currentPings >= selectedRecipe?.productionTime) && (
+              <LinearProgress 
+                variant="determinate" 
                 value={progressPercent}
-                size={24}
                 sx={{
-                  color: canStartProduction() ? 'primary.main' : 'error.main'
+                  width: '100%',
+                  height: 20,
+                  borderRadius: 2,
+                  backgroundColor: 'action.disabledBackground',
+                  '& .MuiLinearProgress-bar': {
+                    backgroundColor: canStartProduction() ? 'primary.main' : 'error.main',
+                    transition: 'transform 0.3s linear'
+                  }
                 }}
               />
             )}
