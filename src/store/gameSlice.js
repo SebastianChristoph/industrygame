@@ -5,7 +5,8 @@ import {
   calculateUpgradeCost, 
   PRODUCTION_RECIPES, 
   RESOURCES,
-  INPUT_SOURCES 
+  INPUT_SOURCES,
+  OUTPUT_TARGETS
 } from '../config/resources';
 
 const initialState = {
@@ -98,6 +99,7 @@ const gameSlice = createSlice({
       if (state.productionConfigs[productionLineId]) {
         state.productionConfigs[productionLineId].recipe = recipeId;
         state.productionConfigs[productionLineId].inputs = [];
+        state.productionConfigs[productionLineId].outputTarget = OUTPUT_TARGETS.GLOBAL_STORAGE; // Default to global storage
         // Reset production status when recipe changes
         state.productionStatus[productionLineId] = {
           isActive: false,
@@ -136,6 +138,12 @@ const gameSlice = createSlice({
         }
       }
     },
+    setOutputTarget: (state, action) => {
+      const { productionLineId, target } = action.payload;
+      if (state.productionConfigs[productionLineId]) {
+        state.productionConfigs[productionLineId].outputTarget = target;
+      }
+    },
     handlePing: (state) => {
       // Aktualisiere alle aktiven Produktionslinien
       Object.entries(state.productionStatus).forEach(([productionLineId, status]) => {
@@ -146,12 +154,14 @@ const gameSlice = createSlice({
 
         const recipe = PRODUCTION_RECIPES[config.recipe];
         
-        // Prüfe ob genug Lagerplatz für Output vorhanden ist
-        const outputResource = state.resources[recipe.output.resourceId];
-        if (outputResource.amount + recipe.output.amount > outputResource.capacity) {
-          status.error = "Nicht genug Lagerplatz für Output";
-          status.isActive = false;
-          return;
+        // Prüfe ob genug Lagerplatz für Output vorhanden ist (nur wenn GLOBAL_STORAGE als Ziel)
+        if (config.outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE) {
+          const outputResource = state.resources[recipe.output.resourceId];
+          if (outputResource.amount + recipe.output.amount > outputResource.capacity) {
+            status.error = "Nicht genug Lagerplatz für Output";
+            status.isActive = false;
+            return;
+          }
         }
 
         // Prüfe und reserviere Input Ressourcen
@@ -199,8 +209,14 @@ const gameSlice = createSlice({
             }
           });
 
-          // Füge Output hinzu
-          state.resources[recipe.output.resourceId].amount += recipe.output.amount;
+          // Verarbeite Output basierend auf dem Ziel
+          const outputResource = RESOURCES[recipe.output.resourceId];
+          if (config.outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE) {
+            state.resources[recipe.output.resourceId].amount += recipe.output.amount;
+          } else if (config.outputTarget === OUTPUT_TARGETS.AUTO_SELL) {
+            // Verkaufe die produzierten Ressourcen zum Basispreis
+            state.credits += outputResource.basePrice * recipe.output.amount;
+          }
         }
       });
     }
@@ -220,6 +236,7 @@ export const {
   setProductionRecipe,
   setInputSource,
   toggleProduction,
+  setOutputTarget,
   handlePing
 } = gameSlice.actions;
 
