@@ -33,9 +33,7 @@ const Storage = () => {
         <Typography variant="h5" color="text.primary">
           Rohstofflager
         </Typography>
-        <Typography variant="subtitle1" color="text.secondary">
-          Credits verfügbar: {credits}
-        </Typography>
+       
       </Box>
 
       <TableContainer component={Paper}>

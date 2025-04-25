@@ -26,7 +26,8 @@ import {
   TextField,
   DialogContentText,
   ToggleButton,
-  ToggleButtonGroup
+  ToggleButtonGroup,
+  FormHelperText
 } from '@mui/material';
 import {
   ArrowBack,
@@ -54,6 +55,46 @@ import {
   renameProductionLine,
   setOutputTarget
 } from '../store/gameSlice';
+import { keyframes } from '@mui/system';
+import { styled } from '@mui/material/styles';
+
+// Definiere die Styles direkt im JSX
+const styles = `
+  @keyframes popEffect {
+    0% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.5);
+    }
+    30% {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1.2);
+    }
+    70% {
+      opacity: 1;
+      transform: translate(-50%, -50%) scale(1);
+    }
+    100% {
+      opacity: 0;
+      transform: translate(-50%, -50%) scale(0.8);
+    }
+  }
+
+  .production-animation {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.5rem;
+    pointer-events: none;
+  }
+
+  .production-animation.animate {
+    animation: popEffect 0.5s ease-out forwards;
+  }
+`;
 
 const ProductionLine = () => {
   const { id } = useParams();
@@ -64,6 +105,10 @@ const ProductionLine = () => {
   const [isRenameDialogOpen, setIsRenameDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [newName, setNewName] = useState('');
+  const [nameError, setNameError] = useState('');
+  const [showProductionAnimation, setShowProductionAnimation] = useState(false);
+  const [prevPings, setPrevPings] = useState(0);
+  const [animationKey, setAnimationKey] = useState(0);
 
   const productionLine = useSelector(state =>
     state.game.productionLines.find(line => line.id === productionLineId)
@@ -80,6 +125,8 @@ const ProductionLine = () => {
   const resources = useSelector(state => state.game.resources);
   const credits = useSelector(state => state.game.credits);
   const selectedRecipe = PRODUCTION_RECIPES[productionConfig?.recipe];
+
+  const productionLines = useSelector(state => state.game.productionLines);
 
   // Berechne den Fortschritt in Prozent
   const progressPercent = productionStatus?.currentPings 
@@ -102,6 +149,30 @@ const ProductionLine = () => {
       });
     }
   }, [productionConfig?.recipe, dispatch, productionLineId]);
+
+  // Watch for production completion
+  useEffect(() => {
+    if (!productionStatus?.isActive || !selectedRecipe) return;
+
+    const currentPings = productionStatus.currentPings;
+    const wasNearCompletion = prevPings >= (selectedRecipe.productionTime - 1);
+    const justCompleted = wasNearCompletion && currentPings === 0;
+
+    setPrevPings(currentPings);
+
+    if (justCompleted) {
+      console.log('EFFECT! Animation triggered');
+      setAnimationKey(prev => prev + 1);
+      setShowProductionAnimation(true);
+      
+      const timer = setTimeout(() => {
+        console.log('Animation ended');
+        setShowProductionAnimation(false);
+      }, 500);
+
+      return () => clearTimeout(timer);
+    }
+  }, [productionStatus?.currentPings, productionStatus?.isActive, selectedRecipe, prevPings]);
 
   const handleToggleProduction = () => {
     dispatch(toggleProduction(productionLineId));
@@ -138,19 +209,36 @@ const ProductionLine = () => {
     return hasEnoughResources;
   };
 
+  const checkNameUniqueness = (name) => {
+    return !productionLines.some(line => 
+      line.id !== productionLineId && 
+      line.name.toLowerCase() === name.toLowerCase()
+    );
+  };
+
   const handleRenameClick = () => {
     setNewName(productionLine.name);
+    setNameError('');
     setIsRenameDialogOpen(true);
   };
 
   const handleConfirmRename = () => {
-    if (newName.trim()) {
-      dispatch(renameProductionLine({
-        id: productionLineId,
-        name: newName.trim()
-      }));
-      setIsRenameDialogOpen(false);
+    const trimmedName = newName.trim();
+    if (!trimmedName) {
+      setNameError('Name darf nicht leer sein');
+      return;
     }
+    
+    if (!checkNameUniqueness(trimmedName)) {
+      setNameError('Eine Produktionslinie mit diesem Namen existiert bereits');
+      return;
+    }
+
+    dispatch(renameProductionLine({
+      id: productionLineId,
+      name: trimmedName
+    }));
+    setIsRenameDialogOpen(false);
   };
 
   const handleDeleteClick = () => {
@@ -182,6 +270,7 @@ const ProductionLine = () => {
 
   return (
     <Box sx={{ p: 3 }}>
+      <style>{styles}</style>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
         <Button
           startIcon={<ArrowBack />}
@@ -280,7 +369,9 @@ const ProductionLine = () => {
             alignItems: 'center',
             width: '100%',
             gap: 2,
-            my: 2
+            my: 2,
+            position: 'relative',
+            minHeight: '100px'
           }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <ArrowDownIcon color="error" sx={{ fontSize: 40 }} />
@@ -288,6 +379,7 @@ const ProductionLine = () => {
                 {selectedRecipe.productionTime} Pings
               </Typography>
             </Box>
+            
             {(productionStatus?.isActive || productionStatus?.currentPings >= selectedRecipe?.productionTime) && (
               <LinearProgress 
                 variant="determinate" 
@@ -303,6 +395,15 @@ const ProductionLine = () => {
                   }
                 }}
               />
+            )}
+
+            {showProductionAnimation && selectedRecipe && (
+              <div 
+                key={animationKey}
+                className={`production-animation animate`}
+              >
+                {RESOURCES[selectedRecipe.output.resourceId].icon}
+              </div>
             )}
           </Box>
         </Grid>
@@ -406,7 +507,12 @@ const ProductionLine = () => {
             fullWidth
             variant="outlined"
             value={newName}
-            onChange={(e) => setNewName(e.target.value)}
+            onChange={(e) => {
+              setNewName(e.target.value);
+              setNameError('');
+            }}
+            error={!!nameError}
+            helperText={nameError}
           />
         </DialogContent>
         <DialogActions>
@@ -416,7 +522,7 @@ const ProductionLine = () => {
           <Button 
             onClick={handleConfirmRename}
             variant="contained"
-            disabled={!newName.trim()}
+            disabled={!newName.trim() || !!nameError}
           >
             Umbenennen
           </Button>

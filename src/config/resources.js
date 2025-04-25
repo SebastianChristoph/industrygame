@@ -95,7 +95,7 @@ export const PRODUCTION_RECIPES = {
   watergas: {
     id: 'watergas',
     name: 'Wassergas',
-    productionTime: 5,
+    productionTime: 2,
     inputs: [
       { resourceId: 'water', amount: 2 }
     ],

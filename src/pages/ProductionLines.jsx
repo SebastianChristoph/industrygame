@@ -300,18 +300,33 @@ const ProductionLines = () => {
   const [selectedLineId, setSelectedLineId] = useState(null);
   const [newLineName, setNewLineName] = useState('');
   const [selectedRecipe, setSelectedRecipe] = useState('');
+  const [nameError, setNameError] = useState('');
+
+  const checkNameUniqueness = (name) => {
+    return !productionLines.some(line => 
+      line.name.toLowerCase() === name.toLowerCase()
+    );
+  };
 
   const handleAddLine = () => {
     setNewLineName('');
     setSelectedRecipe('');
+    setNameError('');
     setIsCreateDialogOpen(true);
   };
 
   const handleCreateLine = () => {
+    const trimmedName = newLineName.trim() || `Produktionslinie ${newId}`;
+    
+    if (!checkNameUniqueness(trimmedName)) {
+      setNameError('Eine Produktionslinie mit diesem Namen existiert bereits');
+      return;
+    }
+
     const newId = Math.max(0, ...productionLines.map(line => line.id)) + 1;
     dispatch(addProductionLine({
       id: newId,
-      name: newLineName || `Produktionslinie ${newId}`
+      name: trimmedName
     }));
     
     if (selectedRecipe) {
@@ -401,8 +416,16 @@ const ProductionLines = () => {
                 value={selectedRecipe}
                 onChange={(e) => {
                   setSelectedRecipe(e.target.value);
+                  setNameError('');
                   if (e.target.value) {
-                    setNewLineName(PRODUCTION_RECIPES[e.target.value].name);
+                    const suggestedName = PRODUCTION_RECIPES[e.target.value].name;
+                    let uniqueName = suggestedName;
+                    let counter = 1;
+                    while (!checkNameUniqueness(uniqueName)) {
+                      uniqueName = `${suggestedName}${counter}`;
+                      counter++;
+                    }
+                    setNewLineName(uniqueName);
                     // Kurze Verzögerung um sicherzustellen, dass das Textfeld existiert
                     setTimeout(() => {
                       const nameInput = document.querySelector('input[name="productionLineName"]');
@@ -465,7 +488,12 @@ const ProductionLines = () => {
               fullWidth
               variant="outlined"
               value={newLineName}
-              onChange={(e) => setNewLineName(e.target.value)}
+              onChange={(e) => {
+                setNewLineName(e.target.value);
+                setNameError('');
+              }}
+              error={!!nameError}
+              helperText={nameError}
             />
 
             {selectedRecipe && PRODUCTION_RECIPES[selectedRecipe] && (
@@ -528,7 +556,7 @@ const ProductionLines = () => {
             <Button 
               onClick={handleCreateLine}
               variant="contained"
-              disabled={!selectedRecipe}
+              disabled={!selectedRecipe || !newLineName.trim() || !!nameError}
             >
               Erstellen
             </Button>
@@ -576,8 +604,16 @@ const ProductionLines = () => {
               value={selectedRecipe}
               onChange={(e) => {
                 setSelectedRecipe(e.target.value);
+                setNameError('');
                 if (e.target.value) {
-                  setNewLineName(PRODUCTION_RECIPES[e.target.value].name);
+                  const suggestedName = PRODUCTION_RECIPES[e.target.value].name;
+                  let uniqueName = suggestedName;
+                  let counter = 1;
+                  while (!checkNameUniqueness(uniqueName)) {
+                    uniqueName = `${suggestedName}${counter}`;
+                    counter++;
+                  }
+                  setNewLineName(uniqueName);
                   // Kurze Verzögerung um sicherzustellen, dass das Textfeld existiert
                   setTimeout(() => {
                     const nameInput = document.querySelector('input[name="productionLineName"]');
@@ -640,7 +676,12 @@ const ProductionLines = () => {
             fullWidth
             variant="outlined"
             value={newLineName}
-            onChange={(e) => setNewLineName(e.target.value)}
+            onChange={(e) => {
+              setNewLineName(e.target.value);
+              setNameError('');
+            }}
+            error={!!nameError}
+            helperText={nameError}
           />
 
           {selectedRecipe && PRODUCTION_RECIPES[selectedRecipe] && (
@@ -703,7 +744,7 @@ const ProductionLines = () => {
           <Button 
             onClick={handleCreateLine}
             variant="contained"
-            disabled={!selectedRecipe}
+            disabled={!selectedRecipe || !newLineName.trim() || !!nameError}
           >
             Erstellen
           </Button>
