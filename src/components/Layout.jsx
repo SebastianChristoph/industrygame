@@ -1,58 +1,57 @@
-import React, { useState } from 'react';
-import { Outlet, Link } from 'react-router-dom';
-import { useSelector } from 'react-redux';
 import {
-  Box,
-  Drawer,
+  AccountBalance as BalanceIcon,
+  MonetizationOn as MoneyIcon,
+  ShoppingCart as ExpensesIcon,
+  Factory,
+  Menu as MenuIcon,
+  Storage as StorageIcon,
+  Warehouse,
+} from "@mui/icons-material";
+import {
   AppBar,
-  Toolbar,
-  List,
-  Typography,
-  Divider,
+  Box,
+  Button,
+  Drawer,
   IconButton,
+  List,
   ListItem,
   ListItemButton,
   ListItemIcon,
   ListItemText,
-  Button,
+  Paper,
   Stack,
-  Chip,
+  Toolbar,
   Tooltip,
-  Paper
-} from '@mui/material';
+  Typography,
+} from "@mui/material";
+import React, { useState } from "react";
+import { useSelector } from "react-redux";
+import { Link, Outlet } from "react-router-dom";
 import {
-  Menu as MenuIcon,
-  Home,
-  Factory,
-  Storage as StorageIcon,
-  Settings,
-  Info,
-  Warehouse,
-  TrendingUp as IncomeIcon,
-  TrendingDown as ExpenseIcon,
-  AccountBalance as BalanceIcon
-} from '@mui/icons-material';
-import { PingIndicator } from './PingIndicator';
-import StorageDrawer from './StorageDrawer';
-import { PRODUCTION_RECIPES, RESOURCES, OUTPUT_TARGETS, INPUT_SOURCES } from '../config/resources';
+  INPUT_SOURCES,
+  OUTPUT_TARGETS,
+  PRODUCTION_RECIPES,
+  RESOURCES,
+} from "../config/resources";
+import { PingIndicator } from "./PingIndicator";
+import StorageDrawer from "./StorageDrawer";
 
 const drawerWidth = 240;
 
 const menuItems = [
-  { text: 'Home', icon: <Home />, path: '/' },
-  { text: 'Produktion', icon: <Factory />, path: '/production' },
-  { text: 'Lager', icon: <StorageIcon />, path: '/storage' },
-  { text: 'Einstellungen', icon: <Settings />, path: '/settings' },
-  { text: 'About', icon: <Info />, path: '/about' },
+  { text: "Produktion", icon: <Factory />, path: "/production" },
+  { text: "Lager", icon: <StorageIcon />, path: "/storage" },
 ];
 
 const Layout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [storageOpen, setStorageOpen] = useState(false);
-  const credits = useSelector(state => state.game.credits);
-  const productionLines = useSelector(state => state.game.productionLines);
-  const productionConfigs = useSelector(state => state.game.productionConfigs);
-  const productionStatus = useSelector(state => state.game.productionStatus);
+  const credits = useSelector((state) => state.game.credits);
+  const productionLines = useSelector((state) => state.game.productionLines);
+  const productionConfigs = useSelector(
+    (state) => state.game.productionConfigs
+  );
+  const productionStatus = useSelector((state) => state.game.productionStatus);
 
   const handleDrawerToggle = () => {
     setMobileOpen(!mobileOpen);
@@ -63,34 +62,37 @@ const Layout = () => {
     let income = 0;
     let expenses = 0;
 
-    productionLines.forEach(line => {
+    productionLines.forEach((line) => {
       const config = productionConfigs[line.id];
       const status = productionStatus[line.id];
-      
+
       if (!config?.recipe || !status?.isActive) return;
 
       const recipe = PRODUCTION_RECIPES[config.recipe];
       const outputResource = RESOURCES[recipe.output.resourceId];
-      
+
       // Berechne Kosten für Inputs
       recipe.inputs.forEach((input, index) => {
         const inputConfig = config.inputs[index];
         if (inputConfig?.source === INPUT_SOURCES.PURCHASE_MODULE) {
           const resource = RESOURCES[input.resourceId];
-          expenses += (resource.basePrice * input.amount) / recipe.productionTime;
+          expenses +=
+            (resource.basePrice * input.amount) / recipe.productionTime;
         }
       });
 
       // Berechne Einnahmen aus Verkäufen
       if (config.outputTarget === OUTPUT_TARGETS.AUTO_SELL) {
-        income += (outputResource.basePrice * recipe.output.amount) / recipe.productionTime;
+        income +=
+          (outputResource.basePrice * recipe.output.amount) /
+          recipe.productionTime;
       }
     });
 
     return {
       income: Math.round(income * 100) / 100,
       expenses: Math.round(expenses * 100) / 100,
-      balance: Math.round((income - expenses) * 100) / 100
+      balance: Math.round((income - expenses) * 100) / 100,
     };
   };
 
@@ -99,14 +101,12 @@ const Layout = () => {
   const drawer = (
     <div>
       <Toolbar />
-      <Divider />
+
       <List>
         {menuItems.map((item) => (
           <ListItem key={item.text} disablePadding>
             <ListItemButton component={Link} to={item.path}>
-              <ListItemIcon>
-                {item.icon}
-              </ListItemIcon>
+              <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.text} />
             </ListItemButton>
           </ListItem>
@@ -116,87 +116,142 @@ const Layout = () => {
   );
 
   return (
-    <Box sx={{ display: 'flex' }}>
+    <Box>
       <AppBar
         position="fixed"
         sx={{
           width: { sm: `calc(100% - ${drawerWidth}px)` },
           ml: { sm: `${drawerWidth}px` },
-          bgcolor: 'primary.main'
+          bgcolor: '#c62828',
+          height: '48px',
+          boxShadow: 'none',
         }}
       >
-        <Toolbar>
+        <Toolbar sx={{ minHeight: '48px !important', px: 2 }}>
           <IconButton
             color="inherit"
             aria-label="open drawer"
             edge="start"
             onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: 'none' } }}
+            sx={{ mr: 2, display: { sm: "none" } }}
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+          <Typography 
+            variant="h6" 
+            sx={{ 
+              flexGrow: 1,
+              fontSize: '1.1rem',
+              fontWeight: 500,
+              color: '#fff',
+              fontFamily: 'system-ui, -apple-system, sans-serif',
+            }}
+          >
             Industry Game
           </Typography>
-          <Stack direction="row" spacing={2} alignItems="center">
+
+          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
             <PingIndicator />
             
             <Tooltip title="Einnahmen pro Ping">
-              <Paper elevation={0} sx={{ 
-                p: 1, 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: 1,
-                bgcolor: 'success.main',
-                color: 'success.contrastText'
-              }}>
-                <IncomeIcon />
-                <Typography variant="body2">
-                  +{income}/Ping
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 0.5,
+                  px: 1.5,
+                  py: 0.5,
+                  bgcolor: 'rgba(0,0,0,0.2)',
+                  borderRadius: 1,
+                  border: '1px solid rgba(255,255,255,0.1)'
+                }}
+              >
+                <MoneyIcon sx={{ color: '#fff', fontSize: '1.1rem' }} />
+                <Typography sx={{ color: '#fff', fontSize: '0.9rem' }}>
+                  +{income}
                 </Typography>
-              </Paper>
+              </Box>
             </Tooltip>
 
             <Tooltip title="Ausgaben pro Ping">
-              <Paper elevation={0} sx={{ 
-                p: 1, 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: 1,
-                bgcolor: 'error.main',
-                color: 'error.contrastText'
-              }}>
-                <ExpenseIcon />
-                <Typography variant="body2">
-                  -{expenses}/Ping
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 0.5,
+                  px: 1.5,
+                  py: 0.5,
+                  bgcolor: 'rgba(0,0,0,0.2)',
+                  borderRadius: 1,
+                  border: '1px solid rgba(255,255,255,0.1)'
+                }}
+              >
+                <ExpensesIcon sx={{ color: '#fff', fontSize: '1.1rem' }} />
+                <Typography sx={{ color: '#fff', fontSize: '0.9rem' }}>
+                  -{expenses}
                 </Typography>
-              </Paper>
+              </Box>
             </Tooltip>
 
-            <Tooltip title="Bilanz pro Ping">
-              <Paper elevation={0} sx={{ 
-                p: 1, 
-                display: 'flex', 
-                alignItems: 'center', 
-                gap: 1,
-                bgcolor: balance >= 0 ? 'success.main' : 'error.main',
-                color: balance >= 0 ? 'success.contrastText' : 'error.contrastText'
-              }}>
-                <BalanceIcon />
-                <Typography variant="body2">
-                  {balance >= 0 ? '+' : ''}{balance}/Ping
+            <Tooltip title="Gewinn/Verlust pro Ping">
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 0.5,
+                  px: 1.5,
+                  py: 0.5,
+                  bgcolor: 'rgba(0,0,0,0.2)',
+                  borderRadius: 1,
+                  border: '1px solid rgba(255,255,255,0.1)'
+                }}
+              >
+                <BalanceIcon sx={{ color: '#fff', fontSize: '1.1rem' }} />
+                <Typography sx={{ color: '#fff', fontSize: '0.9rem' }}>
+                  {balance >= 0 ? '+' : ''}{balance}
                 </Typography>
-              </Paper>
+              </Box>
             </Tooltip>
 
-            <Button
-              color="inherit"
-              startIcon={<Warehouse />}
-              onClick={() => setStorageOpen(true)}
-            >
-              Storage
-            </Button>
-          </Stack>
+            <Tooltip title="Aktuelles Guthaben">
+              <Box 
+                sx={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: 0.5,
+                  px: 1.5,
+                  py: 0.5,
+                  bgcolor: 'rgba(0,0,0,0.2)',
+                  borderRadius: 1,
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  minWidth: '100px',
+                }}
+              >
+                <MoneyIcon sx={{ color: '#fff', fontSize: '1.1rem' }} />
+                <Typography sx={{ color: '#fff', fontSize: '0.9rem', fontWeight: 500 }}>
+                  ${credits.toLocaleString()}
+                </Typography>
+              </Box>
+            </Tooltip>
+
+            <Tooltip title="Lager öffnen">
+              <Button
+                sx={{
+                  color: '#fff',
+                  bgcolor: 'rgba(0,0,0,0.2)',
+                  border: '1px solid rgba(255,255,255,0.1)',
+                  '&:hover': {
+                    bgcolor: 'rgba(0,0,0,0.3)',
+                  }
+                }}
+                startIcon={<Warehouse />}
+                onClick={() => setStorageOpen(true)}
+              >
+                Storage
+              </Button>
+            </Tooltip>
+
+          </Box>
         </Toolbar>
       </AppBar>
       <Box
@@ -211,8 +266,11 @@ const Layout = () => {
             keepMounted: true, // Better open performance on mobile.
           }}
           sx={{
-            display: { xs: 'block', sm: 'none' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            display: { xs: "block", sm: "none" },
+            "& .MuiDrawer-paper": {
+              boxSizing: "border-box",
+              width: drawerWidth,
+            },
           }}
         >
           {drawer}
@@ -220,8 +278,11 @@ const Layout = () => {
         <Drawer
           variant="permanent"
           sx={{
-            display: { xs: 'none', sm: 'block' },
-            '& .MuiDrawer-paper': { boxSizing: 'border-box', width: drawerWidth },
+            display: { xs: "none", sm: "block" },
+            "& .MuiDrawer-paper": {
+              boxSizing: "border-box",
+              width: drawerWidth,
+            },
           }}
           open
         >
@@ -232,10 +293,10 @@ const Layout = () => {
       <Box
         component="main"
         sx={{
-          flexGrow: 1,
-          p: 3,
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          ml: { sm: `${drawerWidth}px` },
+          ml: "300px",
+          minHeight: "100vh",
+          padding: 3,
+          width: "80vw"
         }}
       >
         <Toolbar />
@@ -245,4 +306,4 @@ const Layout = () => {
   );
 };
 
-export default Layout; 
+export default Layout;

@@ -21,8 +21,7 @@ function App() {
                 <Route path="/storage" element={<Storage />} />
                 <Route path="/production" element={<ProductionLines />} />
                 <Route path="/production/:id" element={<ProductionLine />} />
-                <Route path="/settings" element={<div>Settings Page</div>} />
-                <Route path="/about" element={<div>About Page</div>} />
+
               </Route>
             </Routes>
           </Router>

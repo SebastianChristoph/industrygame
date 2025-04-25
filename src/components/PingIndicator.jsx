@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useDispatch } from 'react-redux';
-import { Box, CircularProgress } from '@mui/material';
+import { Box, CircularProgress, Tooltip } from '@mui/material';
 import { handlePing } from '../store/gameSlice';
 
 const PING_DURATION = 1000; // 1 Sekunde pro Ping
@@ -55,18 +55,33 @@ export const PingIndicator = () => {
       justifyContent: 'center',
       transform: 'rotate(-90deg)' // Startet bei 12 Uhr
     }}>
-      <CircularProgress 
-        variant="determinate" 
-        value={progress} 
-        size={24}
-        sx={{
-          color: 'primary.main',
-          '& .MuiCircularProgress-circle': {
-            strokeLinecap: 'round',
-            transition: 'stroke-dashoffset 50ms linear', // Macht die Animation smooth
-          },
-        }}
-      />
+      <Tooltip title="Zeit bis zum nächsten Ping" placement="left">
+        <Box sx={{ position: 'relative', display: 'inline-flex' }}>
+          <CircularProgress
+            variant="determinate"
+            value={progress}
+            size={24}
+            sx={{
+              color: '#fff',
+              opacity: 0.2
+            }}
+          />
+          <CircularProgress
+            variant="determinate"
+            value={progress}
+            size={24}
+            sx={{
+              color: 'primary.main',
+              position: 'absolute',
+              left: 0,
+              '& .MuiCircularProgress-circle': {
+                strokeLinecap: 'round',
+                transition: 'stroke-dashoffset 50ms linear', // Macht die Animation smooth
+              },
+            }}
+          />
+        </Box>
+      </Tooltip>
     </Box>
   );
 }; 
