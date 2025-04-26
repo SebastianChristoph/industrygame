@@ -6,6 +6,7 @@ import {
   Menu as MenuIcon,
   Storage as StorageIcon,
   Warehouse,
+  Help as HelpIcon,
 } from "@mui/icons-material";
 import {
   AppBar,
@@ -47,6 +48,11 @@ const menuItems = [
     text: 'Research',
     icon: <ScienceIcon />,
     path: '/research'
+  },
+  {
+    text: 'Tutorial',
+    icon: <HelpIcon />,
+    path: '/tutorial'
   }
 ];
 

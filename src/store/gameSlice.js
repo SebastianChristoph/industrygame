@@ -10,6 +10,7 @@ import {
 } from '../config/resources';
 import { INITIAL_UNLOCKED_MODULES } from '../config/modules';
 import { RESEARCH_TREE } from '../config/research';
+import { MODULES } from '../config/modules';
 
 const initialState = {
   credits: 1000, // Starting credits
@@ -197,6 +198,15 @@ const gameSlice = createSlice({
     unlockModule: (state, action) => {
       if (!state.unlockedModules.includes(action.payload)) {
         state.unlockedModules.push(action.payload);
+        // Füge alle Startrezepte des Moduls zu unlockedRecipes hinzu
+        const moduleKey = Object.keys(MODULES).find(key => MODULES[key].id === action.payload);
+        if (moduleKey) {
+          MODULES[moduleKey].recipes.forEach(recipeId => {
+            if (!state.unlockedRecipes.includes(recipeId)) {
+              state.unlockedRecipes.push(recipeId);
+            }
+          });
+        }
       }
     },
     researchTechnology: (state, action) => {

@@ -196,6 +196,7 @@ const ProductionLines = () => {
   const [selectedRecipe, setSelectedRecipe] = useState('');
   const [nameError, setNameError] = useState('');
   const [isModuleSelectionOpen, setIsModuleSelectionOpen] = useState(false);
+  const [selectedModule, setSelectedModule] = useState('');
 
   const checkNameUniqueness = (name) => {
     return !productionLines.some(line => 
@@ -276,10 +277,25 @@ const ProductionLines = () => {
     return (
       unlockedRecipes.includes(id) ||
       Object.values(MODULES).some(module =>
-      unlockedModules.includes(module.id) && module.recipes.includes(id)
+        unlockedModules.includes(module.id) && module.recipes.includes(id)
       )
     );
   });
+
+  // Rezepte für das aktuell gewählte Modul
+  const moduleRecipes = selectedModule
+    ? Object.entries(PRODUCTION_RECIPES).filter(([id, recipe]) =>
+        MODULES[selectedModule]?.recipes.includes(id)
+      )
+    : [];
+
+  // Wenn nur ein Modul freigeschaltet ist, automatisch auswählen
+  React.useEffect(() => {
+    if (unlockedModules.length === 1) {
+      const onlyKey = Object.keys(MODULES).find(key => unlockedModules.includes(MODULES[key].id));
+      setSelectedModule(onlyKey || '');
+    }
+  }, [unlockedModules]);
 
   const columns = [
     {
@@ -726,93 +742,122 @@ const ProductionLines = () => {
       <Dialog open={isCreateDialogOpen} onClose={() => setIsCreateDialogOpen(false)}>
         <DialogTitle>Create New Production Line</DialogTitle>
         <DialogContent sx={{ minWidth: 400 }}>
+          {/* Modul-Auswahl vor Rezept-Auswahl */}
           <FormControl fullWidth sx={{ mt: 2, mb: 2 }}>
-            <InputLabel>Select Recipe</InputLabel>
+            <InputLabel>Choose Module</InputLabel>
             <Select
-              value={selectedRecipe}
-              onChange={(e) => {
-                setSelectedRecipe(e.target.value);
-                setNameError('');
-                if (e.target.value) {
-                  const suggestedName = PRODUCTION_RECIPES[e.target.value].name;
-                  let uniqueName = suggestedName;
-                  let counter = 1;
-                  while (!checkNameUniqueness(uniqueName)) {
-                    uniqueName = `${suggestedName}${counter}`;
-                    counter++;
-                  }
-                  setNewLineName(uniqueName);
-                  setTimeout(() => {
-                    const nameInput = document.querySelector('input[name="productionLineName"]');
-                    if (nameInput) {
-                      nameInput.focus();
-                      nameInput.select();
-                    }
-                  }, 100);
-                }
+              value={selectedModule}
+              onChange={e => {
+                setSelectedModule(e.target.value);
+                setSelectedRecipe('');
               }}
-              label="Select Recipe"
+              label="Choose Module"
             >
-              {availableRecipes.map(([id, recipe]) => (
-                <MenuItem key={id} value={id} sx={{ 
-                  display: 'flex', 
-                  flexDirection: 'column', 
-                  alignItems: 'flex-start',
-                  py: 1
-                }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    {RESOURCES[recipe.output.resourceId].icon}
-                    <Typography variant="subtitle1">
-                      {recipe.name}
-                      {' '}
-                      <span style={{ color: '#888', fontWeight: 400 }}>
-                        ({(() => {
-                          const output = RESOURCES[recipe.output.resourceId];
-                          const outputValue = output.basePrice * recipe.output.amount;
-                          const inputCost = recipe.inputs.reduce(
-                            (sum, input) => {
-                              const res = RESOURCES[input.resourceId];
-                              return res.purchasable ? sum + res.basePrice * input.amount : sum;
-                            },
-                            0
-                          );
-                          const profit = outputValue - inputCost;
-                          return (profit >= 0 ? '+' : '') + profit + '$';
-                        })()})
-                      </span>
-                    </Typography>
-                  </Box>
-                  <Box sx={{ 
-                    display: 'flex', 
-                    gap: 1, 
-                    mt: 0.5,
-                    flexWrap: 'wrap'
-                  }}>
-                    {recipe.inputs.map((input, idx) => {
-                      const resource = RESOURCES[input.resourceId];
-                      return (
-                        <Box key={idx} sx={{ 
-                          display: 'flex', 
-                          alignItems: 'center',
-                          gap: 0.5,
-                          bgcolor: 'action.hover',
-                          px: 1,
-                          py: 0.5,
-                          borderRadius: 1,
-                          fontSize: '0.75rem'
-                        }}>
-                          {resource.icon}
-                          <Typography variant="caption">
-                            {input.amount}x {resource.name}
-                          </Typography>
-                        </Box>
-                      );
-                    })}
-                  </Box>
-                </MenuItem>
-              ))}
+              {Object.entries(MODULES)
+                .filter(([key, mod]) => unlockedModules.includes(mod.id))
+                .map(([key, mod]) => (
+                  <MenuItem value={key} key={key}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      {mod.icon} {mod.name}
+                    </Box>
+                  </MenuItem>
+                ))}
             </Select>
           </FormControl>
+
+          {/* Rezept-Auswahl nur wenn Modul gewählt */}
+          {selectedModule && (
+            <FormControl fullWidth sx={{ mb: 2 }}>
+              <InputLabel>Select Recipe</InputLabel>
+              <Select
+                value={selectedRecipe}
+                onChange={(e) => {
+                  setSelectedRecipe(e.target.value);
+                  setNameError('');
+                  if (e.target.value) {
+                    const suggestedName = PRODUCTION_RECIPES[e.target.value].name;
+                    let uniqueName = suggestedName;
+                    let counter = 1;
+                    while (!checkNameUniqueness(uniqueName)) {
+                      uniqueName = `${suggestedName}${counter}`;
+                      counter++;
+                    }
+                    setNewLineName(uniqueName);
+                    setTimeout(() => {
+                      const nameInput = document.querySelector('input[name="productionLineName"]');
+                      if (nameInput) {
+                        nameInput.focus();
+                        nameInput.select();
+                      }
+                    }, 100);
+                  }
+                }}
+                label="Select Recipe"
+              >
+                {moduleRecipes.map(([id, recipe]) => (
+                  <MenuItem key={id} value={id} sx={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    alignItems: 'flex-start',
+                    py: 1
+                  }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      {RESOURCES[recipe.output.resourceId].icon}
+                      <Typography variant="subtitle1">
+                        {recipe.name}
+                        <span style={{ color: '#888', fontWeight: 400, marginLeft: 8 }}>
+                          ({recipe.productionTime} Pings)
+                        </span>
+                        {' '}
+                        <span style={{ color: '#888', fontWeight: 400 }}>
+                          ({(() => {
+                            const output = RESOURCES[recipe.output.resourceId];
+                            const outputValue = output.basePrice * recipe.output.amount;
+                            const inputCost = recipe.inputs.reduce(
+                              (sum, input) => {
+                                const res = RESOURCES[input.resourceId];
+                                return res.purchasable ? sum + res.basePrice * input.amount : sum;
+                              },
+                              0
+                            );
+                            const profit = outputValue - inputCost;
+                            return (profit >= 0 ? '+' : '') + profit + '$';
+                          })()})
+                        </span>
+                      </Typography>
+                    </Box>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      gap: 1, 
+                      mt: 0.5,
+                      flexWrap: 'wrap'
+                    }}>
+                      {recipe.inputs.map((input, idx) => {
+                        const resource = RESOURCES[input.resourceId];
+                        return (
+                          <Box key={idx} sx={{ 
+                            display: 'flex', 
+                            alignItems: 'center',
+                            gap: 0.5,
+                            bgcolor: 'action.hover',
+                            px: 1,
+                            py: 0.5,
+                            borderRadius: 1,
+                            fontSize: '0.75rem'
+                          }}>
+                            {resource.icon}
+                            <Typography variant="caption">
+                              {input.amount}x {resource.name}
+                            </Typography>
+                          </Box>
+                        );
+                      })}
+                    </Box>
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
 
           <TextField
             margin="dense"

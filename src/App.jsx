@@ -7,6 +7,7 @@ import Storage from './pages/Storage';
 import ProductionLines from './pages/ProductionLines';
 import ProductionLine from './pages/ProductionLine';
 import Research from './pages/Research';
+import Tutorial from './pages/Tutorial';
 import { theme } from './theme/theme';
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
                 <Route path="/production" element={<ProductionLines />} />
                 <Route path="/production/:id" element={<ProductionLine />} />
                 <Route path="/research" element={<Research />} />
+                <Route path="/tutorial" element={<Tutorial />} />
               </Route>
             </Routes>
           </Router>

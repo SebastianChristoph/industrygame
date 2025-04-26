@@ -26,7 +26,10 @@ export const RESOURCES = {
   tank: { id: 'tank', name: 'Tank', basePrice: 1000, description: 'Heavy war machine.', icon: '🛡️', purchasable: false }, // vorher 300
 
   // Special
-  research_points: { id: 'research_points', name: 'Research Points', basePrice: 50, description: 'Used for unlocking technologies.', icon: '🔬', purchasable: false }
+  research_points: { id: 'research_points', name: 'Research Points', basePrice: 50, description: 'Used for unlocking technologies.', icon: '🔬', purchasable: false },
+  corn: { id: 'corn', name: 'Corn', basePrice: 30, description: 'A basic crop, easy to sell.', icon: '🌽', purchasable: false },
+  basic_chip: { id: 'basic_chip', name: 'Basic Chip', basePrice: 60, description: 'A simple electronic chip.', icon: '💾', purchasable: false },
+  scrap_metal: { id: 'scrap_metal', name: 'Scrap Metal', basePrice: 20, description: 'Recycled metal, can be sold.', icon: '🔩', purchasable: false }
 };
 
 export const PRODUCTION_RECIPES = {
@@ -53,6 +56,55 @@ export const PRODUCTION_RECIPES = {
       { resourceId: 'water', amount: 1 }
     ],
     output: { resourceId: 'research_points', amount: 1 }
+  },
+  research_points_technology: {
+    id: 'research_points_technology',
+    name: 'Technology Research',
+    productionTime: 10,
+    inputs: [
+      { resourceId: 'iron', amount: 1 },
+      { resourceId: 'copper', amount: 1 }
+    ],
+    output: { resourceId: 'research_points', amount: 1 }
+  },
+  research_points_weapon: {
+    id: 'research_points_weapon',
+    name: 'Weapons Research',
+    productionTime: 10,
+    inputs: [
+      { resourceId: 'coal', amount: 1 },
+      { resourceId: 'oil', amount: 1 }
+    ],
+    output: { resourceId: 'research_points', amount: 1 }
+  },
+  corn: {
+    id: 'corn',
+    name: 'Corn',
+    productionTime: 5,
+    inputs: [
+      { resourceId: 'seeds', amount: 1 },
+      { resourceId: 'water', amount: 2 }
+    ],
+    output: { resourceId: 'corn', amount: 2 }
+  },
+  basic_chip: {
+    id: 'basic_chip',
+    name: 'Basic Chip',
+    productionTime: 6,
+    inputs: [
+      { resourceId: 'iron', amount: 1 },
+      { resourceId: 'copper', amount: 1 }
+    ],
+    output: { resourceId: 'basic_chip', amount: 1 }
+  },
+  scrap_metal: {
+    id: 'scrap_metal',
+    name: 'Scrap Metal',
+    productionTime: 4,
+    inputs: [
+      { resourceId: 'coal', amount: 1 }
+    ],
+    output: { resourceId: 'scrap_metal', amount: 2 }
   }
 };
 export const INITIAL_RESOURCES = {
@@ -74,7 +126,10 @@ export const INITIAL_RESOURCES = {
   bullet: 0,
   rifle: 0,
   tank: 0,
-  research_points: 0
+  research_points: 0,
+  corn: 0,
+  basic_chip: 0,
+  scrap_metal: 0
 };
 // Possible sources for inputs
 export const INPUT_SOURCES = {

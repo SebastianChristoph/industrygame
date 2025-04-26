@@ -4,7 +4,7 @@ export const MODULES = {
     name: 'Agriculture',
     description: 'Access to farming basics',
     icon: '🌾',
-    recipes: ['research_points_agriculture'], // <-- Nur Forschung am Anfang möglich
+    recipes: ['research_points_agriculture', 'corn'], // <-- Jetzt auch Corn
     resources: ['water', 'seeds']             // <-- Seeds und Water freischalten
   },
   TECHNOLOGY: {
@@ -12,7 +12,7 @@ export const MODULES = {
     name: 'Technology',
     description: 'Access to electronics basics',
     icon: '💻',
-    recipes: ['research_points_technology'],
+    recipes: ['research_points_technology', 'basic_chip'], // <-- Jetzt auch Basic Chip
     resources: ['iron', 'copper']
   },
   WEAPONS: {
@@ -20,7 +20,7 @@ export const MODULES = {
     name: 'Weapons Factory',
     description: 'Access to basic military resources',
     icon: '⚔️',
-    recipes: ['research_points_weapon'],
+    recipes: ['research_points_weapon', 'scrap_metal'], // <-- Jetzt auch Scrap Metal
     resources: ['coal', 'oil']
   }
 };

@@ -130,13 +130,23 @@ const Research = () => {
         <Box>
           <Typography variant="subtitle2" color="text.secondary">Base Goods:</Typography>
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 0.5 }}>
-            {module.recipes.map(recipeId => (
-              <Tooltip key={recipeId} title={PRODUCTION_RECIPES[recipeId]?.name || recipeId}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, bgcolor: 'action.hover', px: 1, py: 0.2, borderRadius: 1, fontSize: '0.95rem' }}>
-                  {PRODUCTION_RECIPES[recipeId]?.output ? RESOURCES[PRODUCTION_RECIPES[recipeId].output.resourceId]?.icon : <ScienceIcon fontSize="small" />} {PRODUCTION_RECIPES[recipeId]?.name || recipeId}
-                </Box>
-              </Tooltip>
-            ))}
+            {module.recipes.map(recipeId => {
+              const recipe = PRODUCTION_RECIPES[recipeId];
+              if (!recipe) return null;
+              const outputRes = RESOURCES[recipe.output.resourceId];
+              return (
+                <Tooltip key={recipeId} title={recipe.name}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, bgcolor: 'action.hover', px: 1, py: 0.2, borderRadius: 1, fontSize: '0.95rem', flexDirection: 'column', minWidth: 160 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      {outputRes?.icon || <ScienceIcon fontSize="small" />} {recipe.name}
+                    </Box>
+                    <Typography variant="caption" color="text.secondary" sx={{ ml: 0, mt: 0.5 }}>
+                      (Recipe: {recipe.inputs.map((input, idx) => `${input.amount}x ${RESOURCES[input.resourceId]?.name || input.resourceId}`).join(' + ')} = {recipe.output.amount}x {outputRes?.name || recipe.output.resourceId})
+                    </Typography>
+                  </Box>
+                </Tooltip>
+              );
+            })}
           </Box>
         </Box>
       )}
@@ -189,7 +199,12 @@ const Research = () => {
               <Typography variant="h6" gutterBottom>
                 Technologies
               </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+              <Box sx={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+                gap: 16,
+                mb: 2
+              }}>
                 {Object.values(moduleResearch.technologies).map((technology) => {
                   const isResearched = isTechnologyResearched(technology.id);
                   const hasEnoughPoints = researchPoints >= technology.cost;
@@ -197,33 +212,37 @@ const Research = () => {
                   let buttonLabel = isResearched ? 'Researched' : `Research (${technology.cost} research points)`;
                   if (!isResearched && !hasEnoughPoints) buttonLabel = 'Not enough research points';
                   return (
-                    <Card key={technology.id} variant="outlined" sx={{ mb: 1, p: 0, borderRadius: 2, boxShadow: 0, minHeight: 0 }}>
-                      <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                          <ScienceIcon sx={{ color: isResearched ? 'success.main' : 'primary.main', fontSize: 28 }} />
-                          <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '1.1rem' }}>
-                            {technology.name}
+                    <Card key={technology.id} variant="outlined" sx={{ p: 0, borderRadius: 2, boxShadow: 0, minHeight: 0, display: 'flex', flexDirection: 'column', height: '100%' }}>
+                      <CardContent sx={{ p: 0, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                        <Box sx={{ p: 1.5, pb: 0 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                            <ScienceIcon sx={{ color: isResearched ? 'success.main' : 'primary.main', fontSize: 28 }} />
+                            <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '1.1rem' }}>
+                              {technology.name}
+                            </Typography>
+                          </Box>
+                          <Typography variant="body2" color="text.secondary" gutterBottom sx={{ fontSize: '0.95rem' }}>
+                            {technology.description}
                           </Typography>
+                          {technology.requirements.length > 0 && (
+                            <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.95rem' }}>
+                              Requirements: {technology.requirements.map(req => TECHNOLOGY_NAME_MAP[req] || req).join(', ')}
+                            </Typography>
+                          )}
+                          {renderUnlocks(technology.unlocks)}
                         </Box>
-                        <Typography variant="body2" color="text.secondary" gutterBottom sx={{ fontSize: '0.95rem' }}>
-                          {technology.description}
-                        </Typography>
-                        {technology.requirements.length > 0 && (
-                          <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.95rem' }}>
-                            Requirements: {technology.requirements.map(req => TECHNOLOGY_NAME_MAP[req] || req).join(', ')}
-                          </Typography>
-                        )}
-                        {renderUnlocks(technology.unlocks)}
-                        <Button
-                          variant="contained"
-                          fullWidth
-                          size="small"
-                          disabled={!canResearch}
-                          onClick={() => handleResearchTechnology(technology.id, technology.cost)}
-                          sx={{ mt: 1, fontSize: '1rem', py: 0.5, borderRadius: 2 }}
-                        >
-                          {buttonLabel}
-                        </Button>
+                        <Box sx={{ p: 1.5, pt: 0, mt: 'auto' }}>
+                          <Button
+                            variant="contained"
+                            fullWidth
+                            size="small"
+                            disabled={!canResearch}
+                            onClick={() => handleResearchTechnology(technology.id, technology.cost)}
+                            sx={{ fontSize: '1rem', py: 0.5, borderRadius: 2 }}
+                          >
+                            {buttonLabel}
+                          </Button>
+                        </Box>
                       </CardContent>
                     </Card>
                   );
