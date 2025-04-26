@@ -182,24 +182,25 @@ const ProductionLineCard = ({ line, onRenameClick, onDeleteClick }) => {
 // Platzhalter für Modulauswahl mit Bildern
 const MODULES_INFO = [
   {
-    name: 'Agrar-Modul',
-    img: '/images/title_agriculture.png', // Bild aus public/images
-    info: 'Enables the production of agricultural resources.',
+    name: 'Agriculture Module',
+    img: '/images/title_agriculture.png',
+    info: 'Enables the production of agricultural resources such as crops and food. Unlock this module to start building supply chains for the food industry and basic goods.'
   },
   {
-    name: 'IT-Modul',
-    img: '/images/title_technology.png', // Bild aus public/images
-    info: 'Enables the production of technology resources.',
+    name: 'Technology Module',
+    img: '/images/title_technology.png',
+    info: "Allows the production of advanced technology resources, including electronics and IT components. Unlock this module to develop high-tech products and boost your industry's efficiency."
   },
   {
-    name: 'Waffen-Modul',
-    img: '/images/title_weapons.png', // Bild aus public/images
-    info: 'Enables the production of weapon resources.',
+    name: 'Weapons Module',
+    img: '/images/title_weapons.png',
+    info: 'Unlocks the production of weapons and military equipment. Use this module to manufacture arms for defense contracts or to expand into the security sector.'
   },
 ];
 
 const ModuleSelectionPlaceholder = () => {
   const navigate = useNavigate();
+  const [hoveredIdx, setHoveredIdx] = React.useState(null);
   return (
     <Box sx={{ width: '100%' }}>
       <Box sx={{ width: '100%', textAlign: 'center', mb: 2 }}>
@@ -209,35 +210,61 @@ const ModuleSelectionPlaceholder = () => {
       </Box>
       <Box sx={{ width: '100%', display: 'flex', flexDirection: 'row', p: 0, m: 0, alignItems: 'center', justifyContent: 'center' }}>
         {MODULES_INFO.map((mod, idx) => (
-          <Tooltip title={mod.info} arrow key={idx}>
+          <Box
+            key={idx}
+            onClick={() => navigate('/research')}
+            onMouseEnter={() => setHoveredIdx(idx)}
+            onMouseLeave={() => setHoveredIdx(null)}
+            sx={{
+              flex: 1,
+              cursor: 'pointer',
+              p: 0,
+              m: 0,
+              overflow: 'hidden',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+              position: 'relative',
+            }}
+          >
             <Box
-              onClick={() => navigate('/research')}
+              component="img"
+              src={mod.img}
+              alt={mod.name}
               sx={{
-                flex: 1,
-                cursor: 'pointer',
-                p: 0,
-                m: 0,
-                overflow: 'hidden',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                height: '100%',
+                width: '90%',
+                height: '90%',
+                borderRadius: 0,
+                display: 'block',
+                objectFit: 'contain',
+                transition: 'filter 0.3s',
+                filter: hoveredIdx === idx ? 'brightness(0.5)' : 'none',
               }}
-            >
+            />
+            {hoveredIdx === idx && (
               <Box
-                component="img"
-                src={mod.img}
-                alt={mod.name}
                 sx={{
-                  width: '90%',
-                  height: '90%',
-                  borderRadius: 0,
-                  display: 'block',
-                  objectFit: 'contain',
+                  position: 'absolute',
+                  top: '50%',
+                  left: '50%',
+                  transform: 'translate(-50%, -50%)',
+                  width: '85%',
+                  bgcolor: 'rgba(20,20,20,0.88)',
+                  color: 'white',
+                  borderRadius: 2,
+                  p: 2,
+                  textAlign: 'center',
+                  pointerEvents: 'none',
+                  zIndex: 2,
+                  boxShadow: '0 4px 24px 4px rgba(0,0,0,0.7)',
                 }}
-              />
-            </Box>
-          </Tooltip>
+              >
+                <Typography variant="h6" sx={{ mb: 1, color: 'white', fontWeight: 700, textShadow: '0 2px 8px #000' }}>{mod.name}</Typography>
+                <Typography variant="body1" sx={{ color: 'white', fontWeight: 600, textShadow: '0 2px 8px #000' }}>{mod.info}</Typography>
+              </Box>
+            )}
+          </Box>
         ))}
       </Box>
     </Box>
