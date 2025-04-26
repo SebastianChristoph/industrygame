@@ -68,27 +68,23 @@ const Layout = () => {
       const config = productionConfigs[line.id];
       const status = productionStatus[line.id];
 
-      if (!config?.recipe || !status?.isActive) return;
+      // Nur Linien, die aktiv sind UND verkaufen!
+      if (!config?.recipe || !status?.isActive || config.outputTarget !== OUTPUT_TARGETS.AUTO_SELL) return;
 
       const recipe = PRODUCTION_RECIPES[config.recipe];
       const outputResource = RESOURCES[recipe.output.resourceId];
 
-      // Berechne Kosten für Inputs
+      // Kosten für Inputs
       recipe.inputs.forEach((input, index) => {
         const inputConfig = config.inputs[index];
         if (inputConfig?.source === INPUT_SOURCES.PURCHASE_MODULE) {
           const resource = RESOURCES[input.resourceId];
-          expenses +=
-            (resource.basePrice * input.amount) / recipe.productionTime;
+          expenses += (resource.basePrice * input.amount) / recipe.productionTime;
         }
       });
 
-      // Berechne Einnahmen aus Verkäufen
-      if (config.outputTarget === OUTPUT_TARGETS.AUTO_SELL) {
-        income +=
-          (outputResource.basePrice * recipe.output.amount) /
-          recipe.productionTime;
-      }
+      // Einnahmen aus Verkäufen
+      income += (outputResource.basePrice * recipe.output.amount) / recipe.productionTime;
     });
 
     return {
