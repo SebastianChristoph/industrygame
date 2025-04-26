@@ -41,10 +41,10 @@ import ScienceIcon from '@mui/icons-material/Science';
 const drawerWidth = 240;
 
 const menuItems = [
-  { text: "Produktion", icon: <Factory />, path: "/production" },
-  { text: "Lager", icon: <StorageIcon />, path: "/storage" },
+  { text: "Production", icon: <Factory />, path: "/production" },
+  { text: "Storage", icon: <StorageIcon />, path: "/storage" },
   {
-    text: 'Forschung',
+    text: 'Research',
     icon: <ScienceIcon />,
     path: '/research'
   }
@@ -157,7 +157,7 @@ const Layout = () => {
 
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mr: 2 }}>
             <PingIndicator />
-            <Tooltip title="Einnahmen pro Ping">
+            <Tooltip title="Income per Ping">
               <Box
                 sx={{
                   display: 'flex',
@@ -178,7 +178,7 @@ const Layout = () => {
                 <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '1rem' }}>+{income}</Typography>
               </Box>
             </Tooltip>
-            <Tooltip title="Ausgaben pro Ping">
+            <Tooltip title="Expenses per Ping">
               <Box
                 sx={{
                   display: 'flex',
@@ -199,7 +199,7 @@ const Layout = () => {
                 <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '1rem' }}>-{expenses}</Typography>
               </Box>
             </Tooltip>
-            <Tooltip title="Gewinn/Verlust pro Ping">
+            <Tooltip title="Profit/Loss per Ping">
               <Box
                 sx={{
                   display: 'flex',
@@ -220,7 +220,7 @@ const Layout = () => {
                 <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '1rem' }}>{balance >= 0 ? '+' : ''}{balance}</Typography>
               </Box>
             </Tooltip>
-            <Tooltip title="Aktuelles Guthaben">
+            <Tooltip title="Current Balance">
               <Box
                 sx={{
                   display: 'flex',
@@ -242,7 +242,7 @@ const Layout = () => {
                 <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '1rem' }}>${credits.toLocaleString()}</Typography>
               </Box>
             </Tooltip>
-            <Tooltip title="Forschungspunkte">
+            <Tooltip title="Research Points">
               <Box
                 sx={{
                   display: 'flex',
@@ -264,7 +264,7 @@ const Layout = () => {
                 <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '1rem' }}>{researchPoints.toLocaleString()}</Typography>
               </Box>
             </Tooltip>
-            <Tooltip title="Lager öffnen">
+            <Tooltip title="Open Storage">
               <Button
                 sx={{
                   color: theme.palette.primary.main,

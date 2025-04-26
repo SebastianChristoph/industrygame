@@ -272,7 +272,7 @@ const ProductionLines = () => {
     return (
       unlockedRecipes.includes(id) ||
       Object.values(MODULES).some(module =>
-        unlockedModules.includes(module.id) && module.recipes.includes(id)
+      unlockedModules.includes(module.id) && module.recipes.includes(id)
       )
     );
   });
