@@ -2,27 +2,27 @@ export const MODULES = {
   AGRICULTURE: {
     id: 'agriculture',
     name: 'Agriculture',
-    description: 'Production of agricultural goods and food',
+    description: 'Access to farming basics',
     icon: '🌾',
-    recipes: ['watergas', 'woodplanks', 'research_points_agriculture'],
-    resources: ['water', 'wood']
+    recipes: ['research_points_agriculture'], // <-- Nur Forschung am Anfang möglich
+    resources: ['water', 'seeds']             // <-- Seeds und Water freischalten
   },
   TECHNOLOGY: {
     id: 'technology',
     name: 'Technology',
-    description: 'Production of electronic components and technology',
+    description: 'Access to electronics basics',
     icon: '💻',
-    recipes: ['electrochip', 'circuit', 'research_points_technology'],
+    recipes: ['research_points_technology'],
     resources: ['iron', 'copper']
   },
   WEAPONS: {
     id: 'weapons',
-    name: 'Weapon Production',
-    description: 'Production of weapons and military equipment',
+    name: 'Weapons Factory',
+    description: 'Access to basic military resources',
     icon: '⚔️',
-    recipes: ['plastic', 'research_points_weapon'],
-    resources: ['oil', 'stone']
+    recipes: ['research_points_weapon'],
+    resources: ['coal', 'oil']
   }
 };
 
-export const INITIAL_UNLOCKED_MODULES = []; 
+export const INITIAL_UNLOCKED_MODULES = [];

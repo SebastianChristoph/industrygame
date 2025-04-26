@@ -54,6 +54,18 @@ const Research = () => {
     return technology.requirements.every(req => isTechnologyResearched(req));
   };
 
+  // Hilfsfunktion: Mapping von Technologie-IDs zu Namen
+  const getAllTechnologyNames = () => {
+    const map = {};
+    Object.values(RESEARCH_TREE).forEach(module => {
+      Object.values(module.technologies).forEach(tech => {
+        map[tech.id] = tech.name;
+      });
+    });
+    return map;
+  };
+  const TECHNOLOGY_NAME_MAP = getAllTechnologyNames();
+
   // Hilfsfunktion für Freischaltungen
   const renderUnlocks = (unlocks) => {
     const purchasableResources = (unlocks?.resources || []).filter(
@@ -168,7 +180,7 @@ const Research = () => {
             onClick={() => handleUnlockModule(module.id)}
             sx={{ mb: 2 }}
           >
-            {isUnlocked ? 'Unlocked' : 'Unlock'}
+            {isUnlocked ? 'Unlocked' : `Unlock (500 research points)`}
           </Button>
           {renderModuleBaseUnlocks(module)}
           {moduleResearch ? (
@@ -182,7 +194,7 @@ const Research = () => {
                   const isResearched = isTechnologyResearched(technology.id);
                   const hasEnoughPoints = researchPoints >= technology.cost;
                   const canResearch = isUnlocked && canResearchTechnology(technology) && hasEnoughPoints;
-                  let buttonLabel = isResearched ? 'Researched' : 'Research';
+                  let buttonLabel = isResearched ? 'Researched' : `Research (${technology.cost} research points)`;
                   if (!isResearched && !hasEnoughPoints) buttonLabel = 'Not enough research points';
                   return (
                     <Card key={technology.id} variant="outlined" sx={{ mb: 1, p: 0, borderRadius: 2, boxShadow: 0, minHeight: 0 }}>
@@ -196,12 +208,9 @@ const Research = () => {
                         <Typography variant="body2" color="text.secondary" gutterBottom sx={{ fontSize: '0.95rem' }}>
                           {technology.description}
                         </Typography>
-                        <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.95rem' }}>
-                          Cost: {technology.cost} research points
-                        </Typography>
                         {technology.requirements.length > 0 && (
                           <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.95rem' }}>
-                            Requirements: {technology.requirements.join(', ')}
+                            Requirements: {technology.requirements.map(req => TECHNOLOGY_NAME_MAP[req] || req).join(', ')}
                           </Typography>
                         )}
                         {renderUnlocks(technology.unlocks)}

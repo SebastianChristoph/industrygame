@@ -49,6 +49,10 @@ import {
 import { PRODUCTION_RECIPES, RESOURCES, OUTPUT_TARGETS, INPUT_SOURCES } from '../config/resources';
 import { MODULES } from '../config/modules';
 
+function formatMoney(value) {
+  return value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
 const ProductionLineCard = ({ line, onRenameClick, onDeleteClick }) => {
   const dispatch = useDispatch();
   const config = useSelector(state => state.game.productionConfigs[line.id]);

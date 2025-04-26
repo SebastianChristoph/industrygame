@@ -3,38 +3,37 @@ export const RESEARCH_TREE = {
     id: 'agriculture',
     name: 'Agriculture',
     technologies: {
-      DUENGER_1: {
-        id: 'DUENGER_1',
-        name: 'Fertilizer I',
-        description: 'Basic fertilizers for improved crop yields',
+      SEEDS: {
+        id: 'SEEDS',
+        name: 'Seed Cultivation',
+        description: 'Unlock basic wheat production.',
         cost: 100,
         requirements: [],
-        unlocks: {
-          resources: ['biomass'],
-          recipes: ['fertilizer']
-        }
+        unlocks: { resources: ['seeds'], recipes: ['wheat'] }
       },
-      DUENGER_2: {
-        id: 'DUENGER_2',
-        name: 'Fertilizer II',
-        description: 'Advanced fertilizers for maximum crop yields',
-        cost: 250,
-        requirements: ['DUENGER_1'],
-        unlocks: {
-          resources: ['compost'],
-          recipes: ['compost']
-        }
+      MILLING: {
+        id: 'MILLING',
+        name: 'Milling Technology',
+        description: 'Unlock flour production.',
+        cost: 200,
+        requirements: ['SEEDS'],
+        unlocks: { recipes: ['flour'] }
       },
-      BIOFARMING: {
-        id: 'BIOFARMING',
-        name: 'Organic Farming',
-        description: 'Enables production of organic vegetables',
-        cost: 350,
-        requirements: ['DUENGER_2'],
-        unlocks: {
-          resources: ['organic_vegetables'],
-          recipes: ['organic_vegetables']
-        }
+      BAKERY: {
+        id: 'BAKERY',
+        name: 'Baking Technology',
+        description: 'Unlock bread production.',
+        cost: 400,
+        requirements: ['MILLING'],
+        unlocks: { recipes: ['bread'] }
+      },
+      BIOFUEL: {
+        id: 'BIOFUEL',
+        name: 'Biofuel Production',
+        description: 'Turn wheat into energy.',
+        cost: 600,
+        requirements: ['BAKERY'],
+        unlocks: { recipes: ['biofuel'] }
       }
     }
   },
@@ -42,87 +41,76 @@ export const RESEARCH_TREE = {
     id: 'technology',
     name: 'Technology',
     technologies: {
-      MASCHINEN_1: {
-        id: 'MASCHINEN_1',
-        name: 'Basic Machinery',
-        description: 'Simple production machines',
-        cost: 200,
+      BASIC_ELECTRONICS: {
+        id: 'BASIC_ELECTRONICS',
+        name: 'Basic Electronics',
+        description: 'Unlock copper wire production.',
+        cost: 150,
         requirements: [],
-        unlocks: {
-          recipes: ['electrochip']
-        }
+        unlocks: { recipes: ['copper_wire'] }
       },
-      MASCHINEN_2: {
-        id: 'MASCHINEN_2',
-        name: 'Advanced Machinery',
-        description: 'More efficient production machines',
-        cost: 400,
-        requirements: ['MASCHINEN_1'],
-        unlocks: {
-          recipes: ['circuit']
-        }
+      PCB_DESIGN: {
+        id: 'PCB_DESIGN',
+        name: 'PCB Design',
+        description: 'Unlock circuit board production.',
+        cost: 300,
+        requirements: ['BASIC_ELECTRONICS'],
+        unlocks: { recipes: ['circuit_board'] }
       },
-      SOLARTECH: {
-        id: 'SOLARTECH',
-        name: 'Solar Modules',
-        description: 'Enables production of solar panels',
-        cost: 350,
-        requirements: ['MASCHINEN_2'],
-        unlocks: {
-          resources: ['solar_panel'],
-          recipes: ['solar_panel']
-        }
+      COMPUTER_SCIENCE: {
+        id: 'COMPUTER_SCIENCE',
+        name: 'Computer Production',
+        description: 'Manufacture computers.',
+        cost: 600,
+        requirements: ['PCB_DESIGN'],
+        unlocks: { recipes: ['computer'] }
       },
-      BATTERIETECH: {
-        id: 'BATTERIETECH',
-        name: 'Battery Technology',
-        description: 'Enables production of high-performance batteries',
-        cost: 500,
-        requirements: ['SOLARTECH'],
-        unlocks: {
-          resources: ['battery'],
-          recipes: ['battery']
-        }
+      QUANTUM_TECH: {
+        id: 'QUANTUM_TECH',
+        name: 'Quantum Technology',
+        description: 'Unlock production of quantum chips.',
+        cost: 1200,
+        requirements: ['COMPUTER_SCIENCE'],
+        unlocks: { recipes: ['quantum_chip'] }
       }
     }
   },
   weapons: {
     id: 'weapons',
-    name: 'Weapon Production',
+    name: 'Weapons',
     technologies: {
-      WAFFEN_1: {
-        id: 'WAFFEN_1',
-        name: 'Basic Weapon Production',
-        description: 'Manufacture simple weapons and equipment',
-        cost: 180,
+      EXPLOSIVES: {
+        id: 'EXPLOSIVES',
+        name: 'Explosives Engineering',
+        description: 'Create gunpowder.',
+        cost: 120,
         requirements: [],
-        unlocks: {
-          resources: ['steel'],
-          recipes: ['steel']
-        }
+        unlocks: { recipes: ['gunpowder'] }
       },
-      EXPLOSIVSTOFFE: {
-        id: 'EXPLOSIVSTOFFE',
-        name: 'Explosives Manufacturing',
-        description: 'Enables production of explosives',
-        cost: 300,
-        requirements: ['WAFFEN_1'],
-        unlocks: {
-          resources: ['explosives'],
-          recipes: ['explosives']
-        }
+      AMMUNITION: {
+        id: 'AMMUNITION',
+        name: 'Ammunition Manufacturing',
+        description: 'Produce bullets.',
+        cost: 250,
+        requirements: ['EXPLOSIVES'],
+        unlocks: { recipes: ['bullet'] }
       },
-      RAKETENTECH: {
-        id: 'RAKETENTECH',
-        name: 'Rocket Technology',
-        description: 'Enables production of rockets',
-        cost: 600,
-        requirements: ['EXPLOSIVSTOFFE'],
-        unlocks: {
-          resources: ['rocket'],
-          recipes: ['rocket']
-        }
+      FIREARMS: {
+        id: 'FIREARMS',
+        name: 'Firearms Assembly',
+        description: 'Produce rifles.',
+        cost: 500,
+        requirements: ['AMMUNITION'],
+        unlocks: { recipes: ['rifle'] }
+      },
+      HEAVY_WEAPONS: {
+        id: 'HEAVY_WEAPONS',
+        name: 'Heavy Weapons Engineering',
+        description: 'Manufacture tanks.',
+        cost: 1000,
+        requirements: ['FIREARMS'],
+        unlocks: { recipes: ['tank'] }
       }
     }
   }
-}; 
+};

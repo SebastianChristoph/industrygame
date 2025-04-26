@@ -83,7 +83,9 @@ const StorageDrawer = ({ open, onClose }) => {
                     <TableCell>
                       <Tooltip title={resource.description}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          {resource.icon}
+                          <Tooltip title={resource.name} placement="top">
+                            <span>{resource.icon}</span>
+                          </Tooltip>
                         </Box>
                       </Tooltip>
                     </TableCell>

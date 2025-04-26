@@ -1,7 +1,7 @@
 import React from 'react'
 import { ThemeProvider, CssBaseline, Box } from '@mui/material'
 import { PingProvider } from './context/PingContext'
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './components/Layout';
 import Storage from './pages/Storage';
 import ProductionLines from './pages/ProductionLines';
@@ -18,7 +18,7 @@ function App() {
           <Router>
             <Routes>
               <Route element={<Layout />}>
-                <Route path="/" element={<div>Home Page</div>} />
+                <Route path="/" element={<Navigate to="/production" replace />} />
                 <Route path="/storage" element={<Storage />} />
                 <Route path="/production" element={<ProductionLines />} />
                 <Route path="/production/:id" element={<ProductionLine />} />
