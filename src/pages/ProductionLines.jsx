@@ -179,6 +179,71 @@ const ProductionLineCard = ({ line, onRenameClick, onDeleteClick }) => {
   );
 };
 
+// Platzhalter für Modulauswahl mit Bildern
+const MODULES_INFO = [
+  {
+    name: 'Agrar-Modul',
+    img: '/images/title_agriculture.png', // Bild aus public/images
+    info: 'Enables the production of agricultural resources.',
+  },
+  {
+    name: 'IT-Modul',
+    img: '/images/title_technology.png', // Bild aus public/images
+    info: 'Enables the production of technology resources.',
+  },
+  {
+    name: 'Waffen-Modul',
+    img: '/images/title_weapons.png', // Bild aus public/images
+    info: 'Enables the production of weapon resources.',
+  },
+];
+
+const ModuleSelectionPlaceholder = () => {
+  const navigate = useNavigate();
+  return (
+    <Box sx={{ width: '100%' }}>
+      <Box sx={{ width: '100%', textAlign: 'center', mb: 2 }}>
+        <Typography variant="body1" color="text.secondary">
+          Before you can create a production line, you need to unlock a production module in the research area.
+        </Typography>
+      </Box>
+      <Box sx={{ width: '100%', display: 'flex', flexDirection: 'row', p: 0, m: 0, alignItems: 'center', justifyContent: 'center' }}>
+        {MODULES_INFO.map((mod, idx) => (
+          <Tooltip title={mod.info} arrow key={idx}>
+            <Box
+              onClick={() => navigate('/research')}
+              sx={{
+                flex: 1,
+                cursor: 'pointer',
+                p: 0,
+                m: 0,
+                overflow: 'hidden',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                height: '100%',
+              }}
+            >
+              <Box
+                component="img"
+                src={mod.img}
+                alt={mod.name}
+                sx={{
+                  width: '90%',
+                  height: '90%',
+                  borderRadius: 0,
+                  display: 'block',
+                  objectFit: 'contain',
+                }}
+              />
+            </Box>
+          </Tooltip>
+        ))}
+      </Box>
+    </Box>
+  );
+};
+
 const ProductionLines = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -597,57 +662,7 @@ const ProductionLines = () => {
 
   // If no production lines exist and no modules are unlocked, show module selection
   if (productionLines.length === 0 && unlockedModules.length === 0) {
-    return (
-      <Box sx={{ p: 3 }}>
-        <Typography variant="h4" sx={{ mb: 3 }}>
-          Production Lines
-        </Typography>
-
-        <Box
-          sx={{
-            p: 3,
-            textAlign: 'center',
-            bgcolor: 'background.paper',
-            borderRadius: 1,
-            border: 1,
-            borderColor: 'divider'
-          }}
-        >
-          <Typography variant="h6" color="text.secondary" gutterBottom>
-            No Production Lines Available
-          </Typography>
-          <Typography color="text.secondary" sx={{ mb: 4 }}>
-            You need to unlock production modules in the Research area first.
-          </Typography>
-          
-          <Button
-            variant="contained"
-            color="primary"
-            size="large"
-            onClick={() => navigate('/research')}
-            sx={{
-              animation: 'pulse 2s infinite',
-              '@keyframes pulse': {
-                '0%': {
-                  transform: 'scale(1)',
-                  boxShadow: '0 0 0 0 rgba(25, 118, 210, 0.4)',
-                },
-                '70%': {
-                  transform: 'scale(1.05)',
-                  boxShadow: '0 0 0 10px rgba(25, 118, 210, 0)',
-                },
-                '100%': {
-                  transform: 'scale(1)',
-                  boxShadow: '0 0 0 0 rgba(25, 118, 210, 0)',
-                },
-              },
-            }}
-          >
-            Go to Research Area
-          </Button>
-        </Box>
-      </Box>
-    );
+    return <ModuleSelectionPlaceholder />;
   }
 
   return (
