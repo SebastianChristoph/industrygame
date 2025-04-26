@@ -59,11 +59,11 @@ const StorageDrawer = ({ open, onClose }) => {
           >
             <TableHead>
               <TableRow>
-                <TableCell width="16%">Rohstoff</TableCell>
-                <TableCell width="28%" align="right">Bestand</TableCell>
-                <TableCell width="22%">Auslastung</TableCell>
+                <TableCell width="16%">Resource</TableCell>
+                <TableCell width="28%" align="right">Stock</TableCell>
+                <TableCell width="22%">Utilization</TableCell>
                 <TableCell width="14%" align="right">Level</TableCell>
-                <TableCell width="24%" align="right">Aktion</TableCell>
+                <TableCell width="24%" align="right">Action</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>

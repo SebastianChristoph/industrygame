@@ -189,12 +189,12 @@ const ProductionLine = () => {
   const handleConfirmRename = () => {
     const trimmedName = newName.trim();
     if (!trimmedName) {
-      setNameError('Name darf nicht leer sein');
+      setNameError('Name cannot be empty');
       return;
     }
     
     if (!checkNameUniqueness(trimmedName)) {
-      setNameError('Eine Produktionslinie mit diesem Namen existiert bereits');
+      setNameError('A production line with this name already exists');
       return;
     }
 
@@ -252,14 +252,14 @@ const ProductionLine = () => {
     return (
       <Box sx={{ p: 3 }}>
         <Typography color="error">
-          Produktionslinie nicht gefunden
+          Production line not found
         </Typography>
         <Button
           startIcon={<ArrowBack />}
           onClick={() => navigate('/production')}
           sx={{ mt: 2 }}
         >
-          Zurück zur Übersicht
+          Back to Overview
         </Button>
       </Box>
     );
@@ -273,7 +273,7 @@ const ProductionLine = () => {
           startIcon={<ArrowBack />}
           onClick={() => navigate('/production')}
         >
-          Zurück
+          Back
         </Button>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
           {RESOURCES[selectedRecipe.output.resourceId].icon}
@@ -298,13 +298,13 @@ const ProductionLine = () => {
           )}
         </Box>
         <Box sx={{ display: 'flex', gap: 1 }}>
-          <Tooltip title="Umbenennen">
+          <Tooltip title="Rename">
             <IconButton onClick={handleRenameClick}>
               <EditIcon />
             </IconButton>
           </Tooltip>
           
-          <Tooltip title="Löschen">
+          <Tooltip title="Delete">
             <IconButton color="error" onClick={handleDeleteClick}>
               <DeleteIcon />
             </IconButton>
@@ -317,7 +317,7 @@ const ProductionLine = () => {
           <Card sx={{ p: 0, m: 0, boxShadow: 0 }}>
             <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
               <Typography variant="h6" gutterBottom sx={{ mb: 1 }}>
-                Eingangskonfiguration
+                Input Configuration
               </Typography>
               <List sx={{ p: 0, m: 0 }}>
                 {selectedRecipe.inputs.map((input, index) => {
@@ -330,15 +330,15 @@ const ProductionLine = () => {
                         {resource.icon}
                       </ListItemIcon>
                       <ListItemText
-                        primary={<span style={{ fontSize: 15 }}>{`${resource.name} (${input.amount}x, Einzelpreis: ${resource.basePrice} Credits)`}</span>}
+                        primary={<span style={{ fontSize: 15 }}>{`${resource.name} (${input.amount}x, Single Price: ${resource.basePrice} Credits)`}</span>}
                         secondary={
                           !isGlobalStorage ? (
                             <span style={{ fontSize: 13 }}>
-                              Wird automatisch eingekauft (Gesamt: {resource.basePrice * input.amount} Credits pro Produktion)
+                              Automatically purchased (Total: {resource.basePrice * input.amount} Credits per production)
                             </span>
                           ) : (
                             <span style={{ fontSize: 13 }}>
-                              Aus globalem Lager ({resources[input.resourceId].amount} verfügbar)
+                              From global storage ({resources[input.resourceId].amount} available)
                             </span>
                           )
                         }
@@ -361,13 +361,13 @@ const ProductionLine = () => {
                         sx={{ height: 28 }}
                       >
                         <ToggleButton value={INPUT_SOURCES.GLOBAL_STORAGE} sx={{ p: 0.5, minWidth: 28, height: 28 }}>
-                          <Tooltip title="Aus globalem Lager">
+                          <Tooltip title="From global storage">
                             <Storage fontSize="small" />
                           </Tooltip>
                         </ToggleButton>
                         {resource.purchasable && (
                           <ToggleButton value={INPUT_SOURCES.PURCHASE_MODULE} sx={{ p: 0.5, minWidth: 28, height: 28 }}>
-                            <Tooltip title="Automatisch einkaufen">
+                            <Tooltip title="Auto purchase">
                               <ShoppingCart fontSize="small" />
                             </Tooltip>
                           </ToggleButton>
@@ -440,7 +440,7 @@ const ProductionLine = () => {
           <Card sx={{ p: 0, m: 0, boxShadow: 0 }}>
             <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
               <Typography variant="h6" gutterBottom sx={{ mb: 1 }}>
-                Ausgangskonfiguration
+                Output Configuration
               </Typography>
               <Box sx={{ mt: 1 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
@@ -487,7 +487,7 @@ const ProductionLine = () => {
                   >
                     <Storage fontSize="medium" />
                     <Typography variant="caption" sx={{ fontSize: 14 }}>
-                      Lager ({resources[selectedRecipe.output.resourceId].amount}/{resources[selectedRecipe.output.resourceId].capacity})
+                      Storage ({resources[selectedRecipe.output.resourceId].amount}/{resources[selectedRecipe.output.resourceId].capacity})
                     </Typography>
                   </ToggleButton>
                   <ToggleButton
@@ -508,7 +508,7 @@ const ProductionLine = () => {
                   >
                     <SellIcon fontSize="medium" />
                     <Typography variant="caption" sx={{ fontSize: 14 }}>
-                      Verkaufen ({RESOURCES[selectedRecipe.output.resourceId].basePrice * selectedRecipe.output.amount} Credits pro Produktion)
+                      Sell ({RESOURCES[selectedRecipe.output.resourceId].basePrice * selectedRecipe.output.amount} Credits per production)
                     </Typography>
                   </ToggleButton>
                 </ToggleButtonGroup>
@@ -522,10 +522,10 @@ const ProductionLine = () => {
         <Tooltip title={
           productionStatus?.error ? productionStatus.error :
           !canStartProduction() ?
-          "Nicht genügend Ressourcen, Lagerkapazität oder Credits" :
+          "Not enough resources, storage capacity or credits" :
           productionStatus?.isActive ?
-          "Produktion stoppen" :
-          "Produktion starten"
+          "Stop production" :
+          "Start production"
         }>
           <span>
             <Button
@@ -558,17 +558,17 @@ const ProductionLine = () => {
         </Box>
       )}
 
-      {/* Dialog für Umbenennen */}
+      {/* Dialog for renaming */}
       <Dialog
         open={isRenameDialogOpen}
         onClose={() => setIsRenameDialogOpen(false)}
       >
-        <DialogTitle>Produktionslinie umbenennen</DialogTitle>
+        <DialogTitle>Rename Production Line</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
             margin="dense"
-            label="Neuer Name"
+            label="New Name"
             fullWidth
             variant="outlined"
             value={newName}
@@ -582,40 +582,40 @@ const ProductionLine = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setIsRenameDialogOpen(false)}>
-            Abbrechen
+            Cancel
           </Button>
           <Button 
             onClick={handleConfirmRename}
             variant="contained"
             disabled={!newName.trim() || !!nameError}
           >
-            Umbenennen
+            Rename
           </Button>
         </DialogActions>
       </Dialog>
 
-      {/* Dialog für Löschen bestätigen */}
+      {/* Dialog for delete confirmation */}
       <Dialog
         open={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
       >
-        <DialogTitle>Produktionslinie löschen</DialogTitle>
+        <DialogTitle>Delete Production Line</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Möchtest du diese Produktionslinie wirklich löschen? 
-            Diese Aktion kann nicht rückgängig gemacht werden.
+            Do you really want to delete this production line? 
+            This action cannot be undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setIsDeleteDialogOpen(false)}>
-            Abbrechen
+            Cancel
           </Button>
           <Button 
             onClick={handleConfirmDelete}
             color="error"
             variant="contained"
           >
-            Löschen
+            Delete
           </Button>
         </DialogActions>
       </Dialog>

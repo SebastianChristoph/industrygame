@@ -1,12 +1,12 @@
 export const RESEARCH_TREE = {
   agriculture: {
     id: 'agriculture',
-    name: 'Agrarwirtschaft',
+    name: 'Agriculture',
     technologies: {
       DUENGER_1: {
         id: 'DUENGER_1',
-        name: 'Dünger I',
-        description: 'Grundlegende Düngemittel für verbesserte Ernteerträge',
+        name: 'Fertilizer I',
+        description: 'Basic fertilizers for improved crop yields',
         cost: 100,
         requirements: [],
         unlocks: {
@@ -16,8 +16,8 @@ export const RESEARCH_TREE = {
       },
       DUENGER_2: {
         id: 'DUENGER_2',
-        name: 'Dünger II',
-        description: 'Fortgeschrittene Düngemittel für maximale Ernteerträge',
+        name: 'Fertilizer II',
+        description: 'Advanced fertilizers for maximum crop yields',
         cost: 250,
         requirements: ['DUENGER_1'],
         unlocks: {
@@ -27,8 +27,8 @@ export const RESEARCH_TREE = {
       },
       BIOFARMING: {
         id: 'BIOFARMING',
-        name: 'Biologische Landwirtschaft',
-        description: 'Ermöglicht die Produktion von Bio-Gemüse',
+        name: 'Organic Farming',
+        description: 'Enables production of organic vegetables',
         cost: 350,
         requirements: ['DUENGER_2'],
         unlocks: {
@@ -40,12 +40,12 @@ export const RESEARCH_TREE = {
   },
   technology: {
     id: 'technology',
-    name: 'Technik',
+    name: 'Technology',
     technologies: {
       MASCHINEN_1: {
         id: 'MASCHINEN_1',
-        name: 'Grundlegende Maschinen',
-        description: 'Einfache Produktionsmaschinen',
+        name: 'Basic Machinery',
+        description: 'Simple production machines',
         cost: 200,
         requirements: [],
         unlocks: {
@@ -54,8 +54,8 @@ export const RESEARCH_TREE = {
       },
       MASCHINEN_2: {
         id: 'MASCHINEN_2',
-        name: 'Fortgeschrittene Maschinen',
-        description: 'Effizientere Produktionsmaschinen',
+        name: 'Advanced Machinery',
+        description: 'More efficient production machines',
         cost: 400,
         requirements: ['MASCHINEN_1'],
         unlocks: {
@@ -64,8 +64,8 @@ export const RESEARCH_TREE = {
       },
       SOLARTECH: {
         id: 'SOLARTECH',
-        name: 'Solarmodule',
-        description: 'Ermöglicht die Produktion von Solarmodulen',
+        name: 'Solar Modules',
+        description: 'Enables production of solar panels',
         cost: 350,
         requirements: ['MASCHINEN_2'],
         unlocks: {
@@ -75,8 +75,8 @@ export const RESEARCH_TREE = {
       },
       BATTERIETECH: {
         id: 'BATTERIETECH',
-        name: 'Batterietechnologie',
-        description: 'Ermöglicht die Produktion von Hochleistungsbatterien',
+        name: 'Battery Technology',
+        description: 'Enables production of high-performance batteries',
         cost: 500,
         requirements: ['SOLARTECH'],
         unlocks: {
@@ -88,12 +88,12 @@ export const RESEARCH_TREE = {
   },
   weapons: {
     id: 'weapons',
-    name: 'Waffenproduktion',
+    name: 'Weapon Production',
     technologies: {
       WAFFEN_1: {
         id: 'WAFFEN_1',
-        name: 'Grundlegende Waffenproduktion',
-        description: 'Einfache Waffen und Ausrüstung herstellen',
+        name: 'Basic Weapon Production',
+        description: 'Manufacture simple weapons and equipment',
         cost: 180,
         requirements: [],
         unlocks: {
@@ -103,8 +103,8 @@ export const RESEARCH_TREE = {
       },
       EXPLOSIVSTOFFE: {
         id: 'EXPLOSIVSTOFFE',
-        name: 'Sprengstoffherstellung',
-        description: 'Ermöglicht die Produktion von Sprengstoff',
+        name: 'Explosives Manufacturing',
+        description: 'Enables production of explosives',
         cost: 300,
         requirements: ['WAFFEN_1'],
         unlocks: {
@@ -114,8 +114,8 @@ export const RESEARCH_TREE = {
       },
       RAKETENTECH: {
         id: 'RAKETENTECH',
-        name: 'Raketentechnologie',
-        description: 'Ermöglicht die Produktion von Raketen',
+        name: 'Rocket Technology',
+        description: 'Enables production of rockets',
         cost: 600,
         requirements: ['EXPLOSIVSTOFFE'],
         unlocks: {

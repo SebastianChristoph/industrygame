@@ -36,7 +36,7 @@ const Research = () => {
       dispatch(unlockModule(moduleId));
     } else {
       // Optional: Feedback für zu wenig Punkte
-      alert('Nicht genug Forschungspunkte!');
+      alert('Not enough research points!');
     }
   };
 
@@ -64,7 +64,7 @@ const Research = () => {
       <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
         {purchasableResources.length > 0 && (
           <Box>
-            <Typography variant="caption" color="text.secondary">Resource zum Einkauf:</Typography>
+            <Typography variant="caption" color="text.secondary">Resource for purchase:</Typography>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 0.5 }}>
               {purchasableResources.map(resourceId => (
                 <Tooltip key={resourceId} title={RESOURCES[resourceId]?.name || resourceId}>
@@ -78,14 +78,14 @@ const Research = () => {
         )}
         {producedGoods.length > 0 && (
           <Box>
-            <Typography variant="caption" color="text.secondary">Ware zur Produktion:</Typography>
+            <Typography variant="caption" color="text.secondary">Good for production:</Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 0.5 }}>
               {producedGoods.map(recipe => (
                 <Tooltip key={recipe.id} title={recipe.name}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'action.hover', px: 1, py: 0.2, borderRadius: 1, fontSize: '0.85rem' }}>
                     {RESOURCES[recipe.output.resourceId]?.icon || <ScienceIcon fontSize="small" />} {RESOURCES[recipe.output.resourceId]?.name || recipe.output.resourceId}
                     <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                      (Rezept: {recipe.inputs.map((input, idx) => `${input.amount}x ${RESOURCES[input.resourceId]?.name || input.resourceId}`).join(' + ')} = {recipe.output.amount}x {RESOURCES[recipe.output.resourceId]?.name || recipe.output.resourceId})
+                      (Recipe: {recipe.inputs.map((input, idx) => `${input.amount}x ${RESOURCES[input.resourceId]?.name || input.resourceId}`).join(' + ')} = {recipe.output.amount}x {RESOURCES[recipe.output.resourceId]?.name || recipe.output.resourceId})
                     </Typography>
                   </Box>
                 </Tooltip>
@@ -102,7 +102,7 @@ const Research = () => {
     <Box sx={{ mb: 2 }}>
       {module.resources && module.resources.length > 0 && (
         <Box sx={{ mb: 1 }}>
-          <Typography variant="subtitle2" color="text.secondary">Basis-Ressourcen:</Typography>
+          <Typography variant="subtitle2" color="text.secondary">Base Resources:</Typography>
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 0.5 }}>
             {module.resources.map(resourceId => (
               <Tooltip key={resourceId} title={RESOURCES[resourceId]?.name || resourceId}>
@@ -116,7 +116,7 @@ const Research = () => {
       )}
       {module.recipes && module.recipes.length > 0 && (
         <Box>
-          <Typography variant="subtitle2" color="text.secondary">Basis-Waren:</Typography>
+          <Typography variant="subtitle2" color="text.secondary">Base Goods:</Typography>
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 0.5 }}>
             {module.recipes.map(recipeId => (
               <Tooltip key={recipeId} title={PRODUCTION_RECIPES[recipeId]?.name || recipeId}>
@@ -134,10 +134,10 @@ const Research = () => {
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" sx={{ mb: 3 }}>
-        Forschung
+        Research
       </Typography>
       <Typography variant="h6" sx={{ mb: 2 }}>
-        Forschungspunkte: {researchPoints}
+        Research Points: {researchPoints}
       </Typography>
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
         <Tabs value={tab} onChange={(_, v) => setTab(v)} aria-label="Module Tabs">
@@ -168,22 +168,22 @@ const Research = () => {
             onClick={() => handleUnlockModule(module.id)}
             sx={{ mb: 2 }}
           >
-            {isUnlocked ? 'Freigeschaltet' : 'Freischalten'}
+            {isUnlocked ? 'Unlocked' : 'Unlock'}
           </Button>
           {renderModuleBaseUnlocks(module)}
           {moduleResearch ? (
             <>
               <Divider sx={{ my: 2 }} />
               <Typography variant="h6" gutterBottom>
-                Technologien
+                Technologies
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 {Object.values(moduleResearch.technologies).map((technology) => {
                   const isResearched = isTechnologyResearched(technology.id);
                   const hasEnoughPoints = researchPoints >= technology.cost;
                   const canResearch = isUnlocked && canResearchTechnology(technology) && hasEnoughPoints;
-                  let buttonLabel = isResearched ? 'Erforscht' : 'Erforschen';
-                  if (!isResearched && !hasEnoughPoints) buttonLabel = 'Nicht genug Forschungspunkte';
+                  let buttonLabel = isResearched ? 'Researched' : 'Research';
+                  if (!isResearched && !hasEnoughPoints) buttonLabel = 'Not enough research points';
                   return (
                     <Card key={technology.id} variant="outlined" sx={{ mb: 1, p: 0, borderRadius: 2, boxShadow: 0, minHeight: 0 }}>
                       <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
@@ -197,11 +197,11 @@ const Research = () => {
                           {technology.description}
                         </Typography>
                         <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.95rem' }}>
-                          Kosten: {technology.cost} Forschungspunkte
+                          Cost: {technology.cost} research points
                         </Typography>
                         {technology.requirements.length > 0 && (
                           <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.95rem' }}>
-                            Voraussetzungen: {technology.requirements.join(', ')}
+                            Requirements: {technology.requirements.join(', ')}
                           </Typography>
                         )}
                         {renderUnlocks(technology.unlocks)}

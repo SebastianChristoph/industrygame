@@ -31,7 +31,7 @@ const Storage = () => {
     <Box sx={{ p: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h5" color="text.primary">
-          Rohstofflager
+          Resource Storage
         </Typography>
        
       </Box>
@@ -40,11 +40,11 @@ const Storage = () => {
         <Table size="small">
           <TableHead>
             <TableRow>
-              <TableCell>Rohstoff</TableCell>
-              <TableCell align="right">Lagerbestand</TableCell>
-              <TableCell>Auslastung</TableCell>
+              <TableCell>Resource</TableCell>
+              <TableCell align="right">Stock</TableCell>
+              <TableCell>Utilization</TableCell>
               <TableCell align="right">Level</TableCell>
-              <TableCell align="right">Aktion</TableCell>
+              <TableCell align="right">Action</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>

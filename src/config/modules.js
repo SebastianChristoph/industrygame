@@ -1,24 +1,24 @@
 export const MODULES = {
   AGRICULTURE: {
     id: 'agriculture',
-    name: 'Agrarwirtschaft',
-    description: 'Produktion von landwirtschaftlichen Gütern und Nahrungsmitteln',
+    name: 'Agriculture',
+    description: 'Production of agricultural goods and food',
     icon: '🌾',
     recipes: ['watergas', 'woodplanks'],
     resources: ['water', 'wood']
   },
   TECHNOLOGY: {
     id: 'technology',
-    name: 'Technik',
-    description: 'Produktion von elektronischen Bauteilen und Technologie',
+    name: 'Technology',
+    description: 'Production of electronic components and technology',
     icon: '💻',
     recipes: ['electrochip', 'circuit'],
     resources: ['iron', 'copper']
   },
   WEAPONS: {
     id: 'weapons',
-    name: 'Waffenproduktion',
-    description: 'Produktion von Waffen und militärischer Ausrüstung',
+    name: 'Weapon Production',
+    description: 'Production of weapons and military equipment',
     icon: '⚔️',
     recipes: ['plastic'],
     resources: ['oil', 'stone']

@@ -1,180 +1,180 @@
 export const RESOURCES = {
   iron: {
     id: 'iron',
-    name: 'Eisen',
+    name: 'Iron',
     basePrice: 10,
-    description: 'Ein wichtiger Grundstoff für die Produktion',
+    description: 'An important basic material for production',
     icon: '🪨',
-    purchasable: true // Kann über Einkaufsmodul beschafft werden
+    purchasable: true // Can be purchased through purchase module
   },
   copper: {
     id: 'copper',
-    name: 'Kupfer',
+    name: 'Copper',
     basePrice: 15,
-    description: 'Ein wertvoller Rohstoff für die Elektronik',
+    description: 'A valuable raw material for electronics',
     icon: '🔶',
     purchasable: true
   },
   oil: {
     id: 'oil',
-    name: 'Öl',
+    name: 'Oil',
     basePrice: 20,
-    description: 'Schwarzes Gold, essentiell für viele Produkte',
+    description: 'Black gold, essential for many products',
     icon: '🛢️',
     purchasable: true
   },
   water: {
     id: 'water',
-    name: 'Wasser',
+    name: 'Water',
     basePrice: 5,
-    description: 'Grundlegend für viele chemische Prozesse',
+    description: 'Fundamental for many chemical processes',
     icon: '💧',
     purchasable: true
   },
   wood: {
     id: 'wood',
-    name: 'Holz',
+    name: 'Wood',
     basePrice: 8,
-    description: 'Ein vielseitiger Grundstoff',
+    description: 'A versatile basic material',
     icon: '🪵',
     purchasable: true
   },
   stone: {
     id: 'stone',
-    name: 'Stein',
+    name: 'Stone',
     basePrice: 8,
-    description: 'Ein stabiler Baustoff',
+    description: 'A stable building material',
     icon: '⛰️',
     purchasable: true
   },
   biomass: {
     id: 'biomass',
-    name: 'Biomasse',
+    name: 'Biomass',
     basePrice: 10,
-    description: 'Organisches Material, vielseitig einsetzbar',
+    description: 'Organic material, versatile in use',
     icon: '🌱',
     purchasable: true
   },
   fertilizer: {
     id: 'fertilizer',
-    name: 'Dünger',
+    name: 'Fertilizer',
     basePrice: 30,
-    description: 'Verbessert das Pflanzenwachstum',
+    description: 'Improves plant growth',
     icon: '🧪',
     purchasable: false
   },
   compost: {
     id: 'compost',
-    name: 'Kompost',
+    name: 'Compost',
     basePrice: 15,
-    description: 'Organischer Dünger',
+    description: 'Organic fertilizer',
     icon: '🪱',
     purchasable: true
   },
   organic_vegetables: {
     id: 'organic_vegetables',
-    name: 'Bio-Gemüse',
+    name: 'Organic Vegetables',
     basePrice: 40,
-    description: 'Gesundes Bio-Gemüse',
+    description: 'Healthy organic vegetables',
     icon: '🥦',
     purchasable: false
   },
   solar_panel: {
     id: 'solar_panel',
-    name: 'Solarmodul',
+    name: 'Solar Panel',
     basePrice: 120,
-    description: 'Erzeugt Strom aus Sonnenlicht',
+    description: 'Generates electricity from sunlight',
     icon: '🔆',
     purchasable: false
   },
   battery: {
     id: 'battery',
-    name: 'Batterie',
+    name: 'Battery',
     basePrice: 80,
-    description: 'Speichert Energie',
+    description: 'Stores energy',
     icon: '🔋',
     purchasable: false
   },
   steel: {
     id: 'steel',
-    name: 'Stahl',
+    name: 'Steel',
     basePrice: 50,
-    description: 'Wichtiger Werkstoff',
+    description: 'Important construction material',
     icon: '🛡️',
     purchasable: false
   },
   explosives: {
     id: 'explosives',
-    name: 'Sprengstoff',
+    name: 'Explosives',
     basePrice: 100,
-    description: 'Für Waffen und Bau',
+    description: 'For weapons and construction',
     icon: '💣',
     purchasable: false
   },
   rocket: {
     id: 'rocket',
-    name: 'Rakete',
+    name: 'Rocket',
     basePrice: 500,
-    description: 'Fortschrittliche Waffe',
+    description: 'Advanced weapon',
     icon: '🚀',
     purchasable: false
   },
   coal: {
     id: 'coal',
-    name: 'Kohle',
+    name: 'Coal',
     basePrice: 12,
-    description: 'Brennstoff für die Stahlproduktion',
+    description: 'Fuel for steel production',
     icon: '⚫',
     purchasable: true
   },
-  // Hergestellte Produkte
+  // Manufactured products
   electrochip: {
     id: 'electrochip',
-    name: 'Elektrochip',
+    name: 'Electrochip',
     basePrice: 50,
-    description: 'Ein elektronisches Bauteil',
+    description: 'An electronic component',
     icon: '💻',
     purchasable: false
   },
   watergas: {
     id: 'watergas',
-    name: 'Wassergas',
+    name: 'Water Gas',
     basePrice: 30,
-    description: 'Ein Gasgemisch aus Wasserstoff und Kohlenmonoxid',
+    description: 'A gas mixture of hydrogen and carbon monoxide',
     icon: '☁️',
     purchasable: false
   },
   plastic: {
     id: 'plastic',
-    name: 'Plastik',
+    name: 'Plastic',
     basePrice: 40,
-    description: 'Ein vielseitiger Kunststoff',
+    description: 'A versatile plastic',
     icon: '🧊',
     purchasable: false
   },
   woodplanks: {
     id: 'woodplanks',
-    name: 'Holzbretter',
+    name: 'Wood Planks',
     basePrice: 25,
-    description: 'Verarbeitetes Holz für weitere Produktion',
+    description: 'Processed wood for further production',
     icon: '📏',
     purchasable: false
   },
   circuit: {
     id: 'circuit',
-    name: 'Schaltkreis',
+    name: 'Circuit',
     basePrice: 100,
-    description: 'Ein komplexes elektronisches Bauteil',
+    description: 'A complex electronic component',
     icon: '🔌',
     purchasable: false
   }
 };
 
 export const PRODUCTION_RECIPES = {
-  // Einfache Rezepte mit einem Input
+  // Simple recipes with one input
   watergas: {
     id: 'watergas',
-    name: 'Wassergas',
+    name: 'Water Gas',
     productionTime: 2,
     inputs: [
       { resourceId: 'water', amount: 2 }
@@ -186,7 +186,7 @@ export const PRODUCTION_RECIPES = {
   },
   woodplanks: {
     id: 'woodplanks',
-    name: 'Holzbretter',
+    name: 'Wood Planks',
     productionTime: 8,
     inputs: [
       { resourceId: 'wood', amount: 2 }
@@ -196,14 +196,14 @@ export const PRODUCTION_RECIPES = {
       amount: 3
     }
   },
-  // Rezepte mit zwei Inputs
+  // Recipes with two inputs
   plastic: {
     id: 'plastic',
-    name: 'Plastik',
+    name: 'Plastic',
     productionTime: 12,
     inputs: [
       { resourceId: 'oil', amount: 2 },
-      { resourceId: 'watergas', amount: 1 } // Benötigt hergestelltes Wassergas
+      { resourceId: 'watergas', amount: 1 } // Requires manufactured water gas
     ],
     output: {
       resourceId: 'plastic',
@@ -212,7 +212,7 @@ export const PRODUCTION_RECIPES = {
   },
   electrochip: {
     id: 'electrochip',
-    name: 'Elektrochip',
+    name: 'Electrochip',
     productionTime: 10,
     inputs: [
       { resourceId: 'copper', amount: 1 },
@@ -223,14 +223,14 @@ export const PRODUCTION_RECIPES = {
       amount: 1
     }
   },
-  // Komplexes Rezept mit hergestelltem Input
+  // Complex recipe with manufactured input
   circuit: {
     id: 'circuit',
-    name: 'Schaltkreis',
+    name: 'Circuit',
     productionTime: 15,
     inputs: [
-      { resourceId: 'electrochip', amount: 2 }, // Benötigt hergestellte Elektrochips
-      { resourceId: 'plastic', amount: 1 }      // Benötigt hergestelltes Plastik
+      { resourceId: 'electrochip', amount: 2 }, // Requires manufactured electrochips
+      { resourceId: 'plastic', amount: 1 }      // Requires manufactured plastic
     ],
     output: {
       resourceId: 'circuit',
@@ -239,7 +239,7 @@ export const PRODUCTION_RECIPES = {
   },
   fertilizer: {
     id: 'fertilizer',
-    name: 'Dünger',
+    name: 'Fertilizer',
     productionTime: 5,
     inputs: [
       { resourceId: 'water', amount: 1 },
@@ -252,7 +252,7 @@ export const PRODUCTION_RECIPES = {
   },
   compost: {
     id: 'compost',
-    name: 'Kompost',
+    name: 'Compost',
     productionTime: 6,
     inputs: [
       { resourceId: 'biomass', amount: 2 }
@@ -264,7 +264,7 @@ export const PRODUCTION_RECIPES = {
   },
   organic_vegetables: {
     id: 'organic_vegetables',
-    name: 'Bio-Gemüse',
+    name: 'Organic Vegetables',
     productionTime: 10,
     inputs: [
       { resourceId: 'compost', amount: 1 },
@@ -277,7 +277,7 @@ export const PRODUCTION_RECIPES = {
   },
   solar_panel: {
     id: 'solar_panel',
-    name: 'Solarmodul',
+    name: 'Solar Panel',
     productionTime: 12,
     inputs: [
       { resourceId: 'copper', amount: 2 },
@@ -290,7 +290,7 @@ export const PRODUCTION_RECIPES = {
   },
   battery: {
     id: 'battery',
-    name: 'Batterie',
+    name: 'Battery',
     productionTime: 8,
     inputs: [
       { resourceId: 'iron', amount: 1 },
@@ -303,7 +303,7 @@ export const PRODUCTION_RECIPES = {
   },
   steel: {
     id: 'steel',
-    name: 'Stahl',
+    name: 'Steel',
     productionTime: 10,
     inputs: [
       { resourceId: 'iron', amount: 3 },
@@ -316,7 +316,7 @@ export const PRODUCTION_RECIPES = {
   },
   explosives: {
     id: 'explosives',
-    name: 'Sprengstoff',
+    name: 'Explosives',
     productionTime: 15,
     inputs: [
       { resourceId: 'oil', amount: 2 },
@@ -329,7 +329,7 @@ export const PRODUCTION_RECIPES = {
   },
   rocket: {
     id: 'rocket',
-    name: 'Rakete',
+    name: 'Rocket',
     productionTime: 20,
     inputs: [
       { resourceId: 'steel', amount: 2 },
@@ -342,13 +342,13 @@ export const PRODUCTION_RECIPES = {
   }
 };
 
-// Mögliche Quellen für Inputs
+// Possible sources for inputs
 export const INPUT_SOURCES = {
   GLOBAL_STORAGE: 'GLOBAL_STORAGE',
   PURCHASE_MODULE: 'PURCHASE_MODULE'
 };
 
-// Mögliche Ziele für Outputs
+// Possible targets for outputs
 export const OUTPUT_TARGETS = {
   GLOBAL_STORAGE: 'GLOBAL_STORAGE',
   AUTO_SELL: 'AUTO_SELL'
@@ -380,13 +380,13 @@ export const INITIAL_RESOURCES = {
 
 // Storage configuration
 export const STORAGE_CONFIG = {
-  BASE_CAPACITY: 200,          // Grundkapazität pro Rohstoff
-  UPGRADE_CAPACITY: 200,       // Zusätzliche Kapazität pro Upgrade
-  BASE_COST: 200,             // Grundkosten für ein Upgrade
-  COST_MULTIPLIER: 1.5,       // Kostenmultiplikator pro Level
+  BASE_CAPACITY: 200,          // Base capacity per resource
+  UPGRADE_CAPACITY: 200,       // Additional capacity per upgrade
+  BASE_COST: 200,             // Base cost for an upgrade
+  COST_MULTIPLIER: 1.5,       // Cost multiplier per level
 };
 
-// Berechnet die Kosten für das nächste Storage-Level
+// Calculates the cost for the next storage level
 export const calculateUpgradeCost = (currentLevel) => {
   return Math.floor(STORAGE_CONFIG.BASE_COST * Math.pow(STORAGE_CONFIG.COST_MULTIPLIER, currentLevel - 1));
 }; 

@@ -71,7 +71,7 @@ const ProductionLineCard = ({ line, onRenameClick, onDeleteClick }) => {
     recipe.inputs.forEach((input, index) => {
       const inputConfig = config.inputs[index];
       if (!inputConfig) {
-        missingResources.push({ name: RESOURCES[input.resourceId].name, reason: 'Keine Konfiguration' });
+        missingResources.push({ name: RESOURCES[input.resourceId].name, reason: 'No configuration' });
         return;
       }
 
@@ -80,7 +80,7 @@ const ProductionLineCard = ({ line, onRenameClick, onDeleteClick }) => {
         if (available < input.amount) {
           missingResources.push({
             name: RESOURCES[input.resourceId].name,
-            reason: `${available}/${input.amount} verfügbar`
+            reason: `${available}/${input.amount} available`
           });
         }
       } else {
@@ -91,7 +91,7 @@ const ProductionLineCard = ({ line, onRenameClick, onDeleteClick }) => {
     if (requiredCredits > credits) {
       missingResources.push({
         name: 'Credits',
-        reason: `${credits}/${requiredCredits} verfügbar`
+        reason: `${credits}/${requiredCredits} available`
       });
     }
 
@@ -101,7 +101,7 @@ const ProductionLineCard = ({ line, onRenameClick, onDeleteClick }) => {
       if (outputResource.amount + recipe.output.amount > outputResource.capacity) {
         missingResources.push({
           name: RESOURCES[recipe.output.resourceId].name,
-          reason: 'Lager voll'
+          reason: 'Storage full'
         });
       }
     }
@@ -322,7 +322,7 @@ const ProductionLines = () => {
     },
     {
       field: 'progress',
-      headerName: 'Fortschritt',
+      headerName: 'Progress',
       width: 120,
       renderCell: (params) => {
         const config = productionConfigs[params.row.id];
@@ -398,7 +398,7 @@ const ProductionLines = () => {
     },
     {
       field: 'totalBalance',
-      headerName: 'Bilanz gesamt',
+      headerName: 'Total Balance',
       width: 150,
       align: 'right',
       renderCell: (params) => {
@@ -420,7 +420,7 @@ const ProductionLines = () => {
     },
     {
       field: 'balancePerPing',
-      headerName: 'Bilanz pro Ping',
+      headerName: 'Balance per Ping',
       width: 150,
       align: 'right',
       renderCell: (params) => {
@@ -467,7 +467,7 @@ const ProductionLines = () => {
               <SellIcon fontSize="small" color="success" />
             )}
             <Typography variant="body2">
-              {outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE ? 'Lager' : 'Verkauf'}
+              {outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE ? 'Storage' : 'Sell'}
             </Typography>
           </Box>
         );
@@ -475,7 +475,7 @@ const ProductionLines = () => {
     },
     {
       field: 'actions',
-      headerName: 'Aktionen',
+      headerName: 'Actions',
       width: 120,
       align: 'center',
       renderCell: (params) => (
@@ -503,7 +503,7 @@ const ProductionLines = () => {
     recipe.inputs.forEach((input, index) => {
       const inputConfig = config.inputs[index];
       if (!inputConfig) {
-        missingResources.push({ name: RESOURCES[input.resourceId].name, reason: 'Keine Konfiguration' });
+        missingResources.push({ name: RESOURCES[input.resourceId].name, reason: 'No configuration' });
         return;
       }
 
@@ -512,7 +512,7 @@ const ProductionLines = () => {
         if (available < input.amount) {
           missingResources.push({
             name: RESOURCES[input.resourceId].name,
-            reason: `${available}/${input.amount} verfügbar`
+            reason: `${available}/${input.amount} available`
           });
         }
       } else {
@@ -523,7 +523,7 @@ const ProductionLines = () => {
     if (requiredCredits > resources.credits) {
       missingResources.push({
         name: 'Credits',
-        reason: `${resources.credits}/${requiredCredits} verfügbar`
+        reason: `${resources.credits}/${requiredCredits} available`
       });
     }
 
@@ -532,7 +532,7 @@ const ProductionLines = () => {
       if (outputResource.amount + recipe.output.amount > outputResource.capacity) {
         missingResources.push({
           name: RESOURCES[recipe.output.resourceId].name,
-          reason: 'Lager voll'
+          reason: 'Storage full'
         });
       }
     }
@@ -579,7 +579,7 @@ const ProductionLines = () => {
     return (
       <Box sx={{ p: 3 }}>
         <Typography variant="h4" sx={{ mb: 3 }}>
-          Produktionslinien
+          Production Lines
         </Typography>
 
         <Box
@@ -592,85 +592,38 @@ const ProductionLines = () => {
             borderColor: 'divider'
           }}
         >
-          <Typography color="text.secondary" gutterBottom>
-            Wähle dein erstes Produktionsmodul
+          <Typography variant="h6" color="text.secondary" gutterBottom>
+            No Production Lines Available
           </Typography>
-          <Grid container spacing={3} sx={{ mt: 2 }}>
-            {Object.values(MODULES).map((module) => (
-              <Grid item xs={12} md={4} key={module.id}>
-                <Card>
-                  <CardContent>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                      <Typography variant="h2" sx={{ fontSize: '2.5rem' }}>
-                        {module.icon}
-                      </Typography>
-                      <Box>
-                        <Typography variant="h6">
-                          {module.name}
-                        </Typography>
-                        <Typography variant="body2" color="text.secondary">
-                          {module.description}
-                        </Typography>
-                      </Box>
-                    </Box>
-
-                    <Typography variant="subtitle2" gutterBottom>
-                      Verfügbare Rezepte:
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
-                      {module.recipes.map((recipeId) => (
-                        <Tooltip key={recipeId} title={recipeId}>
-                          <Box
-                            sx={{
-                              bgcolor: 'action.hover',
-                              px: 1,
-                              py: 0.5,
-                              borderRadius: 1,
-                              fontSize: '0.75rem'
-                            }}
-                          >
-                            {recipeId}
-                          </Box>
-                        </Tooltip>
-                      ))}
-                    </Box>
-
-                    <Typography variant="subtitle2" gutterBottom>
-                      Verfügbare Ressourcen:
-                    </Typography>
-                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
-                      {module.resources.map((resourceId) => (
-                        <Tooltip key={resourceId} title={resourceId}>
-                          <Box
-                            sx={{
-                              bgcolor: 'action.hover',
-                              px: 1,
-                              py: 0.5,
-                              borderRadius: 1,
-                              fontSize: '0.75rem'
-                            }}
-                          >
-                            {resourceId}
-                          </Box>
-                        </Tooltip>
-                      ))}
-                    </Box>
-
-                    <Button
-                      variant="contained"
-                      fullWidth
-                      onClick={() => {
-                        dispatch(unlockModule(module.id));
-                        setIsModuleSelectionOpen(false);
-                      }}
-                    >
-                      Modul freischalten
-                    </Button>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
+          <Typography color="text.secondary" sx={{ mb: 4 }}>
+            You need to unlock production modules in the Research area first.
+          </Typography>
+          
+          <Button
+            variant="contained"
+            color="primary"
+            size="large"
+            onClick={() => navigate('/research')}
+            sx={{
+              animation: 'pulse 2s infinite',
+              '@keyframes pulse': {
+                '0%': {
+                  transform: 'scale(1)',
+                  boxShadow: '0 0 0 0 rgba(25, 118, 210, 0.4)',
+                },
+                '70%': {
+                  transform: 'scale(1.05)',
+                  boxShadow: '0 0 0 10px rgba(25, 118, 210, 0)',
+                },
+                '100%': {
+                  transform: 'scale(1)',
+                  boxShadow: '0 0 0 0 rgba(25, 118, 210, 0)',
+                },
+              },
+            }}
+          >
+            Go to Research Area
+          </Button>
         </Box>
       </Box>
     );
@@ -680,7 +633,7 @@ const ProductionLines = () => {
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
         <Typography variant="h4" sx={{ flex: 1 }}>
-          Produktionslinien
+          Production Lines
         </Typography>
         <Button
           variant="contained"
@@ -688,7 +641,7 @@ const ProductionLines = () => {
           startIcon={<AddIcon />}
           onClick={handleAddLine}
         >
-          NEUE PRODUKTIONSLINIE
+          NEW PRODUCTION LINE
         </Button>
       </Box>
 
@@ -715,10 +668,10 @@ const ProductionLines = () => {
       </Paper>
 
       <Dialog open={isCreateDialogOpen} onClose={() => setIsCreateDialogOpen(false)}>
-        <DialogTitle>Neue Produktionslinie erstellen</DialogTitle>
+        <DialogTitle>Create New Production Line</DialogTitle>
         <DialogContent sx={{ minWidth: 400 }}>
           <FormControl fullWidth sx={{ mt: 2, mb: 2 }}>
-            <InputLabel>Rezept auswählen</InputLabel>
+            <InputLabel>Select Recipe</InputLabel>
             <Select
               value={selectedRecipe}
               onChange={(e) => {
@@ -742,7 +695,7 @@ const ProductionLines = () => {
                   }, 100);
                 }
               }}
-              label="Rezept auswählen"
+              label="Select Recipe"
             >
               {availableRecipes.map(([id, recipe]) => (
                 <MenuItem key={id} value={id} sx={{ 
@@ -808,7 +761,7 @@ const ProductionLines = () => {
           <TextField
             margin="dense"
             name="productionLineName"
-            label="Name der Produktionslinie"
+            label="Production Line Name"
             fullWidth
             variant="outlined"
             value={newLineName}
@@ -823,15 +776,15 @@ const ProductionLines = () => {
           {selectedRecipe && PRODUCTION_RECIPES[selectedRecipe] && (
             <Box sx={{ mt: 3, p: 2, bgcolor: 'background.paper', borderRadius: 1, border: 1, borderColor: 'divider' }}>
               <Typography variant="subtitle1" gutterBottom>
-                Rezeptdetails:
+                Recipe Details:
               </Typography>
               
               <Typography variant="body2" color="text.secondary" gutterBottom>
-                Produktionszeit: {PRODUCTION_RECIPES[selectedRecipe].productionTime} Pings
+                Production Time: {PRODUCTION_RECIPES[selectedRecipe].productionTime} Pings
               </Typography>
 
               <Typography variant="subtitle2" sx={{ mt: 1, mb: 0.5 }}>
-                Benötigte Ressourcen:
+                Required Resources:
               </Typography>
               {PRODUCTION_RECIPES[selectedRecipe].inputs.map((input, index) => {
                 const resource = RESOURCES[input.resourceId];
@@ -846,11 +799,11 @@ const ProductionLines = () => {
                         color={currentAmount >= input.amount ? "success.main" : "error.main"}
                         sx={{ ml: 1 }}
                       >
-                        ({currentAmount}/{input.amount} verfügbar)
+                        ({currentAmount}/{input.amount} available)
                       </Typography>
                       {resource.purchasable && (
                         <Typography component="span" variant="body2" color="text.secondary">
-                          {' '}(Einkaufspreis: {resource.basePrice * input.amount} Credits)
+                          {' '}(Purchase Price: {resource.basePrice * input.amount} Credits)
                         </Typography>
                       )}
                     </Typography>
@@ -859,7 +812,7 @@ const ProductionLines = () => {
               })}
 
               <Typography variant="subtitle2" sx={{ mt: 2, mb: 0.5 }}>
-                Produktion:
+                Production:
               </Typography>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 2 }}>
                 <Typography variant="body2">
@@ -875,14 +828,14 @@ const ProductionLines = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setIsCreateDialogOpen(false)}>
-            Abbrechen
+            Cancel
           </Button>
           <Button 
             onClick={handleCreateLine}
             variant="contained"
             disabled={!selectedRecipe || !newLineName.trim() || !!nameError}
           >
-            Erstellen
+            Create
           </Button>
         </DialogActions>
       </Dialog>
@@ -891,23 +844,23 @@ const ProductionLines = () => {
         open={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
       >
-        <DialogTitle>Produktionslinie löschen</DialogTitle>
+        <DialogTitle>Delete Production Line</DialogTitle>
         <DialogContent>
           <DialogContentText>
-            Möchtest du diese Produktionslinie wirklich löschen? 
-            Diese Aktion kann nicht rückgängig gemacht werden.
+            Do you really want to delete this production line? 
+            This action cannot be undone.
           </DialogContentText>
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setIsDeleteDialogOpen(false)}>
-            Abbrechen
+            Cancel
           </Button>
           <Button 
             onClick={handleConfirmDelete}
             color="error"
             variant="contained"
           >
-            Löschen
+            Delete
           </Button>
         </DialogActions>
       </Dialog>
@@ -916,12 +869,12 @@ const ProductionLines = () => {
         open={isRenameDialogOpen}
         onClose={() => setIsRenameDialogOpen(false)}
       >
-        <DialogTitle>Produktionslinie umbenennen</DialogTitle>
+        <DialogTitle>Rename Production Line</DialogTitle>
         <DialogContent>
           <TextField
             autoFocus
             margin="dense"
-            label="Neuer Name"
+            label="New Name"
             fullWidth
             variant="outlined"
             value={newLineName}
@@ -930,14 +883,14 @@ const ProductionLines = () => {
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setIsRenameDialogOpen(false)}>
-            Abbrechen
+            Cancel
           </Button>
           <Button 
             onClick={handleConfirmRename}
             variant="contained"
             disabled={!newLineName.trim()}
           >
-            Umbenennen
+            Rename
           </Button>
         </DialogActions>
       </Dialog>

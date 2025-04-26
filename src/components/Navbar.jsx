@@ -8,8 +8,8 @@ const Navbar = () => {
 
   const menuItems = [
     { text: 'Home', icon: <Home />, path: '/' },
-    { text: 'Lager', icon: <Warehouse />, path: '/storage' },
-    { text: 'Produktion', icon: <Factory />, path: '/production' },
+    { text: 'Storage', icon: <Warehouse />, path: '/storage' },
+    { text: 'Production', icon: <Factory />, path: '/production' },
     { text: 'Settings', icon: <Settings />, path: '/settings' },
     { text: 'About', icon: <Info />, path: '/about' },
   ];
