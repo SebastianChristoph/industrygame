@@ -47,6 +47,22 @@ export const RESOURCES = {
     icon: '⛰️',
     purchasable: true
   },
+  biomass: {
+    id: 'biomass',
+    name: 'Biomasse',
+    basePrice: 10,
+    description: 'Organisches Material, vielseitig einsetzbar',
+    icon: '🌱',
+    purchasable: true
+  },
+  fertilizer: {
+    id: 'fertilizer',
+    name: 'Dünger',
+    basePrice: 30,
+    description: 'Verbessert das Pflanzenwachstum',
+    icon: '🧪',
+    purchasable: false
+  },
   // Hergestellte Produkte
   electrochip: {
     id: 'electrochip',
@@ -156,6 +172,19 @@ export const PRODUCTION_RECIPES = {
       resourceId: 'circuit',
       amount: 1
     }
+  },
+  fertilizer: {
+    id: 'fertilizer',
+    name: 'Dünger',
+    productionTime: 5,
+    inputs: [
+      { resourceId: 'water', amount: 1 },
+      { resourceId: 'biomass', amount: 1 }
+    ],
+    output: {
+      resourceId: 'fertilizer',
+      amount: 1
+    }
   }
 };
 
@@ -178,6 +207,8 @@ export const INITIAL_RESOURCES = {
   water: 0,
   wood: 0,
   stone: 0,
+  biomass: 0,
+  fertilizer: 0,
   electrochip: 0,
   watergas: 0,
   plastic: 0,

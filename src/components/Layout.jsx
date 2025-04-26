@@ -54,6 +54,7 @@ const Layout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [storageOpen, setStorageOpen] = useState(false);
   const credits = useSelector((state) => state.game.credits);
+  const researchPoints = useSelector((state) => state.game.researchPoints);
   const productionLines = useSelector((state) => state.game.productionLines);
   const productionConfigs = useSelector(
     (state) => state.game.productionConfigs
@@ -239,6 +240,28 @@ const Layout = () => {
               >
                 <MoneyIcon sx={{ color: theme.palette.primary.main, fontSize: '1.1rem' }} />
                 <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '1rem' }}>${credits.toLocaleString()}</Typography>
+              </Box>
+            </Tooltip>
+            <Tooltip title="Forschungspunkte">
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5,
+                  px: 2,
+                  py: 0.5,
+                  bgcolor: '#fff',
+                  color: theme.palette.primary.main,
+                  borderRadius: '16px',
+                  border: `2px solid ${theme.palette.primary.main}`,
+                  fontWeight: 600,
+                  fontSize: '1rem',
+                  minWidth: '100px',
+                  boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
+                }}
+              >
+                <ScienceIcon sx={{ color: theme.palette.primary.main, fontSize: '1.1rem' }} />
+                <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '1rem' }}>{researchPoints.toLocaleString()}</Typography>
               </Box>
             </Tooltip>
             <Tooltip title="Lager öffnen">

@@ -182,6 +182,7 @@ const ProductionLines = () => {
   const resources = useSelector(state => state.game.resources);
   const productionStatus = useSelector(state => state.game.productionStatus);
   const unlockedModules = useSelector(state => state.game.unlockedModules);
+  const unlockedRecipes = useSelector(state => state.game.unlockedRecipes);
   
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -265,10 +266,14 @@ const ProductionLines = () => {
     navigate(`/production/${id}`);
   };
 
-  // Filter recipes based on unlocked modules
+  // Filter recipes based on unlocked modules and unlockedRecipes
   const availableRecipes = Object.entries(PRODUCTION_RECIPES).filter(([id, recipe]) => {
-    return Object.values(MODULES).some(module =>
-      unlockedModules.includes(module.id) && module.recipes.includes(id)
+    // Zeige ein Rezept, wenn es entweder durch ein Modul freigeschaltet ist ODER in unlockedRecipes steht
+    return (
+      unlockedRecipes.includes(id) ||
+      Object.values(MODULES).some(module =>
+        unlockedModules.includes(module.id) && module.recipes.includes(id)
+      )
     );
   });
 

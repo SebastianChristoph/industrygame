@@ -9,9 +9,11 @@ import {
   OUTPUT_TARGETS
 } from '../config/resources';
 import { INITIAL_UNLOCKED_MODULES } from '../config/modules';
+import { RESEARCH_TREE } from '../config/research';
 
 const initialState = {
   credits: 1000, // Starting credits
+  researchPoints: 1000,
   resources: Object.keys(INITIAL_RESOURCES).reduce((acc, resource) => ({
     ...acc,
     [resource]: {
@@ -24,7 +26,10 @@ const initialState = {
   productionLines: [],
   productionConfigs: {},
   productionStatus: {},
-  unlockedModules: INITIAL_UNLOCKED_MODULES
+  unlockedModules: INITIAL_UNLOCKED_MODULES,
+  researchedTechnologies: [],
+  unlockedRecipes: [],
+  unlockedResources: [],
 };
 
 const gameSlice = createSlice({
@@ -223,9 +228,36 @@ const gameSlice = createSlice({
       });
     },
     unlockModule: (state, action) => {
-      const moduleId = action.payload;
-      if (!state.unlockedModules.includes(moduleId)) {
-        state.unlockedModules.push(moduleId);
+      if (!state.unlockedModules.includes(action.payload)) {
+        state.unlockedModules.push(action.payload);
+      }
+    },
+    researchTechnology: (state, action) => {
+      const { technologyId, cost } = action.payload;
+      if (state.researchPoints >= cost && !state.researchedTechnologies.includes(technologyId)) {
+        state.researchPoints -= cost;
+        state.researchedTechnologies.push(technologyId);
+        // Unlock recipes/resources from research
+        // Suche die Technologie in allen Research-Trees
+        for (const moduleKey in RESEARCH_TREE) {
+          const tech = RESEARCH_TREE[moduleKey].technologies[technologyId];
+          if (tech) {
+            if (tech.unlocks?.recipes) {
+              tech.unlocks.recipes.forEach(recipeId => {
+                if (!state.unlockedRecipes.includes(recipeId)) {
+                  state.unlockedRecipes.push(recipeId);
+                }
+              });
+            }
+            if (tech.unlocks?.resources) {
+              tech.unlocks.resources.forEach(resourceId => {
+                if (!state.unlockedResources.includes(resourceId)) {
+                  state.unlockedResources.push(resourceId);
+                }
+              });
+            }
+          }
+        }
       }
     }
   },
@@ -246,7 +278,8 @@ export const {
   toggleProduction,
   setOutputTarget,
   handlePing,
-  unlockModule
+  unlockModule,
+  researchTechnology
 } = gameSlice.actions;
 
 export default gameSlice.reducer; 
