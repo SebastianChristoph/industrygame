@@ -48,6 +48,7 @@ import {
 } from '../store/gameSlice';
 import { PRODUCTION_RECIPES, RESOURCES, OUTPUT_TARGETS, INPUT_SOURCES } from '../config/resources';
 import { MODULES } from '../config/modules';
+import ProductionBackground from '../components/ProductionBackground';
 
 function formatMoney(value) {
   return value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -650,352 +651,355 @@ const ProductionLines = () => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-        <Typography variant="h4" sx={{ flex: 1 }}>
-          Production Lines
-        </Typography>
-      </Box>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-        <Button
-          variant="contained"
-          color="primary"
-          startIcon={<AddIcon />}
-          onClick={handleAddLine}
-        >
-          NEW PRODUCTION LINE
-        </Button>
-      </Box>
-      {/* Summen-Box wie in Screenshot 2, zentriert und schwebend */}
-      <Box sx={{ width: '100%', ml: "730px", mb: 3 }}>
-        <Box sx={{
-          display: 'flex',
-          flexDirection: 'row',
-          alignItems: 'center',
-          justifyContent: 'center',
-          gap: 8,
-          bgcolor: 'background.paper',
-          borderRadius: 8,
-          boxShadow: 2,
-          border: '1px solid',
-          borderColor: 'divider',
-          minWidth: 0,
-          width: 'max-content',
-          py: 2,
-          px: 10,
-        }}>
-          {(() => {
-            let totalBalance = 0;
-            let totalPerPing = 0;
-            productionLines.forEach(line => {
-              // Berechne die Total Balance wie in der Tabelle (nicht per Ping * totalPings)
-              const config = productionConfigs[line.id];
-              const recipe = config?.recipe ? PRODUCTION_RECIPES[config.recipe] : null;
-              if (!recipe) return;
-              const inputCost = recipe.inputs.reduce((sum, input) => sum + RESOURCES[input.resourceId].basePrice * input.amount, 0);
-              const sellIncome = RESOURCES[recipe.output.resourceId].basePrice * recipe.output.amount;
-              const isSelling = config?.outputTarget === OUTPUT_TARGETS.AUTO_SELL;
-              const rowBalance = isSelling ? (sellIncome - inputCost) : -inputCost;
-              totalBalance += rowBalance;
-              // balancePerPing wie gehabt:
-              const { balancePerPing: bp } = calculateLineBalance(line.id);
-              totalPerPing += bp;
-            });
-            const colorTotal = totalBalance >= 0 ? 'success.main' : 'error.main';
-            const colorPing = totalPerPing >= 0 ? 'success.main' : 'error.main';
-            return (
-              <>
-                <Typography variant="h3" sx={{ fontWeight: 700, color: colorTotal, minWidth: 120, textAlign: 'center', px: 4 }}>
-                  {totalBalance >= 0 ? '+' : ''}{formatMoney(totalBalance)}$
-                </Typography>
-                <Typography variant="h3" sx={{ fontWeight: 700, color: colorPing, minWidth: 120, textAlign: 'center', px: 4 }}>
-                  {totalPerPing >= 0 ? '+' : ''}{formatMoney(totalPerPing)}$
-                </Typography>
-              </>
-            );
-          })()}
+    <>
+      <ProductionBackground />
+      <Box sx={{ p: 3 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
+          <Typography variant="h4" sx={{ flex: 1 }}>
+            Production Lines
+          </Typography>
         </Box>
-      </Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+          <Button
+            variant="contained"
+            color="primary"
+            startIcon={<AddIcon />}
+            onClick={handleAddLine}
+          >
+            NEW PRODUCTION LINE
+          </Button>
+        </Box>
+        {/* Summen-Box wie in Screenshot 2, zentriert und schwebend */}
+        <Box sx={{ width: '100%', ml: "730px", mb: 3 }}>
+          <Box sx={{
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: 8,
+            bgcolor: 'background.paper',
+            borderRadius: 8,
+            boxShadow: 2,
+            border: '1px solid',
+            borderColor: 'divider',
+            minWidth: 0,
+            width: 'max-content',
+            py: 2,
+            px: 10,
+          }}>
+            {(() => {
+              let totalBalance = 0;
+              let totalPerPing = 0;
+              productionLines.forEach(line => {
+                // Berechne die Total Balance wie in der Tabelle (nicht per Ping * totalPings)
+                const config = productionConfigs[line.id];
+                const recipe = config?.recipe ? PRODUCTION_RECIPES[config.recipe] : null;
+                if (!recipe) return;
+                const inputCost = recipe.inputs.reduce((sum, input) => sum + RESOURCES[input.resourceId].basePrice * input.amount, 0);
+                const sellIncome = RESOURCES[recipe.output.resourceId].basePrice * recipe.output.amount;
+                const isSelling = config?.outputTarget === OUTPUT_TARGETS.AUTO_SELL;
+                const rowBalance = isSelling ? (sellIncome - inputCost) : -inputCost;
+                totalBalance += rowBalance;
+                // balancePerPing wie gehabt:
+                const { balancePerPing: bp } = calculateLineBalance(line.id);
+                totalPerPing += bp;
+              });
+              const colorTotal = totalBalance >= 0 ? 'success.main' : 'error.main';
+              const colorPing = totalPerPing >= 0 ? 'success.main' : 'error.main';
+              return (
+                <>
+                  <Typography variant="h3" sx={{ fontWeight: 700, color: colorTotal, minWidth: 120, textAlign: 'center', px: 4 }}>
+                    {totalBalance >= 0 ? '+' : ''}{formatMoney(totalBalance)}$
+                  </Typography>
+                  <Typography variant="h3" sx={{ fontWeight: 700, color: colorPing, minWidth: 120, textAlign: 'center', px: 4 }}>
+                    {totalPerPing >= 0 ? '+' : ''}{formatMoney(totalPerPing)}$
+                  </Typography>
+                </>
+              );
+            })()}
+          </Box>
+        </Box>
 
-      <Paper sx={{ height: 600, width: '100%' }}>
-        <DataGrid
-          rows={productionLines}
-          columns={columns}
-          pageSize={10}
-          rowsPerPageOptions={[10, 25, 50]}
-          disableSelectionOnClick
-          density="comfortable"
-          sx={{
-            '& .MuiDataGrid-cell:focus': {
-              outline: 'none'
-            },
-            '& .MuiDataGrid-columnHeaders': {
-              backgroundColor: 'background.paper',
-              borderBottom: '2px solid',
-              borderColor: 'divider'
-            }
-          }}
-          onRowClick={(params) => navigate(`/production/${params.row.id}`)}
-        />
-      </Paper>
+        <Paper sx={{ height: 600, width: '100%' }}>
+          <DataGrid
+            rows={productionLines}
+            columns={columns}
+            pageSize={10}
+            rowsPerPageOptions={[10, 25, 50]}
+            disableSelectionOnClick
+            density="comfortable"
+            sx={{
+              '& .MuiDataGrid-cell:focus': {
+                outline: 'none'
+              },
+              '& .MuiDataGrid-columnHeaders': {
+                backgroundColor: 'background.paper',
+                borderBottom: '2px solid',
+                borderColor: 'divider'
+              }
+            }}
+            onRowClick={(params) => navigate(`/production/${params.row.id}`)}
+          />
+        </Paper>
 
-      <Dialog open={isCreateDialogOpen} onClose={() => setIsCreateDialogOpen(false)}>
-        <DialogTitle>Create New Production Line</DialogTitle>
-        <DialogContent sx={{ minWidth: 400 }}>
-          {/* Modul-Auswahl vor Rezept-Auswahl */}
-          <FormControl fullWidth sx={{ mt: 2, mb: 2 }}>
-            <InputLabel>Choose Module</InputLabel>
-            <Select
-              value={selectedModule}
-              onChange={e => {
-                setSelectedModule(e.target.value);
-                setSelectedRecipe('');
-              }}
-              label="Choose Module"
-            >
-              {Object.entries(MODULES)
-                .filter(([key, mod]) => unlockedModules.includes(mod.id))
-                .map(([key, mod]) => (
-                  <MenuItem value={key} key={key}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      {mod.icon} {mod.name}
-                    </Box>
-                  </MenuItem>
-                ))}
-            </Select>
-          </FormControl>
-
-          {/* Rezept-Auswahl nur wenn Modul gewählt */}
-          {selectedModule && (
-            <FormControl fullWidth sx={{ mb: 2 }}>
-              <InputLabel>Select Recipe</InputLabel>
+        <Dialog open={isCreateDialogOpen} onClose={() => setIsCreateDialogOpen(false)}>
+          <DialogTitle>Create New Production Line</DialogTitle>
+          <DialogContent sx={{ minWidth: 400 }}>
+            {/* Modul-Auswahl vor Rezept-Auswahl */}
+            <FormControl fullWidth sx={{ mt: 2, mb: 2 }}>
+              <InputLabel>Choose Module</InputLabel>
               <Select
-                value={selectedRecipe}
-                onChange={(e) => {
-                  setSelectedRecipe(e.target.value);
-                  setNameError('');
-                  if (e.target.value) {
-                    const suggestedName = PRODUCTION_RECIPES[e.target.value].name;
-                    let uniqueName = suggestedName;
-                    let counter = 1;
-                    while (!checkNameUniqueness(uniqueName)) {
-                      uniqueName = `${suggestedName}${counter}`;
-                      counter++;
-                    }
-                    setNewLineName(uniqueName);
-                    setTimeout(() => {
-                      const nameInput = document.querySelector('input[name="productionLineName"]');
-                      if (nameInput) {
-                        nameInput.focus();
-                        nameInput.select();
-                      }
-                    }, 100);
-                  }
+                value={selectedModule}
+                onChange={e => {
+                  setSelectedModule(e.target.value);
+                  setSelectedRecipe('');
                 }}
-                label="Select Recipe"
+                label="Choose Module"
               >
-                {moduleRecipes.map(([id, recipe]) => (
-                  <MenuItem key={id} value={id} sx={{ 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    alignItems: 'flex-start',
-                    py: 1
-                  }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      {RESOURCES[recipe.output.resourceId].icon}
-                      <Typography variant="subtitle1">
-                        {recipe.name}
-                        <span style={{ color: '#888', fontWeight: 400, marginLeft: 8 }}>
-                          ({recipe.productionTime} Pings)
-                        </span>
-                        {' '}
-                        <span style={{ color: '#888', fontWeight: 400 }}>
-                          ({(() => {
-                            const output = RESOURCES[recipe.output.resourceId];
-                            const outputValue = output.basePrice * recipe.output.amount;
-                            const inputCost = recipe.inputs.reduce(
-                              (sum, input) => {
-                                const res = RESOURCES[input.resourceId];
-                                return res.purchasable ? sum + res.basePrice * input.amount : sum;
-                              },
-                              0
-                            );
-                            const profit = outputValue - inputCost;
-                            return (profit >= 0 ? '+' : '') + profit + '$';
-                          })()})
-                        </span>
-                      </Typography>
-                    </Box>
-                    <Box sx={{ 
-                      display: 'flex', 
-                      gap: 1, 
-                      mt: 0.5,
-                      flexWrap: 'wrap'
-                    }}>
-                      {recipe.inputs.map((input, idx) => {
-                        const resource = RESOURCES[input.resourceId];
-                        return (
-                          <Box key={idx} sx={{ 
-                            display: 'flex', 
-                            alignItems: 'center',
-                            gap: 0.5,
-                            bgcolor: 'action.hover',
-                            px: 1,
-                            py: 0.5,
-                            borderRadius: 1,
-                            fontSize: '0.75rem'
-                          }}>
-                            {resource.icon}
-                            <Typography variant="caption">
-                              {input.amount}x {resource.name}
-                            </Typography>
-                          </Box>
-                        );
-                      })}
-                    </Box>
-                  </MenuItem>
-                ))}
+                {Object.entries(MODULES)
+                  .filter(([key, mod]) => unlockedModules.includes(mod.id))
+                  .map(([key, mod]) => (
+                    <MenuItem value={key} key={key}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {mod.icon} {mod.name}
+                      </Box>
+                    </MenuItem>
+                  ))}
               </Select>
             </FormControl>
-          )}
 
-          <TextField
-            margin="dense"
-            name="productionLineName"
-            label="Production Line Name"
-            fullWidth
-            variant="outlined"
-            value={newLineName}
-            onChange={(e) => {
-              setNewLineName(e.target.value);
-              setNameError('');
-            }}
-            error={!!nameError}
-            helperText={nameError}
-          />
-
-          {selectedRecipe && PRODUCTION_RECIPES[selectedRecipe] && (
-            <Box sx={{ mt: 3, p: 2, bgcolor: 'background.paper', borderRadius: 1, border: 1, borderColor: 'divider' }}>
-              <Typography variant="subtitle1" gutterBottom>
-                Recipe Details:
-              </Typography>
-              
-              <Typography variant="body2" color="text.secondary" gutterBottom>
-                Production Time: {PRODUCTION_RECIPES[selectedRecipe].productionTime} Pings
-              </Typography>
-
-              <Typography variant="subtitle2" sx={{ mt: 1, mb: 0.5 }}>
-                Required Resources:
-              </Typography>
-              {PRODUCTION_RECIPES[selectedRecipe].inputs.map((input, index) => {
-                const resource = RESOURCES[input.resourceId];
-                const currentAmount = resources[input.resourceId].amount;
-                return (
-                  <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 2 }}>
-                    <Typography variant="body2">
-                      • {input.amount}x {resource.icon} {resource.name}
-                      <Typography 
-                        component="span" 
-                        variant="body2" 
-                        color={currentAmount >= input.amount ? "success.main" : "error.main"}
-                        sx={{ ml: 1 }}
-                      >
-                        ({currentAmount}/{input.amount} available)
-                      </Typography>
-                      {resource.purchasable && (
-                        <Typography component="span" variant="body2" color="text.secondary">
-                          {' '}(Purchase Price: {resource.basePrice * input.amount} Credits)
+            {/* Rezept-Auswahl nur wenn Modul gewählt */}
+            {selectedModule && (
+              <FormControl fullWidth sx={{ mb: 2 }}>
+                <InputLabel>Select Recipe</InputLabel>
+                <Select
+                  value={selectedRecipe}
+                  onChange={(e) => {
+                    setSelectedRecipe(e.target.value);
+                    setNameError('');
+                    if (e.target.value) {
+                      const suggestedName = PRODUCTION_RECIPES[e.target.value].name;
+                      let uniqueName = suggestedName;
+                      let counter = 1;
+                      while (!checkNameUniqueness(uniqueName)) {
+                        uniqueName = `${suggestedName}${counter}`;
+                        counter++;
+                      }
+                      setNewLineName(uniqueName);
+                      setTimeout(() => {
+                        const nameInput = document.querySelector('input[name="productionLineName"]');
+                        if (nameInput) {
+                          nameInput.focus();
+                          nameInput.select();
+                        }
+                      }, 100);
+                    }
+                  }}
+                  label="Select Recipe"
+                >
+                  {moduleRecipes.map(([id, recipe]) => (
+                    <MenuItem key={id} value={id} sx={{ 
+                      display: 'flex', 
+                      flexDirection: 'column', 
+                      alignItems: 'flex-start',
+                      py: 1
+                    }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        {RESOURCES[recipe.output.resourceId].icon}
+                        <Typography variant="subtitle1">
+                          {recipe.name}
+                          <span style={{ color: '#888', fontWeight: 400, marginLeft: 8 }}>
+                            ({recipe.productionTime} Pings)
+                          </span>
+                          {' '}
+                          <span style={{ color: '#888', fontWeight: 400 }}>
+                            ({(() => {
+                              const output = RESOURCES[recipe.output.resourceId];
+                              const outputValue = output.basePrice * recipe.output.amount;
+                              const inputCost = recipe.inputs.reduce(
+                                (sum, input) => {
+                                  const res = RESOURCES[input.resourceId];
+                                  return res.purchasable ? sum + res.basePrice * input.amount : sum;
+                                },
+                                0
+                              );
+                              const profit = outputValue - inputCost;
+                              return (profit >= 0 ? '+' : '') + profit + '$';
+                            })()})
+                          </span>
                         </Typography>
-                      )}
-                    </Typography>
-                  </Box>
-                );
-              })}
+                      </Box>
+                      <Box sx={{ 
+                        display: 'flex', 
+                        gap: 1, 
+                        mt: 0.5,
+                        flexWrap: 'wrap'
+                      }}>
+                        {recipe.inputs.map((input, idx) => {
+                          const resource = RESOURCES[input.resourceId];
+                          return (
+                            <Box key={idx} sx={{ 
+                              display: 'flex', 
+                              alignItems: 'center',
+                              gap: 0.5,
+                              bgcolor: 'action.hover',
+                              px: 1,
+                              py: 0.5,
+                              borderRadius: 1,
+                              fontSize: '0.75rem'
+                            }}>
+                              {resource.icon}
+                              <Typography variant="caption">
+                                {input.amount}x {resource.name}
+                              </Typography>
+                            </Box>
+                          );
+                        })}
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            )}
 
-              <Typography variant="subtitle2" sx={{ mt: 2, mb: 0.5 }}>
-                Production:
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 2 }}>
-                <Typography variant="body2">
-                  • {PRODUCTION_RECIPES[selectedRecipe].output.amount}x {
-                    RESOURCES[PRODUCTION_RECIPES[selectedRecipe].output.resourceId].icon
-                  } {
-                    RESOURCES[PRODUCTION_RECIPES[selectedRecipe].output.resourceId].name
-                  }
+            <TextField
+              margin="dense"
+              name="productionLineName"
+              label="Production Line Name"
+              fullWidth
+              variant="outlined"
+              value={newLineName}
+              onChange={(e) => {
+                setNewLineName(e.target.value);
+                setNameError('');
+              }}
+              error={!!nameError}
+              helperText={nameError}
+            />
+
+            {selectedRecipe && PRODUCTION_RECIPES[selectedRecipe] && (
+              <Box sx={{ mt: 3, p: 2, bgcolor: 'background.paper', borderRadius: 1, border: 1, borderColor: 'divider' }}>
+                <Typography variant="subtitle1" gutterBottom>
+                  Recipe Details:
                 </Typography>
+                
+                <Typography variant="body2" color="text.secondary" gutterBottom>
+                  Production Time: {PRODUCTION_RECIPES[selectedRecipe].productionTime} Pings
+                </Typography>
+
+                <Typography variant="subtitle2" sx={{ mt: 1, mb: 0.5 }}>
+                  Required Resources:
+                </Typography>
+                {PRODUCTION_RECIPES[selectedRecipe].inputs.map((input, index) => {
+                  const resource = RESOURCES[input.resourceId];
+                  const currentAmount = resources[input.resourceId].amount;
+                  return (
+                    <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 2 }}>
+                      <Typography variant="body2">
+                        • {input.amount}x {resource.icon} {resource.name}
+                        <Typography 
+                          component="span" 
+                          variant="body2" 
+                          color={currentAmount >= input.amount ? "success.main" : "error.main"}
+                          sx={{ ml: 1 }}
+                        >
+                          ({currentAmount}/{input.amount} available)
+                        </Typography>
+                        {resource.purchasable && (
+                          <Typography component="span" variant="body2" color="text.secondary">
+                            {' '}(Purchase Price: {resource.basePrice * input.amount} Credits)
+                          </Typography>
+                        )}
+                      </Typography>
+                    </Box>
+                  );
+                })}
+
+                <Typography variant="subtitle2" sx={{ mt: 2, mb: 0.5 }}>
+                  Production:
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 2 }}>
+                  <Typography variant="body2">
+                    • {PRODUCTION_RECIPES[selectedRecipe].output.amount}x {
+                      RESOURCES[PRODUCTION_RECIPES[selectedRecipe].output.resourceId].icon
+                    } {
+                      RESOURCES[PRODUCTION_RECIPES[selectedRecipe].output.resourceId].name
+                    }
+                  </Typography>
+                </Box>
               </Box>
-            </Box>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setIsCreateDialogOpen(false)}>
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleCreateLine}
-            variant="contained"
-            disabled={!selectedRecipe || !newLineName.trim() || !!nameError}
-          >
-            Create
-          </Button>
-        </DialogActions>
-      </Dialog>
+            )}
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setIsCreateDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleCreateLine}
+              variant="contained"
+              disabled={!selectedRecipe || !newLineName.trim() || !!nameError}
+            >
+              Create
+            </Button>
+          </DialogActions>
+        </Dialog>
 
-      <Dialog
-        open={isDeleteDialogOpen}
-        onClose={() => setIsDeleteDialogOpen(false)}
-      >
-        <DialogTitle>Delete Production Line</DialogTitle>
-        <DialogContent>
-          <DialogContentText>
-            Do you really want to delete this production line? 
-            This action cannot be undone.
-          </DialogContentText>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setIsDeleteDialogOpen(false)}>
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleConfirmDelete}
-            color="error"
-            variant="contained"
-          >
-            Delete
-          </Button>
-        </DialogActions>
-      </Dialog>
+        <Dialog
+          open={isDeleteDialogOpen}
+          onClose={() => setIsDeleteDialogOpen(false)}
+        >
+          <DialogTitle>Delete Production Line</DialogTitle>
+          <DialogContent>
+            <DialogContentText>
+              Do you really want to delete this production line? 
+              This action cannot be undone.
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setIsDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleConfirmDelete}
+              color="error"
+              variant="contained"
+            >
+              Delete
+            </Button>
+          </DialogActions>
+        </Dialog>
 
-      <Dialog
-        open={isRenameDialogOpen}
-        onClose={() => setIsRenameDialogOpen(false)}
-      >
-        <DialogTitle>Rename Production Line</DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="New Name"
-            fullWidth
-            variant="outlined"
-            value={newLineName}
-            onChange={(e) => setNewLineName(e.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setIsRenameDialogOpen(false)}>
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleConfirmRename}
-            variant="contained"
-            disabled={!newLineName.trim()}
-          >
-            Rename
-          </Button>
-        </DialogActions>
-      </Dialog>
-    </Box>
+        <Dialog
+          open={isRenameDialogOpen}
+          onClose={() => setIsRenameDialogOpen(false)}
+        >
+          <DialogTitle>Rename Production Line</DialogTitle>
+          <DialogContent>
+            <TextField
+              autoFocus
+              margin="dense"
+              label="New Name"
+              fullWidth
+              variant="outlined"
+              value={newLineName}
+              onChange={(e) => setNewLineName(e.target.value)}
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={() => setIsRenameDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleConfirmRename}
+              variant="contained"
+              disabled={!newLineName.trim()}
+            >
+              Rename
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </Box>
+    </>
   );
 };
 
