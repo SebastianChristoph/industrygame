@@ -1,11 +1,12 @@
 import React from 'react'
-import { ThemeProvider, CssBaseline } from '@mui/material'
+import { ThemeProvider, CssBaseline, Box } from '@mui/material'
 import { PingProvider } from './context/PingContext'
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Layout from './components/Layout';
 import Storage from './pages/Storage';
 import ProductionLines from './pages/ProductionLines';
 import ProductionLine from './pages/ProductionLine';
+import Research from './pages/Research';
 import { theme } from './theme/theme';
 
 function App() {
@@ -21,7 +22,7 @@ function App() {
                 <Route path="/storage" element={<Storage />} />
                 <Route path="/production" element={<ProductionLines />} />
                 <Route path="/production/:id" element={<ProductionLine />} />
-
+                <Route path="/research" element={<Research />} />
               </Route>
             </Routes>
           </Router>

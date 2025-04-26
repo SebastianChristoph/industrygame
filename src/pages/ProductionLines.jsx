@@ -18,7 +18,10 @@ import {
   TextField,
   Tooltip,
   DialogContentText,
-  CircularProgress
+  CircularProgress,
+  Grid,
+  Card,
+  CardContent
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import {
@@ -40,9 +43,11 @@ import {
   removeProductionLine, 
   setProductionRecipe, 
   renameProductionLine,
-  toggleProduction 
+  toggleProduction,
+  unlockModule
 } from '../store/gameSlice';
 import { PRODUCTION_RECIPES, RESOURCES, OUTPUT_TARGETS, INPUT_SOURCES } from '../config/resources';
+import { MODULES } from '../config/modules';
 
 const ProductionLineCard = ({ line, onRenameClick, onDeleteClick }) => {
   const dispatch = useDispatch();
@@ -176,6 +181,7 @@ const ProductionLines = () => {
   const productionConfigs = useSelector(state => state.game.productionConfigs);
   const resources = useSelector(state => state.game.resources);
   const productionStatus = useSelector(state => state.game.productionStatus);
+  const unlockedModules = useSelector(state => state.game.unlockedModules);
   
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -184,6 +190,7 @@ const ProductionLines = () => {
   const [newLineName, setNewLineName] = useState('');
   const [selectedRecipe, setSelectedRecipe] = useState('');
   const [nameError, setNameError] = useState('');
+  const [isModuleSelectionOpen, setIsModuleSelectionOpen] = useState(false);
 
   const checkNameUniqueness = (name) => {
     return !productionLines.some(line => 
@@ -257,6 +264,13 @@ const ProductionLines = () => {
   const handleConfigureLine = (id) => {
     navigate(`/production/${id}`);
   };
+
+  // Filter recipes based on unlocked modules
+  const availableRecipes = Object.entries(PRODUCTION_RECIPES).filter(([id, recipe]) => {
+    return Object.values(MODULES).some(module =>
+      unlockedModules.includes(module.id) && module.recipes.includes(id)
+    );
+  });
 
   const columns = [
     {
@@ -555,8 +569,8 @@ const ProductionLines = () => {
     };
   };
 
-  // If no production lines exist, show empty state
-  if (productionLines.length === 0) {
+  // If no production lines exist and no modules are unlocked, show module selection
+  if (productionLines.length === 0 && unlockedModules.length === 0) {
     return (
       <Box sx={{ p: 3 }}>
         <Typography variant="h4" sx={{ mb: 3 }}>
@@ -574,192 +588,85 @@ const ProductionLines = () => {
           }}
         >
           <Typography color="text.secondary" gutterBottom>
-            Keine Produktionslinien vorhanden
+            Wähle dein erstes Produktionsmodul
           </Typography>
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={handleAddLine}
-            sx={{ mt: 1 }}
-          >
-            NEUE PRODUKTIONSLINIE
-          </Button>
-        </Box>
-
-        <Dialog open={isCreateDialogOpen} onClose={() => setIsCreateDialogOpen(false)}>
-          <DialogTitle>Neue Produktionslinie erstellen</DialogTitle>
-          <DialogContent sx={{ minWidth: 400 }}>
-            <FormControl fullWidth sx={{ mb: 2 }}>
-              <InputLabel>Rezept auswählen</InputLabel>
-              <Select
-                value={selectedRecipe}
-                onChange={(e) => {
-                  setSelectedRecipe(e.target.value);
-                  setNameError('');
-                  if (e.target.value) {
-                    const suggestedName = PRODUCTION_RECIPES[e.target.value].name;
-                    let uniqueName = suggestedName;
-                    let counter = 1;
-                    while (!checkNameUniqueness(uniqueName)) {
-                      uniqueName = `${suggestedName}${counter}`;
-                      counter++;
-                    }
-                    setNewLineName(uniqueName);
-                    // Kurze Verzögerung um sicherzustellen, dass das Textfeld existiert
-                    setTimeout(() => {
-                      const nameInput = document.querySelector('input[name="productionLineName"]');
-                      if (nameInput) {
-                        nameInput.focus();
-                        nameInput.select();
-                      }
-                    }, 100);
-                  }
-                }}
-                label="Rezept auswählen"
-              >
-                {Object.entries(PRODUCTION_RECIPES).map(([id, recipe]) => (
-                  <MenuItem key={id} value={id} sx={{ 
-                    display: 'flex', 
-                    flexDirection: 'column', 
-                    alignItems: 'flex-start',
-                    py: 1
-                  }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      {RESOURCES[recipe.output.resourceId].icon}
-                      <Typography variant="subtitle1">
-                        {recipe.name}
-                        {' '}
-                        <span style={{ color: '#888', fontWeight: 400 }}>
-                          ({(() => {
-                            const output = RESOURCES[recipe.output.resourceId];
-                            const outputValue = output.basePrice * recipe.output.amount;
-                            const inputCost = recipe.inputs.reduce(
-                              (sum, input) => {
-                                const res = RESOURCES[input.resourceId];
-                                return res.purchasable ? sum + res.basePrice * input.amount : sum;
-                              },
-                              0
-                            );
-                            const profit = outputValue - inputCost;
-                            return (profit >= 0 ? '+' : '') + profit + '$';
-                          })()})
-                        </span>
+          <Grid container spacing={3} sx={{ mt: 2 }}>
+            {Object.values(MODULES).map((module) => (
+              <Grid item xs={12} md={4} key={module.id}>
+                <Card>
+                  <CardContent>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+                      <Typography variant="h2" sx={{ fontSize: '2.5rem' }}>
+                        {module.icon}
                       </Typography>
-                    </Box>
-                    <Box sx={{ 
-                      display: 'flex', 
-                      gap: 1, 
-                      mt: 0.5,
-                      flexWrap: 'wrap'
-                    }}>
-                      {recipe.inputs.map((input, idx) => {
-                        const resource = RESOURCES[input.resourceId];
-                        return (
-                          <Box key={idx} sx={{ 
-                            display: 'flex', 
-                            alignItems: 'center',
-                            gap: 0.5,
-                            bgcolor: 'action.hover',
-                            px: 1,
-                            py: 0.5,
-                            borderRadius: 1,
-                            fontSize: '0.75rem'
-                          }}>
-                            {resource.icon}
-                            <Typography variant="caption">
-                              {input.amount}x {resource.name}
-                            </Typography>
-                          </Box>
-                        );
-                      })}
-                    </Box>
-                  </MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <TextField
-              margin="dense"
-              name="productionLineName"
-              label="Name der Produktionslinie"
-              fullWidth
-              variant="outlined"
-              value={newLineName}
-              onChange={(e) => {
-                setNewLineName(e.target.value);
-                setNameError('');
-              }}
-              error={!!nameError}
-              helperText={nameError}
-            />
-
-            {selectedRecipe && PRODUCTION_RECIPES[selectedRecipe] && (
-              <Box sx={{ mt: 3, p: 2, bgcolor: 'background.paper', borderRadius: 1, border: 1, borderColor: 'divider' }}>
-                <Typography variant="subtitle1" gutterBottom>
-                  Rezeptdetails:
-                </Typography>
-                
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Produktionszeit: {PRODUCTION_RECIPES[selectedRecipe].productionTime} Pings
-                </Typography>
-
-                <Typography variant="subtitle2" sx={{ mt: 1, mb: 0.5 }}>
-                  Benötigte Ressourcen:
-                </Typography>
-                {PRODUCTION_RECIPES[selectedRecipe].inputs.map((input, index) => {
-                  const resource = RESOURCES[input.resourceId];
-                  const currentAmount = resources[input.resourceId].amount;
-                  return (
-                    <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 2 }}>
-                      <Typography variant="body2">
-                        • {input.amount}x {resource.icon} {resource.name}
-                        <Typography 
-                          component="span" 
-                          variant="body2" 
-                          color={currentAmount >= input.amount ? "success.main" : "error.main"}
-                          sx={{ ml: 1 }}
-                        >
-                          ({currentAmount}/{input.amount} verfügbar)
+                      <Box>
+                        <Typography variant="h6">
+                          {module.name}
                         </Typography>
-                        {resource.purchasable && (
-                          <Typography component="span" variant="body2" color="text.secondary">
-                            {' '}(Einkaufspreis: {resource.basePrice * input.amount} Credits)
-                          </Typography>
-                        )}
-                      </Typography>
+                        <Typography variant="body2" color="text.secondary">
+                          {module.description}
+                        </Typography>
+                      </Box>
                     </Box>
-                  );
-                })}
 
-                <Typography variant="subtitle2" sx={{ mt: 2, mb: 0.5 }}>
-                  Produktion:
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 2 }}>
-                  <Typography variant="body2">
-                    • {PRODUCTION_RECIPES[selectedRecipe].output.amount}x {
-                      RESOURCES[PRODUCTION_RECIPES[selectedRecipe].output.resourceId].icon
-                    } {
-                      RESOURCES[PRODUCTION_RECIPES[selectedRecipe].output.resourceId].name
-                    }
-                  </Typography>
-                </Box>
-              </Box>
-            )}
-          </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setIsCreateDialogOpen(false)}>
-              Abbrechen
-            </Button>
-            <Button 
-              onClick={handleCreateLine}
-              variant="contained"
-              disabled={!selectedRecipe || !newLineName.trim() || !!nameError}
-            >
-              Erstellen
-            </Button>
-          </DialogActions>
-        </Dialog>
+                    <Typography variant="subtitle2" gutterBottom>
+                      Verfügbare Rezepte:
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
+                      {module.recipes.map((recipeId) => (
+                        <Tooltip key={recipeId} title={recipeId}>
+                          <Box
+                            sx={{
+                              bgcolor: 'action.hover',
+                              px: 1,
+                              py: 0.5,
+                              borderRadius: 1,
+                              fontSize: '0.75rem'
+                            }}
+                          >
+                            {recipeId}
+                          </Box>
+                        </Tooltip>
+                      ))}
+                    </Box>
+
+                    <Typography variant="subtitle2" gutterBottom>
+                      Verfügbare Ressourcen:
+                    </Typography>
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
+                      {module.resources.map((resourceId) => (
+                        <Tooltip key={resourceId} title={resourceId}>
+                          <Box
+                            sx={{
+                              bgcolor: 'action.hover',
+                              px: 1,
+                              py: 0.5,
+                              borderRadius: 1,
+                              fontSize: '0.75rem'
+                            }}
+                          >
+                            {resourceId}
+                          </Box>
+                        </Tooltip>
+                      ))}
+                    </Box>
+
+                    <Button
+                      variant="contained"
+                      fullWidth
+                      onClick={() => {
+                        dispatch(unlockModule(module.id));
+                        setIsModuleSelectionOpen(false);
+                      }}
+                    >
+                      Modul freischalten
+                    </Button>
+                  </CardContent>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </Box>
       </Box>
     );
   }
@@ -805,7 +712,7 @@ const ProductionLines = () => {
       <Dialog open={isCreateDialogOpen} onClose={() => setIsCreateDialogOpen(false)}>
         <DialogTitle>Neue Produktionslinie erstellen</DialogTitle>
         <DialogContent sx={{ minWidth: 400 }}>
-          <FormControl fullWidth sx={{ mb: 2 }}>
+          <FormControl fullWidth sx={{ mt: 2, mb: 2 }}>
             <InputLabel>Rezept auswählen</InputLabel>
             <Select
               value={selectedRecipe}
@@ -821,7 +728,6 @@ const ProductionLines = () => {
                     counter++;
                   }
                   setNewLineName(uniqueName);
-                  // Kurze Verzögerung um sicherzustellen, dass das Textfeld existiert
                   setTimeout(() => {
                     const nameInput = document.querySelector('input[name="productionLineName"]');
                     if (nameInput) {
@@ -833,7 +739,7 @@ const ProductionLines = () => {
               }}
               label="Rezept auswählen"
             >
-              {Object.entries(PRODUCTION_RECIPES).map(([id, recipe]) => (
+              {availableRecipes.map(([id, recipe]) => (
                 <MenuItem key={id} value={id} sx={{ 
                   display: 'flex', 
                   flexDirection: 'column', 

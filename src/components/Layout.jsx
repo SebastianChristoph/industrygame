@@ -36,12 +36,18 @@ import {
 } from "../config/resources";
 import { PingIndicator } from "./PingIndicator";
 import StorageDrawer from "./StorageDrawer";
+import ScienceIcon from '@mui/icons-material/Science';
 
 const drawerWidth = 240;
 
 const menuItems = [
   { text: "Produktion", icon: <Factory />, path: "/production" },
   { text: "Lager", icon: <StorageIcon />, path: "/storage" },
+  {
+    text: 'Forschung',
+    icon: <ScienceIcon />,
+    path: '/research'
+  }
 ];
 
 const Layout = () => {

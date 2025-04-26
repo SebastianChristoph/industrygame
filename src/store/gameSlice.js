@@ -8,6 +8,7 @@ import {
   INPUT_SOURCES,
   OUTPUT_TARGETS
 } from '../config/resources';
+import { INITIAL_UNLOCKED_MODULES } from '../config/modules';
 
 const initialState = {
   credits: 1000, // Starting credits
@@ -22,7 +23,8 @@ const initialState = {
   warehouses: 0, // Number of warehouses owned
   productionLines: [],
   productionConfigs: {},
-  productionStatus: {}
+  productionStatus: {},
+  unlockedModules: INITIAL_UNLOCKED_MODULES
 };
 
 const gameSlice = createSlice({
@@ -219,6 +221,12 @@ const gameSlice = createSlice({
           }
         }
       });
+    },
+    unlockModule: (state, action) => {
+      const moduleId = action.payload;
+      if (!state.unlockedModules.includes(moduleId)) {
+        state.unlockedModules.push(moduleId);
+      }
     }
   },
 });
@@ -237,7 +245,8 @@ export const {
   setInputSource,
   toggleProduction,
   setOutputTarget,
-  handlePing
+  handlePing,
+  unlockModule
 } = gameSlice.actions;
 
 export default gameSlice.reducer; 
