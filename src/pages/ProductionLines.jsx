@@ -479,7 +479,7 @@ const ProductionLines = () => {
                 justifyContent: 'center',
                 pointerEvents: 'none',
               }}>
-                <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.primary', textShadow: '0 1px 2px #fff8' }}>
+                <Typography variant="caption" sx={{ fontWeight: 700, color: '#fff', textShadow: '0 2px 6px #000, 0 1px 1px #000' }}>
                   {percent}%
                 </Typography>
               </Box>

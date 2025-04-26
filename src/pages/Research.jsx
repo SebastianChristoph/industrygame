@@ -158,9 +158,7 @@ const Research = () => {
       <Typography variant="h4" sx={{ mb: 3 }}>
         Research
       </Typography>
-      <Typography variant="h6" sx={{ mb: 2 }}>
-        Research Points: {researchPoints}
-      </Typography>
+
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
         <Tabs value={tab} onChange={(_, v) => setTab(v)} aria-label="Module Tabs">
           {moduleKeys.map((key, idx) => (

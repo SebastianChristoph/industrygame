@@ -98,6 +98,12 @@ export const theme = createTheme({
       fontSize: '1rem',
       textTransform: 'none',
     },
+    victorMono: {
+      fontFamily: 'Victor Mono, monospace',
+      fontWeight: 500,
+      fontSize: '1.1rem',
+      letterSpacing: 0.5,
+    },
   },
   components: {
     MuiCssBaseline: {
