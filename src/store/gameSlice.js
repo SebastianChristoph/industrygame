@@ -157,50 +157,14 @@ const gameSlice = createSlice({
         if (!status.isActive) return;
 
         const config = state.productionConfigs[productionLineId];
-        if (!config?.recipe) return;
+        if (!config || !config.recipe) return;
 
         const recipe = PRODUCTION_RECIPES[config.recipe];
-        
-        // Prüfe ob genug Lagerplatz für Output vorhanden ist (nur wenn GLOBAL_STORAGE als Ziel)
-        if (config.outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE) {
-          const outputResource = state.resources[recipe.output.resourceId];
-          if (outputResource.amount + recipe.output.amount > outputResource.capacity) {
-            status.error = "Nicht genug Lagerplatz für Output";
-            status.isActive = false;
-            return;
-          }
-        }
+        if (!recipe) return;
 
-        // Prüfe und reserviere Input Ressourcen
-        let requiredCredits = 0;
-        let canProduce = recipe.inputs.every((input, index) => {
-          const inputConfig = config.inputs[index];
-          if (!inputConfig) return false;
-
-          if (inputConfig.source === INPUT_SOURCES.GLOBAL_STORAGE) {
-            const resource = state.resources[input.resourceId];
-            return resource.amount >= input.amount;
-          } else {
-            requiredCredits += RESOURCES[input.resourceId].basePrice * input.amount;
-            return true;
-          }
-        });
-
-        // Prüfe Credits für automatische Einkäufe
-        if (requiredCredits > 0 && state.credits < requiredCredits) {
-          status.error = "Nicht genug Credits für automatische Einkäufe";
-          status.isActive = false;
-          return;
-        }
-
-        if (!canProduce) {
-          status.error = "Nicht genug Ressourcen verfügbar";
-          status.isActive = false;
-          return;
-        }
-
-        // Erhöhe den Ping-Zähler
-        status.currentPings++;
+        // Erhöhe die Pings
+        status.currentPings = (status.currentPings || 0) + 1;
+        status.totalPings = (status.totalPings || 0) + 1;
         
         // Wenn genug Pings für eine Produktion erreicht wurden
         if (status.currentPings >= recipe.productionTime) {
@@ -218,7 +182,10 @@ const gameSlice = createSlice({
 
           // Verarbeite Output basierend auf dem Ziel
           const outputResource = RESOURCES[recipe.output.resourceId];
-          if (config.outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE) {
+          if (recipe.output.resourceId === 'research_points') {
+            // Research Points werden direkt zu den globalen Research Points hinzugefügt
+            state.researchPoints += recipe.output.amount;
+          } else if (config.outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE) {
             state.resources[recipe.output.resourceId].amount += recipe.output.amount;
           } else if (config.outputTarget === OUTPUT_TARGETS.AUTO_SELL) {
             // Verkaufe die produzierten Ressourcen zum Basispreis

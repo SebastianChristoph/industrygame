@@ -4,7 +4,7 @@ export const MODULES = {
     name: 'Agriculture',
     description: 'Production of agricultural goods and food',
     icon: '🌾',
-    recipes: ['watergas', 'woodplanks'],
+    recipes: ['watergas', 'woodplanks', 'research_points_agriculture'],
     resources: ['water', 'wood']
   },
   TECHNOLOGY: {
@@ -12,7 +12,7 @@ export const MODULES = {
     name: 'Technology',
     description: 'Production of electronic components and technology',
     icon: '💻',
-    recipes: ['electrochip', 'circuit'],
+    recipes: ['electrochip', 'circuit', 'research_points_technology'],
     resources: ['iron', 'copper']
   },
   WEAPONS: {
@@ -20,7 +20,7 @@ export const MODULES = {
     name: 'Weapon Production',
     description: 'Production of weapons and military equipment',
     icon: '⚔️',
-    recipes: ['plastic'],
+    recipes: ['plastic', 'research_points_weapon'],
     resources: ['oil', 'stone']
   }
 };

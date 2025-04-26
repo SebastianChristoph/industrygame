@@ -167,6 +167,14 @@ export const RESOURCES = {
     description: 'A complex electronic component',
     icon: '🔌',
     purchasable: false
+  },
+  research_points: {
+    id: 'research_points',
+    name: 'Research Points',
+    basePrice: 50,
+    description: 'Points used for research and development',
+    icon: '🔬',
+    purchasable: false
   }
 };
 
@@ -339,6 +347,42 @@ export const PRODUCTION_RECIPES = {
       resourceId: 'rocket',
       amount: 1
     }
+  },
+  research_points_agriculture: {
+    id: 'research_points_agriculture',
+    name: 'Research Points (Agriculture)',
+    productionTime: 10,
+    inputs: [
+      { resourceId: 'water', amount: 5 }
+    ],
+    output: {
+      resourceId: 'research_points',
+      amount: 1
+    }
+  },
+  research_points_technology: {
+    id: 'research_points_technology',
+    name: 'Research Points (Technology)',
+    productionTime: 10,
+    inputs: [
+      { resourceId: 'iron', amount: 5 }
+    ],
+    output: {
+      resourceId: 'research_points',
+      amount: 1
+    }
+  },
+  research_points_weapon: {
+    id: 'research_points_weapon',
+    name: 'Research Points (Weapon)',
+    productionTime: 10,
+    inputs: [
+      { resourceId: 'oil', amount: 5 }
+    ],
+    output: {
+      resourceId: 'research_points',
+      amount: 1
+    }
   }
 };
 
@@ -351,7 +395,8 @@ export const INPUT_SOURCES = {
 // Possible targets for outputs
 export const OUTPUT_TARGETS = {
   GLOBAL_STORAGE: 'GLOBAL_STORAGE',
-  AUTO_SELL: 'AUTO_SELL'
+  AUTO_SELL: 'AUTO_SELL',
+  RESEARCH_POINTS: 'RESEARCH_POINTS'
 };
 
 export const INITIAL_RESOURCES = {
@@ -375,7 +420,8 @@ export const INITIAL_RESOURCES = {
   steel: 0,
   explosives: 0,
   rocket: 0,
-  coal: 0
+  coal: 0,
+  research_points: 0
 };
 
 // Storage configuration

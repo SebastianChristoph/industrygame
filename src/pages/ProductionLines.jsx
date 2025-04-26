@@ -412,7 +412,7 @@ const ProductionLines = () => {
         return (
           <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
             <Typography color={balance >= 0 ? 'success.main' : 'error.main'}>
-              {balance >= 0 ? '+' : ''}{balance}$
+              {balance >= 0 ? '+' : ''}{formatMoney(balance)}$
             </Typography>
           </Box>
         );
@@ -445,7 +445,7 @@ const ProductionLines = () => {
         return (
           <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
             <Typography color={balancePerPing >= 0 ? 'success.main' : 'error.main'}>
-              {balancePerPing >= 0 ? '+' : ''}{balancePerPing}$
+              {balancePerPing >= 0 ? '+' : ''}{formatMoney(balancePerPing)}$
             </Typography>
           </Box>
         );
@@ -631,10 +631,12 @@ const ProductionLines = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
         <Typography variant="h4" sx={{ flex: 1 }}>
           Production Lines
         </Typography>
+      </Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
         <Button
           variant="contained"
           color="primary"
@@ -643,6 +645,56 @@ const ProductionLines = () => {
         >
           NEW PRODUCTION LINE
         </Button>
+      </Box>
+      {/* Summen-Box wie in Screenshot 2, zentriert und schwebend */}
+      <Box sx={{ width: '100%', ml: "730px", mb: 3 }}>
+        <Box sx={{
+          display: 'flex',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 8,
+          bgcolor: 'background.paper',
+          borderRadius: 8,
+          boxShadow: 2,
+          border: '1px solid',
+          borderColor: 'divider',
+          minWidth: 0,
+          width: 'max-content',
+          py: 2,
+          px: 10,
+        }}>
+          {(() => {
+            let totalBalance = 0;
+            let totalPerPing = 0;
+            productionLines.forEach(line => {
+              // Berechne die Total Balance wie in der Tabelle (nicht per Ping * totalPings)
+              const config = productionConfigs[line.id];
+              const recipe = config?.recipe ? PRODUCTION_RECIPES[config.recipe] : null;
+              if (!recipe) return;
+              const inputCost = recipe.inputs.reduce((sum, input) => sum + RESOURCES[input.resourceId].basePrice * input.amount, 0);
+              const sellIncome = RESOURCES[recipe.output.resourceId].basePrice * recipe.output.amount;
+              const isSelling = config?.outputTarget === OUTPUT_TARGETS.AUTO_SELL;
+              const rowBalance = isSelling ? (sellIncome - inputCost) : -inputCost;
+              totalBalance += rowBalance;
+              // balancePerPing wie gehabt:
+              const { balancePerPing: bp } = calculateLineBalance(line.id);
+              totalPerPing += bp;
+            });
+            const colorTotal = totalBalance >= 0 ? 'success.main' : 'error.main';
+            const colorPing = totalPerPing >= 0 ? 'success.main' : 'error.main';
+            return (
+              <>
+                <Typography variant="h3" sx={{ fontWeight: 700, color: colorTotal, minWidth: 120, textAlign: 'center', px: 4 }}>
+                  {totalBalance >= 0 ? '+' : ''}{formatMoney(totalBalance)}$
+                </Typography>
+                <Typography variant="h3" sx={{ fontWeight: 700, color: colorPing, minWidth: 120, textAlign: 'center', px: 4 }}>
+                  {totalPerPing >= 0 ? '+' : ''}{formatMoney(totalPerPing)}$
+                </Typography>
+              </>
+            );
+          })()}
+        </Box>
       </Box>
 
       <Paper sx={{ height: 600, width: '100%' }}>

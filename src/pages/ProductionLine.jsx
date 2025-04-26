@@ -449,69 +449,86 @@ const ProductionLine = () => {
                     {selectedRecipe.output.amount}x {RESOURCES[selectedRecipe.output.resourceId].name}
                   </Typography>
                 </Box>
-                <ToggleButtonGroup
-                  value={productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE}
-                  exclusive
-                  onChange={(_, newTarget) => {
-                    if (newTarget) {
-                      dispatch(setOutputTarget({
-                        productionLineId,
-                        target: newTarget
-                      }));
-                    }
-                  }}
-                  sx={{
-                    width: '100%',
-                    display: 'flex',
+                {selectedRecipe.output.resourceId === 'research_points' ? (
+                  <Box sx={{ 
+                    display: 'flex', 
+                    alignItems: 'center', 
                     justifyContent: 'center',
                     mt: 2,
                     mb: 1,
-                    gap: 2,
-                  }}
-                >
-                  <ToggleButton
-                    value={OUTPUT_TARGETS.GLOBAL_STORAGE}
+                    p: 2,
+                    bgcolor: 'action.hover',
+                    borderRadius: 2
+                  }}>
+                    <Typography variant="body2" color="text.secondary">
+                      Research Points are automatically added to your global research points
+                    </Typography>
+                  </Box>
+                ) : (
+                  <ToggleButtonGroup
+                    value={productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE}
+                    exclusive
+                    onChange={(_, newTarget) => {
+                      if (newTarget) {
+                        dispatch(setOutputTarget({
+                          productionLineId,
+                          target: newTarget
+                        }));
+                      }
+                    }}
                     sx={{
-                      flex: 1,
-                      minWidth: 120,
-                      height: 48,
-                      fontSize: 16,
-                      fontWeight: 600,
-                      borderRadius: 2,
+                      width: '100%',
                       display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
                       justifyContent: 'center',
-                      gap: 0.5,
+                      mt: 2,
+                      mb: 1,
+                      gap: 2,
                     }}
                   >
-                    <Storage fontSize="medium" />
-                    <Typography variant="caption" sx={{ fontSize: 14 }}>
-                      Storage ({resources[selectedRecipe.output.resourceId].amount}/{resources[selectedRecipe.output.resourceId].capacity})
-                    </Typography>
-                  </ToggleButton>
-                  <ToggleButton
-                    value={OUTPUT_TARGETS.AUTO_SELL}
-                    sx={{
-                      flex: 1,
-                      minWidth: 120,
-                      height: 48,
-                      fontSize: 16,
-                      fontWeight: 600,
-                      borderRadius: 2,
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 0.5,
-                    }}
-                  >
-                    <SellIcon fontSize="medium" />
-                    <Typography variant="caption" sx={{ fontSize: 14 }}>
-                      Sell ({RESOURCES[selectedRecipe.output.resourceId].basePrice * selectedRecipe.output.amount} Credits per production)
-                    </Typography>
-                  </ToggleButton>
-                </ToggleButtonGroup>
+                    <ToggleButton
+                      value={OUTPUT_TARGETS.GLOBAL_STORAGE}
+                      sx={{
+                        flex: 1,
+                        minWidth: 120,
+                        height: 48,
+                        fontSize: 16,
+                        fontWeight: 600,
+                        borderRadius: 2,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 0.5,
+                      }}
+                    >
+                      <Storage fontSize="medium" />
+                      <Typography variant="caption" sx={{ fontSize: 14 }}>
+                        Storage ({resources[selectedRecipe.output.resourceId].amount}/{resources[selectedRecipe.output.resourceId].capacity})
+                      </Typography>
+                    </ToggleButton>
+                    <ToggleButton
+                      value={OUTPUT_TARGETS.AUTO_SELL}
+                      sx={{
+                        flex: 1,
+                        minWidth: 120,
+                        height: 48,
+                        fontSize: 16,
+                        fontWeight: 600,
+                        borderRadius: 2,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 0.5,
+                      }}
+                    >
+                      <SellIcon fontSize="medium" />
+                      <Typography variant="caption" sx={{ fontSize: 14 }}>
+                        Sell ({RESOURCES[selectedRecipe.output.resourceId].basePrice * selectedRecipe.output.amount} Credits per production)
+                      </Typography>
+                    </ToggleButton>
+                  </ToggleButtonGroup>
+                )}
               </Box>
             </CardContent>
           </Card>
