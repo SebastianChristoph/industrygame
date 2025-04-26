@@ -4,41 +4,41 @@ export const theme = createTheme({
   palette: {
     mode: 'light',
     primary: {
-      main: '#FF7A00', // Orange
-      light: '#FFA94D',
-      dark: '#C85000',
+      main: '#2C3E50', // Dunkles Blau
+      light: '#3E5871',
+      dark: '#1B2631',
       contrastText: '#fff',
     },
     secondary: {
-      main: '#3B6FF5', // Blau
-      light: '#5A8CFF',
-      dark: '#2546B8',
+      main: '#6C7A89', // Graublau
+      light: '#95A5A6',
+      dark: '#434A54',
       contrastText: '#fff',
     },
     background: {
-      default: '#F7FAFF', // Sehr helles Grau/Weiß
-      paper: '#F4F7FB',   // Cards
+      default: '#F4F6F8', // Helles Grau
+      paper: '#FFFFFF',   // Cards
     },
     text: {
-      primary: '#1A2330', // Sehr dunkles Blau/Grau
-      secondary: '#3B6FF5', // Blau für Akzente
+      primary: '#2C3E50', // Dunkles Blau
+      secondary: '#6C7A89', // Graublau
       disabled: '#A0AEC0',
     },
     divider: '#E3EAF2',
     success: {
-      main: '#00C48C',
+      main: '#27AE60',
       contrastText: '#fff',
     },
     error: {
-      main: '#FF4D4F',
+      main: '#E74C3C',
       contrastText: '#fff',
     },
     warning: {
-      main: '#FFB020',
+      main: '#F39C12', // Gedecktes Orange
       contrastText: '#fff',
     },
     info: {
-      main: '#3B6FF5',
+      main: '#6C7A89',
       contrastText: '#fff',
     },
   },
@@ -50,48 +50,48 @@ export const theme = createTheme({
       'sans-serif',
     ].join(','),
     h1: {
-      fontFamily: ['Victor Mono', 'Roboto', 'Arial', 'sans-serif'].join(','),
-      fontSize: '3rem',
+      fontFamily: ['Inter', 'Roboto', 'Arial', 'sans-serif'].join(','),
+      fontSize: '2.4rem',
       fontWeight: 700,
-      color: '#1A2330',
+      color: '#2C3E50',
     },
     h2: {
-      fontFamily: ['Victor Mono', 'Roboto', 'Arial', 'sans-serif'].join(','),
-      fontSize: '2.2rem',
+      fontFamily: ['Inter', 'Roboto', 'Arial', 'sans-serif'].join(','),
+      fontSize: '1.8rem',
       fontWeight: 600,
-      color: '#1A2330',
+      color: '#2C3E50',
     },
     h3: {
-      fontFamily: ['Victor Mono', 'Roboto', 'Arial', 'sans-serif'].join(','),
-      fontSize: '1.7rem',
+      fontFamily: ['Inter', 'Roboto', 'Arial', 'sans-serif'].join(','),
+      fontSize: '1.4rem',
       fontWeight: 600,
-      color: '#1A2330',
+      color: '#2C3E50',
     },
     h4: {
-      fontFamily: ['Victor Mono', 'Roboto', 'Arial', 'sans-serif'].join(','),
-      fontSize: '2rem',
+      fontFamily: ['Inter', 'Roboto', 'Arial', 'sans-serif'].join(','),
+      fontSize: '1.2rem',
       fontWeight: 700,
-      color: '#1A2330',
+      color: '#2C3E50',
     },
     h5: {
-      fontFamily: ['Victor Mono', 'Roboto', 'Arial', 'sans-serif'].join(','),
-      fontSize: '1.3rem',
-      fontWeight: 600,
-      color: '#1A2330',
-    },
-    h6: {
-      fontFamily: ['Victor Mono', 'Roboto', 'Arial', 'sans-serif'].join(','),
+      fontFamily: ['Inter', 'Roboto', 'Arial', 'sans-serif'].join(','),
       fontSize: '1.1rem',
       fontWeight: 600,
-      color: '#1A2330',
+      color: '#2C3E50',
+    },
+    h6: {
+      fontFamily: ['Inter', 'Roboto', 'Arial', 'sans-serif'].join(','),
+      fontSize: '1rem',
+      fontWeight: 600,
+      color: '#2C3E50',
     },
     body1: {
       fontSize: '1rem',
-      color: '#1A2330',
+      color: '#2C3E50',
     },
     body2: {
       fontSize: '0.95rem',
-      color: '#3B6FF5',
+      color: '#6C7A89',
     },
     button: {
       fontWeight: 600,
@@ -103,8 +103,8 @@ export const theme = createTheme({
     MuiCssBaseline: {
       styleOverrides: {
         body: {
-          backgroundColor: '#F7FAFF',
-          color: '#1A2330',
+          backgroundColor: '#F4F6F8',
+          color: '#2C3E50',
         },
       },
     },
@@ -112,42 +112,45 @@ export const theme = createTheme({
       styleOverrides: {
         root: {
           backgroundImage: 'none',
-          boxShadow: '0 4px 24px 0 rgba(34, 41, 47, 0.08)',
-          borderRadius: 16,
+          boxShadow: '0 2px 8px 0 rgba(44, 62, 80, 0.06)',
+          borderRadius: 10,
           border: '1px solid #E3EAF2',
-          backgroundColor: '#F4F7FB',
+          backgroundColor: '#FFFFFF',
         },
       },
     },
     MuiButton: {
       styleOverrides: {
         root: {
-          borderRadius: 12,
+          borderRadius: 8,
           fontWeight: 600,
           fontSize: '1rem',
           padding: '8px 24px',
-          boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
+          boxShadow: 'none',
         },
         contained: {
-          backgroundColor: '#FF7A00',
+          backgroundColor: '#2C3E50',
           color: '#fff',
           '&:hover': {
-            backgroundColor: '#FFA94D',
+            backgroundColor: '#F39C12',
+            color: '#fff',
           },
         },
         outlined: {
-          border: '2px solid #FF7A00',
-          color: '#FF7A00',
+          border: '2px solid #2C3E50',
+          color: '#2C3E50',
           backgroundColor: '#fff',
           '&:hover': {
-            backgroundColor: 'rgba(255, 122, 0, 0.08)',
-            borderColor: '#FFA94D',
+            backgroundColor: 'rgba(44, 62, 80, 0.08)',
+            borderColor: '#F39C12',
+            color: '#2C3E50',
           },
         },
         text: {
-          color: '#3B6FF5',
+          color: '#2C3E50',
           '&:hover': {
-            backgroundColor: 'rgba(59, 111, 245, 0.08)',
+            backgroundColor: 'rgba(44, 62, 80, 0.08)',
+            color: '#F39C12',
           },
         },
       },
@@ -155,10 +158,10 @@ export const theme = createTheme({
     MuiIconButton: {
       styleOverrides: {
         root: {
-          color: '#3B6FF5',
-          borderRadius: 10,
+          color: '#6C7A89',
+          borderRadius: 8,
           '&:hover': {
-            backgroundColor: 'rgba(59, 111, 245, 0.08)',
+            backgroundColor: 'rgba(44, 62, 80, 0.08)',
           },
         },
       },
@@ -166,24 +169,24 @@ export const theme = createTheme({
     MuiCard: {
       styleOverrides: {
         root: {
-          borderRadius: 16,
-          boxShadow: '0 4px 24px 0 rgba(34, 41, 47, 0.08)',
+          borderRadius: 10,
+          boxShadow: '0 2px 8px 0 rgba(44, 62, 80, 0.06)',
           border: '1px solid #E3EAF2',
-          backgroundColor: '#F4F7FB',
+          backgroundColor: '#FFFFFF',
         },
       },
     },
     MuiTableContainer: {
       styleOverrides: {
         root: {
-          borderRadius: 16,
-          boxShadow: '0 4px 24px 0 rgba(34, 41, 47, 0.08)',
+          borderRadius: 10,
+          boxShadow: '0 2px 8px 0 rgba(44, 62, 80, 0.06)',
           border: '1px solid #E3EAF2',
         },
       },
     },
   },
   shape: {
-    borderRadius: 16, // Mehr abgerundet
+    borderRadius: 10, // Dezenter abgerundet
   },
 }); 
