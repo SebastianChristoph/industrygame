@@ -30,7 +30,7 @@ const Storage = () => {
   return (
     <Box sx={{ p: 2 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h5" color="text.primary">
+        <Typography variant="h4" color="text.primary">
           Resource Storage
         </Typography>
        

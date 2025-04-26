@@ -148,13 +148,12 @@ const Layout = () => {
       >
         <Toolbar disableGutters sx={{ minHeight: '64px !important', px: 4, width: '100%' }}>
           <Typography
-            variant="h6"
+            variant="h4"
             sx={{
               flexGrow: 1,
-              fontSize: '1.25rem',
+              fontSize: '1.65rem',
               fontWeight: 600,
               color: '#fff',
-              fontFamily: theme.typography.fontFamily,
               ml: 2,
             }}
           >
