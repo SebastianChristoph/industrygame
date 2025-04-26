@@ -114,141 +114,153 @@ const Layout = () => {
   );
 
   return (
-    <Box>
+    <Box sx={{ bgcolor: theme.palette.background.default, minHeight: '100vh' }}>
       <AppBar
-        position="fixed"
+        position="static"
+        elevation={0}
         sx={{
-          width: { sm: `calc(100% - ${drawerWidth}px)` },
-          ml: { sm: `${drawerWidth}px` },
           bgcolor: theme.palette.primary.main,
-          height: '48px',
+          borderRadius: '20px',
+          height: 64,
+          width: '100%',
+          mt: 1,
+          mx: 'auto',
+          maxWidth: '100%',
           boxShadow: 'none',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          borderTopLeftRadius: '20px',
+          borderTopRightRadius: '20px',
+          borderBottomLeftRadius: '20px',
+          borderBottomRightRadius: '20px',
         }}
       >
-        <Toolbar sx={{ minHeight: '48px !important', px: 2 }}>
-          <IconButton
-            color="inherit"
-            aria-label="open drawer"
-            edge="start"
-            onClick={handleDrawerToggle}
-            sx={{ mr: 2, display: { sm: "none" } }}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Typography 
-            variant="h6" 
-            sx={{ 
+        <Toolbar disableGutters sx={{ minHeight: '64px !important', px: 4, width: '100%' }}>
+          <Typography
+            variant="h6"
+            sx={{
               flexGrow: 1,
-              fontSize: '1.1rem',
-              fontWeight: 500,
-              color: theme.palette.primary.contrastText,
+              fontSize: '1.25rem',
+              fontWeight: 600,
+              color: '#fff',
               fontFamily: theme.typography.fontFamily,
+              ml: 2,
             }}
           >
             Industry Game
           </Typography>
 
-          <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mr: 2 }}>
             <PingIndicator />
-            
             <Tooltip title="Einnahmen pro Ping">
-              <Box 
-                sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
                   gap: 0.5,
-                  px: 1.5,
+                  px: 2,
                   py: 0.5,
-                  bgcolor: 'rgba(0,0,0,0.2)',
-                  borderRadius: theme.shape.borderRadius,
-                  border: `1px solid ${theme.palette.primary.light}`
+                  bgcolor: '#fff',
+                  color: theme.palette.primary.main,
+                  borderRadius: '16px',
+                  border: `2px solid ${theme.palette.primary.main}`,
+                  fontWeight: 600,
+                  fontSize: '1rem',
+                  boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
                 }}
               >
-                <MoneyIcon sx={{ color: theme.palette.primary.contrastText, fontSize: '1.1rem' }} />
-                <Typography sx={{ color: theme.palette.primary.contrastText, fontSize: '0.9rem' }}>
-                  +{income}
-                </Typography>
+                <MoneyIcon sx={{ color: theme.palette.primary.main, fontSize: '1.1rem' }} />
+                <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '1rem' }}>+{income}</Typography>
               </Box>
             </Tooltip>
-
             <Tooltip title="Ausgaben pro Ping">
-              <Box 
-                sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
                   gap: 0.5,
-                  px: 1.5,
+                  px: 2,
                   py: 0.5,
-                  bgcolor: 'rgba(0,0,0,0.2)',
-                  borderRadius: theme.shape.borderRadius,
-                  border: `1px solid ${theme.palette.primary.light}`
+                  bgcolor: '#fff',
+                  color: theme.palette.primary.main,
+                  borderRadius: '16px',
+                  border: `2px solid ${theme.palette.primary.main}`,
+                  fontWeight: 600,
+                  fontSize: '1rem',
+                  boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
                 }}
               >
-                <ExpensesIcon sx={{ color: theme.palette.primary.contrastText, fontSize: '1.1rem' }} />
-                <Typography sx={{ color: theme.palette.primary.contrastText, fontSize: '0.9rem' }}>
-                  -{expenses}
-                </Typography>
+                <ExpensesIcon sx={{ color: theme.palette.primary.main, fontSize: '1.1rem' }} />
+                <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '1rem' }}>-{expenses}</Typography>
               </Box>
             </Tooltip>
-
             <Tooltip title="Gewinn/Verlust pro Ping">
-              <Box 
-                sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
                   gap: 0.5,
-                  px: 1.5,
+                  px: 2,
                   py: 0.5,
-                  bgcolor: 'rgba(0,0,0,0.2)',
-                  borderRadius: theme.shape.borderRadius,
-                  border: `1px solid ${theme.palette.primary.light}`
+                  bgcolor: '#fff',
+                  color: theme.palette.primary.main,
+                  borderRadius: '16px',
+                  border: `2px solid ${theme.palette.primary.main}`,
+                  fontWeight: 600,
+                  fontSize: '1rem',
+                  boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
                 }}
               >
-                <BalanceIcon sx={{ color: theme.palette.primary.contrastText, fontSize: '1.1rem' }} />
-                <Typography sx={{ color: theme.palette.primary.contrastText, fontSize: '0.9rem' }}>
-                  {balance >= 0 ? '+' : ''}{balance}
-                </Typography>
+                <BalanceIcon sx={{ color: theme.palette.primary.main, fontSize: '1.1rem' }} />
+                <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '1rem' }}>{balance >= 0 ? '+' : ''}{balance}</Typography>
               </Box>
             </Tooltip>
-
             <Tooltip title="Aktuelles Guthaben">
-              <Box 
-                sx={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
                   gap: 0.5,
-                  px: 1.5,
+                  px: 2,
                   py: 0.5,
-                  bgcolor: 'rgba(0,0,0,0.2)',
-                  borderRadius: theme.shape.borderRadius,
-                  border: `1px solid ${theme.palette.primary.light}`,
+                  bgcolor: '#fff',
+                  color: theme.palette.primary.main,
+                  borderRadius: '16px',
+                  border: `2px solid ${theme.palette.primary.main}`,
+                  fontWeight: 600,
+                  fontSize: '1rem',
                   minWidth: '100px',
+                  boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
                 }}
               >
-                <MoneyIcon sx={{ color: theme.palette.primary.contrastText, fontSize: '1.1rem' }} />
-                <Typography sx={{ color: theme.palette.primary.contrastText, fontSize: '0.9rem', fontWeight: 500 }}>
-                  ${credits.toLocaleString()}
-                </Typography>
+                <MoneyIcon sx={{ color: theme.palette.primary.main, fontSize: '1.1rem' }} />
+                <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '1rem' }}>${credits.toLocaleString()}</Typography>
               </Box>
             </Tooltip>
-
             <Tooltip title="Lager öffnen">
               <Button
                 sx={{
-                  color: theme.palette.primary.contrastText,
-                  bgcolor: 'rgba(0,0,0,0.2)',
-                  border: `1px solid ${theme.palette.primary.light}`,
+                  color: theme.palette.primary.main,
+                  bgcolor: '#fff',
+                  border: `2px solid ${theme.palette.primary.main}`,
+                  borderRadius: '16px',
+                  fontWeight: 700,
+                  fontSize: '1rem',
+                  px: 3,
+                  py: 1,
+                  boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
                   '&:hover': {
-                    bgcolor: 'rgba(0,0,0,0.3)',
-                  }
+                    bgcolor: '#FFE3C2',
+                    borderColor: theme.palette.primary.light,
+                  },
                 }}
-                startIcon={<Warehouse />}
+                startIcon={<Warehouse sx={{ color: theme.palette.primary.main }} />}
                 onClick={() => setStorageOpen(true)}
               >
                 Storage
               </Button>
             </Tooltip>
-
           </Box>
         </Toolbar>
       </AppBar>
