@@ -5,10 +5,7 @@ import {
   Box,
   Typography,
   Button,
-  Grid,
-  Card,
-  CardContent,
-  CardActions,
+  Paper,
   IconButton,
   Dialog,
   DialogTitle,
@@ -23,6 +20,7 @@ import {
   DialogContentText,
   CircularProgress
 } from '@mui/material';
+import { DataGrid } from '@mui/x-data-grid';
 import {
   Add as AddIcon,
   Delete as DeleteIcon,
@@ -34,7 +32,8 @@ import {
   TrendingDown as ExpenseIcon,
   AccountBalance as BalanceIcon,
   PlayArrow,
-  Stop
+  Stop,
+  WarningAmber as WarningAmberIcon
 } from '@mui/icons-material';
 import { 
   addProductionLine, 
@@ -143,102 +142,30 @@ const ProductionLineCard = ({ line, onRenameClick, onDeleteClick }) => {
   };
 
   return (
-    <Card sx={{ 
-      height: '100%', 
-      display: 'flex', 
-      flexDirection: 'column', 
-      position: 'relative', 
-      bgcolor: 'background.paper',
-      minHeight: '200px' // Mindesthöhe für Konsistenz
-    }}>
-      <CardContent sx={{ 
-        flexGrow: 1,
-        pb: 1 // Reduziertes padding-bottom da CardActions eigenes Padding hat
-      }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, gap: 1 }}>
-          {recipe && outputResource && outputResource.icon}
-          <Typography variant="h6" sx={{ flexGrow: 1 }}>
-            {line.name}
-          </Typography>
-          <IconButton size="small" onClick={() => onRenameClick(line)}>
-            <EditIcon fontSize="small" />
-          </IconButton>
-          <IconButton size="small" color="error" onClick={() => onDeleteClick(line)}>
-            <DeleteIcon fontSize="small" />
-          </IconButton>
-        </Box>
-
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1 }}>
-          <Box sx={{ 
-            width: 12, 
-            height: 12, 
-            borderRadius: '50%', 
-            bgcolor: status?.isActive ? (canProduce ? 'success.main' : 'warning.main') : 'text.disabled' 
-          }} />
-          {outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE ? (
-            <StorageIcon fontSize="small" color="action" />
-          ) : (
-            <SellIcon fontSize="small" color="success" />
-          )}
-          {balance !== 0 && (
-            <Typography 
-              variant="body2" 
-              color={balance >= 0 ? "success.main" : "error.main"}
-              sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
-            >
-              {balance >= 0 ? '+' : ''}{balance}/Ping
-            </Typography>
-          )}
-        </Box>
-
-        {status?.error && (
-          <Typography variant="body2" color="error" sx={{ mt: 1 }}>
-            {status.error}
-          </Typography>
+    <TableCell>
+      <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+        <Box sx={{ 
+          width: 12, 
+          height: 12, 
+          borderRadius: '50%', 
+          bgcolor: status?.isActive ? (canProduce ? 'success.main' : 'warning.main') : 'text.disabled',
+          mr: 1
+        }} />
+        {missingResources && missingResources.length > 0 && (
+          <Tooltip title={missingResources.map(r => `${r.name}: ${r.reason}`).join('\n')}>
+            <WarningAmberIcon color="warning" fontSize="small" sx={{ ml: 0.5, mr: 0.5 }} />
+          </Tooltip>
         )}
-      </CardContent>
-
-      <CardActions sx={{ 
-        mt: 'auto',
-        pt: 2,
-        pb: 2,
-        px: 2,
-        borderTop: '1px solid',
-        borderColor: 'divider',
-        gap: 1
-      }}>
-        <Tooltip title={
-          !recipe ? "Kein Rezept ausgewählt" :
-          !canProduce && status?.isActive ? missingResources.map(r => `${r.name}: ${r.reason}`).join(', ') :
-          status?.isActive ? "Produktion stoppen" : "Produktion starten"
-        }>
-          <span style={{ flex: '1 1 auto' }}>
-            <Button
-              variant="contained"
-              color={status?.isActive ? "error" : "primary"}
-              startIcon={status?.isActive ? <Stop /> : <PlayArrow />}
-              onClick={handleToggleProduction}
-              disabled={!recipe || (!canProduce && !status?.isActive)}
-              size="small"
-              fullWidth
-            >
-              {status?.isActive ? "Stop" : "Start"}
-            </Button>
-          </span>
-        </Tooltip>
-
-        <Button
-          variant="outlined"
-          startIcon={<SettingsIcon />}
-          onClick={() => navigate(`/production/${line.id}`)}
-          size="small"
-          sx={{ flex: '1 1 auto' }}
-          fullWidth
+        <IconButton 
+          size="small" 
+          onClick={handleToggleProduction}
+          disabled={!recipe || (!canProduce && !status?.isActive)}
+          sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '32px' }}
         >
-          KONFIGURIEREN
-        </Button>
-      </CardActions>
-    </Card>
+          {status?.isActive ? <Stop fontSize="small" /> : <PlayArrow fontSize="small" />}
+        </IconButton>
+      </Box>
+    </TableCell>
   );
 };
 
@@ -248,6 +175,7 @@ const ProductionLines = () => {
   const productionLines = useSelector(state => state.game.productionLines);
   const productionConfigs = useSelector(state => state.game.productionConfigs);
   const resources = useSelector(state => state.game.resources);
+  const productionStatus = useSelector(state => state.game.productionStatus);
   
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -330,7 +258,304 @@ const ProductionLines = () => {
     navigate(`/production/${id}`);
   };
 
-  // Wenn keine Produktionslinien vorhanden sind, zeige die leere Ansicht
+  const columns = [
+    {
+      field: 'status',
+      headerName: 'Status',
+      width: 100,
+      renderCell: (params) => {
+        const config = productionConfigs[params.row.id];
+        const status = productionStatus[params.row.id];
+        const recipe = config?.recipe ? PRODUCTION_RECIPES[config.recipe] : null;
+        const { canProduce, missingResources } = checkResourceAvailability(params.row.id);
+
+        // Prüfe, ob ein Fehler/Mangel vorliegt
+        const hasWarning = missingResources && missingResources.length > 0;
+        const warningText = hasWarning
+          ? missingResources.map(r => `${r.name}: ${r.reason}`).join('\n')
+          : '';
+
+        return (
+          <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+            <Box sx={{ 
+              width: 12, 
+              height: 12, 
+              borderRadius: '50%', 
+              bgcolor: status?.isActive ? (canProduce ? 'success.main' : 'warning.main') : 'text.disabled',
+              mr: 1
+            }} />
+            {hasWarning && (
+              <Tooltip title={<span style={{ whiteSpace: 'pre-line' }}>{warningText}</span>}>
+                <WarningAmberIcon color="warning" fontSize="small" sx={{ ml: 0.5, mr: 0.5 }} />
+              </Tooltip>
+            )}
+            <IconButton 
+              size="small" 
+              onClick={() => dispatch(toggleProduction(params.row.id))}
+              disabled={!recipe || (!canProduce && !status?.isActive)}
+              sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '32px' }}
+            >
+              {status?.isActive ? <Stop fontSize="small" /> : <PlayArrow fontSize="small" />}
+            </IconButton>
+          </Box>
+        );
+      }
+    },
+    {
+      field: 'progress',
+      headerName: 'Fortschritt',
+      width: 120,
+      renderCell: (params) => {
+        const config = productionConfigs[params.row.id];
+        const status = productionStatus[params.row.id];
+        const recipe = config?.recipe ? PRODUCTION_RECIPES[config.recipe] : null;
+        if (!status?.isActive || !recipe) return '';
+        const percent = status.currentPings && recipe.productionTime
+          ? Math.min(100, Math.round((status.currentPings / recipe.productionTime) * 100))
+          : 0;
+        return (
+          <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+            <Box sx={{ position: 'relative', width: '90%', height: 16 }}>
+              <Box sx={{
+                width: '100%',
+                height: 16,
+                bgcolor: 'action.disabledBackground',
+                borderRadius: 8,
+                overflow: 'hidden',
+                position: 'absolute',
+                top: 0,
+                left: 0
+              }} />
+              <Box sx={{
+                width: `${percent}%`,
+                height: 16,
+                bgcolor: percent === 100 ? 'success.main' : 'primary.main',
+                borderRadius: 8,
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                transition: 'width 0.3s linear'
+              }} />
+              <Box sx={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                pointerEvents: 'none',
+              }}>
+                <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.primary', textShadow: '0 1px 2px #fff8' }}>
+                  {percent}%
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+        );
+      }
+    },
+    {
+      field: 'icon',
+      headerName: 'Icon',
+      width: 80,
+      renderCell: (params) => {
+        const config = productionConfigs[params.row.id];
+        const recipe = config?.recipe ? PRODUCTION_RECIPES[config.recipe] : null;
+        const outputResource = recipe ? RESOURCES[recipe.output.resourceId] : null;
+        return (
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
+            {recipe && outputResource && outputResource.icon}
+          </Box>
+        );
+      }
+    },
+    {
+      field: 'name',
+      headerName: 'Name',
+      flex: 1,
+      minWidth: 150
+    },
+    {
+      field: 'totalBalance',
+      headerName: 'Bilanz gesamt',
+      width: 150,
+      align: 'right',
+      renderCell: (params) => {
+        const config = productionConfigs[params.row.id];
+        const recipe = config?.recipe ? PRODUCTION_RECIPES[config.recipe] : null;
+        if (!recipe) return '';
+        const inputCost = recipe.inputs.reduce((sum, input) => sum + RESOURCES[input.resourceId].basePrice * input.amount, 0);
+        const sellIncome = RESOURCES[recipe.output.resourceId].basePrice * recipe.output.amount;
+        const isSelling = config?.outputTarget === OUTPUT_TARGETS.AUTO_SELL;
+        const balance = isSelling ? (sellIncome - inputCost) : -inputCost;
+        return (
+          <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+            <Typography color={balance >= 0 ? 'success.main' : 'error.main'}>
+              {balance >= 0 ? '+' : ''}{balance}$
+            </Typography>
+          </Box>
+        );
+      }
+    },
+    {
+      field: 'balancePerPing',
+      headerName: 'Bilanz pro Ping',
+      width: 150,
+      align: 'right',
+      renderCell: (params) => {
+        const config = productionConfigs[params.row.id];
+        const status = productionStatus[params.row.id];
+        const recipe = config?.recipe ? PRODUCTION_RECIPES[config.recipe] : null;
+        if (!recipe || !config || !status?.isActive) return '';
+        let income = 0;
+        let expenses = 0;
+        recipe.inputs.forEach((input, index) => {
+          const inputConfig = config.inputs[index];
+          if (inputConfig?.source === INPUT_SOURCES.PURCHASE_MODULE) {
+            const resource = RESOURCES[input.resourceId];
+            expenses += (resource.basePrice * input.amount) / recipe.productionTime;
+          }
+        });
+        if (config.outputTarget === OUTPUT_TARGETS.AUTO_SELL) {
+          const outputResource = RESOURCES[recipe.output.resourceId];
+          income += (outputResource.basePrice * recipe.output.amount) / recipe.productionTime;
+        }
+        const balancePerPing = Math.round((income - expenses) * 100) / 100;
+        return (
+          <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
+            <Typography color={balancePerPing >= 0 ? 'success.main' : 'error.main'}>
+              {balancePerPing >= 0 ? '+' : ''}{balancePerPing}$
+            </Typography>
+          </Box>
+        );
+      }
+    },
+    {
+      field: 'output',
+      headerName: 'Output',
+      width: 150,
+      renderCell: (params) => {
+        const config = productionConfigs[params.row.id];
+        const outputTarget = config?.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE;
+
+        return (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, height: '100%' }}>
+            {outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE ? (
+              <StorageIcon fontSize="small" color="action" />
+            ) : (
+              <SellIcon fontSize="small" color="success" />
+            )}
+            <Typography variant="body2">
+              {outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE ? 'Lager' : 'Verkauf'}
+            </Typography>
+          </Box>
+        );
+      }
+    },
+    {
+      field: 'actions',
+      headerName: 'Aktionen',
+      width: 120,
+      align: 'center',
+      renderCell: (params) => (
+        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+          <IconButton size="small" onClick={(event) => { event.stopPropagation(); handleRenameClick(params.row.id, params.row.name); }}>
+            <EditIcon fontSize="small" />
+          </IconButton>
+          <IconButton size="small" color="error" onClick={(event) => { event.stopPropagation(); handleDeleteClick(params.row.id); }}>
+            <DeleteIcon fontSize="small" />
+          </IconButton>
+        </Box>
+      )
+    }
+  ];
+
+  // Helper functions for DataGrid
+  const checkResourceAvailability = (lineId) => {
+    const config = productionConfigs[lineId];
+    const recipe = config?.recipe ? PRODUCTION_RECIPES[config.recipe] : null;
+    if (!recipe || !config) return { canProduce: false, missingResources: [] };
+
+    let requiredCredits = 0;
+    const missingResources = [];
+
+    recipe.inputs.forEach((input, index) => {
+      const inputConfig = config.inputs[index];
+      if (!inputConfig) {
+        missingResources.push({ name: RESOURCES[input.resourceId].name, reason: 'Keine Konfiguration' });
+        return;
+      }
+
+      if (inputConfig.source === INPUT_SOURCES.GLOBAL_STORAGE) {
+        const available = resources[input.resourceId].amount;
+        if (available < input.amount) {
+          missingResources.push({
+            name: RESOURCES[input.resourceId].name,
+            reason: `${available}/${input.amount} verfügbar`
+          });
+        }
+      } else {
+        requiredCredits += RESOURCES[input.resourceId].basePrice * input.amount;
+      }
+    });
+
+    if (requiredCredits > resources.credits) {
+      missingResources.push({
+        name: 'Credits',
+        reason: `${resources.credits}/${requiredCredits} verfügbar`
+      });
+    }
+
+    if (config.outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE) {
+      const outputResource = resources[recipe.output.resourceId];
+      if (outputResource.amount + recipe.output.amount > outputResource.capacity) {
+        missingResources.push({
+          name: RESOURCES[recipe.output.resourceId].name,
+          reason: 'Lager voll'
+        });
+      }
+    }
+
+    return {
+      canProduce: missingResources.length === 0,
+      missingResources
+    };
+  };
+
+  const calculateLineBalance = (lineId) => {
+    const config = productionConfigs[lineId];
+    const status = productionStatus[lineId];
+    const recipe = config?.recipe ? PRODUCTION_RECIPES[config.recipe] : null;
+    if (!recipe || !config || !status?.isActive) return { balance: 0, totalBalance: 0 };
+
+    let income = 0;
+    let expenses = 0;
+
+    recipe.inputs.forEach((input, index) => {
+      const inputConfig = config.inputs[index];
+      if (inputConfig?.source === INPUT_SOURCES.PURCHASE_MODULE) {
+        const resource = RESOURCES[input.resourceId];
+        expenses += (resource.basePrice * input.amount) / recipe.productionTime;
+      }
+    });
+
+    if (config.outputTarget === OUTPUT_TARGETS.AUTO_SELL) {
+      const outputResource = RESOURCES[recipe.output.resourceId];
+      income += (outputResource.basePrice * recipe.output.amount) / recipe.productionTime;
+    }
+
+    const balancePerPing = Math.round((income - expenses) * 100) / 100;
+    const totalBalance = Math.round(balancePerPing * (status?.totalPings || 0) * 100) / 100;
+
+    return {
+      balancePerPing,
+      totalBalance
+    };
+  };
+
+  // If no production lines exist, show empty state
   if (productionLines.length === 0) {
     return (
       <Box sx={{ p: 3 }}>
@@ -402,7 +627,25 @@ const ProductionLines = () => {
                   }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       {RESOURCES[recipe.output.resourceId].icon}
-                      <Typography variant="subtitle1">{recipe.name}</Typography>
+                      <Typography variant="subtitle1">
+                        {recipe.name}
+                        {' '}
+                        <span style={{ color: '#888', fontWeight: 400 }}>
+                          ({(() => {
+                            const output = RESOURCES[recipe.output.resourceId];
+                            const outputValue = output.basePrice * recipe.output.amount;
+                            const inputCost = recipe.inputs.reduce(
+                              (sum, input) => {
+                                const res = RESOURCES[input.resourceId];
+                                return res.purchasable ? sum + res.basePrice * input.amount : sum;
+                              },
+                              0
+                            );
+                            const profit = outputValue - inputCost;
+                            return (profit >= 0 ? '+' : '') + profit + '$';
+                          })()})
+                        </span>
+                      </Typography>
                     </Box>
                     <Box sx={{ 
                       display: 'flex', 
@@ -537,19 +780,28 @@ const ProductionLines = () => {
         </Button>
       </Box>
 
-      <Grid container spacing={3}>
-        {productionLines.map((line) => (
-          <Grid item xs={12} sm={6} md={4} key={line.id}>
-            <ProductionLineCard
-              line={line}
-              onRenameClick={(line) => handleRenameClick(line.id, line.name)}
-              onDeleteClick={(line) => handleDeleteClick(line.id)}
-            />
-          </Grid>
-        ))}
-      </Grid>
+      <Paper sx={{ height: 600, width: '100%' }}>
+        <DataGrid
+          rows={productionLines}
+          columns={columns}
+          pageSize={10}
+          rowsPerPageOptions={[10, 25, 50]}
+          disableSelectionOnClick
+          density="comfortable"
+          sx={{
+            '& .MuiDataGrid-cell:focus': {
+              outline: 'none'
+            },
+            '& .MuiDataGrid-columnHeaders': {
+              backgroundColor: 'background.paper',
+              borderBottom: '2px solid',
+              borderColor: 'divider'
+            }
+          }}
+          onRowClick={(params) => navigate(`/production/${params.row.id}`)}
+        />
+      </Paper>
 
-      {/* Dialog für neue Produktionslinie */}
       <Dialog open={isCreateDialogOpen} onClose={() => setIsCreateDialogOpen(false)}>
         <DialogTitle>Neue Produktionslinie erstellen</DialogTitle>
         <DialogContent sx={{ minWidth: 400 }}>
@@ -590,7 +842,25 @@ const ProductionLines = () => {
                 }}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     {RESOURCES[recipe.output.resourceId].icon}
-                    <Typography variant="subtitle1">{recipe.name}</Typography>
+                    <Typography variant="subtitle1">
+                      {recipe.name}
+                      {' '}
+                      <span style={{ color: '#888', fontWeight: 400 }}>
+                        ({(() => {
+                          const output = RESOURCES[recipe.output.resourceId];
+                          const outputValue = output.basePrice * recipe.output.amount;
+                          const inputCost = recipe.inputs.reduce(
+                            (sum, input) => {
+                              const res = RESOURCES[input.resourceId];
+                              return res.purchasable ? sum + res.basePrice * input.amount : sum;
+                            },
+                            0
+                          );
+                          const profit = outputValue - inputCost;
+                          return (profit >= 0 ? '+' : '') + profit + '$';
+                        })()})
+                      </span>
+                    </Typography>
                   </Box>
                   <Box sx={{ 
                     display: 'flex', 
@@ -706,7 +976,6 @@ const ProductionLines = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Dialog für Löschen bestätigen */}
       <Dialog
         open={isDeleteDialogOpen}
         onClose={() => setIsDeleteDialogOpen(false)}
@@ -732,7 +1001,6 @@ const ProductionLines = () => {
         </DialogActions>
       </Dialog>
 
-      {/* Dialog für Umbenennen */}
       <Dialog
         open={isRenameDialogOpen}
         onClose={() => setIsRenameDialogOpen(false)}

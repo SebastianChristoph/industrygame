@@ -116,24 +116,21 @@ const Layout = () => {
   return (
     <Box sx={{ bgcolor: theme.palette.background.default, minHeight: '100vh' }}>
       <AppBar
-        position="static"
+        position="fixed"
         elevation={0}
         sx={{
           bgcolor: theme.palette.primary.main,
-          borderRadius: '20px',
           height: 64,
           width: '100%',
-          mt: 1,
-          mx: 'auto',
+          mt: 0,
+          mx: 0,
           maxWidth: '100%',
           boxShadow: 'none',
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
-          borderTopLeftRadius: '20px',
-          borderTopRightRadius: '20px',
-          borderBottomLeftRadius: '20px',
-          borderBottomRightRadius: '20px',
+          borderRadius: 0,
+          zIndex: (theme) => theme.zIndex.drawer + 1,
         }}
       >
         <Toolbar disableGutters sx={{ minHeight: '64px !important', px: 4, width: '100%' }}>
@@ -306,7 +303,8 @@ const Layout = () => {
           ml: "300px",
           minHeight: "100vh",
           padding: 3,
-          width: "80vw"
+          width: "80vw",
+          pt: "80px"
         }}
       >
         <Toolbar />

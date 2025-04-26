@@ -35,31 +35,19 @@ const StorageDrawer = ({ open, onClose }) => {
       open={open}
       onClose={onClose}
       PaperProps={{
-        sx: { width: { xs: '100%', sm: 600 } }
+        sx: { width: { xs: '100%', sm: 700 } }
       }}
     >
       <Box sx={{ p: 2 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <Typography variant="h6">
-            Rohstofflager
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Typography color="text.secondary">
-              Credits: {credits}
-            </Typography>
-            <IconButton onClick={onClose} size="small">
-              <Close />
-            </IconButton>
-          </Box>
-        </Box>
-        <Divider sx={{ mb: 2 }} />
+      
         
         <TableContainer 
           component={Paper} 
           variant="outlined"
           sx={{ 
             maxWidth: '100%',
-            overflowX: 'hidden'
+            overflowX: 'hidden',
+          mt: 6
           }}
         >
           <Table 
@@ -71,11 +59,11 @@ const StorageDrawer = ({ open, onClose }) => {
           >
             <TableHead>
               <TableRow>
-                <TableCell width="20%">Rohstoff</TableCell>
-                <TableCell width="20%" align="right">Bestand</TableCell>
-                <TableCell width="25%">Auslastung</TableCell>
-                <TableCell width="15%" align="right">Level</TableCell>
-                <TableCell width="20%" align="right">Aktion</TableCell>
+                <TableCell width="16%">Rohstoff</TableCell>
+                <TableCell width="28%" align="right">Bestand</TableCell>
+                <TableCell width="22%">Auslastung</TableCell>
+                <TableCell width="14%" align="right">Level</TableCell>
+                <TableCell width="24%" align="right">Aktion</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -96,7 +84,6 @@ const StorageDrawer = ({ open, onClose }) => {
                       <Tooltip title={resource.description}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           {resource.icon}
-                          <Typography variant="body2">{resource.name}</Typography>
                         </Box>
                       </Tooltip>
                     </TableCell>
@@ -135,7 +122,7 @@ const StorageDrawer = ({ open, onClose }) => {
                         {resourceData.storageLevel}
                       </Typography>
                     </TableCell>
-                    <TableCell align="right">
+                    <TableCell align="right" sx={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
                       <Button
                         variant="outlined"
                         size="small"
@@ -145,7 +132,9 @@ const StorageDrawer = ({ open, onClose }) => {
                         sx={{ 
                           whiteSpace: 'nowrap',
                           fontSize: '0.75rem',
-                          padding: '4px 8px'
+                          padding: '4px 8px',
+                          minWidth: 0,
+                          maxWidth: '100%'
                         }}
                       >
                         {nextUpgradeCost} Credits
