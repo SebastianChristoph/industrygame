@@ -222,6 +222,7 @@ const ModuleSelectionPlaceholder = () => {
               m: 0,
               overflow: 'hidden',
               display: 'flex',
+              flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
               height: '100%',
@@ -242,6 +243,13 @@ const ModuleSelectionPlaceholder = () => {
                 filter: hoveredIdx === idx ? 'brightness(0.5)' : 'none',
               }}
             />
+            <Typography
+              variant="h6"
+              align="center"
+              sx={{ mt: 1, fontWeight: 600, color: 'text.primary', textShadow: '0 2px 8px #fff', width: '100%' }}
+            >
+              {mod.name}
+            </Typography>
             {hoveredIdx === idx && (
               <Box
                 sx={{
