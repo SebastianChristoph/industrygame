@@ -29,7 +29,7 @@ export const RESOURCES = {
   research_points: { id: 'research_points', name: 'Research Points', basePrice: 50, description: 'Used for unlocking technologies.', icon: '🔬', purchasable: false },
   corn: { id: 'corn', name: 'Corn', basePrice: 30, description: 'A basic crop, easy to sell.', icon: '🌽', purchasable: false },
   basic_chip: { id: 'basic_chip', name: 'Basic Chip', basePrice: 60, description: 'A simple electronic chip.', icon: '💾', purchasable: false },
-  scrap_metal: { id: 'scrap_metal', name: 'Scrap Metal', basePrice: 20, description: 'Recycled metal, can be sold.', icon: '🔩', purchasable: false }
+  metal_plate: { id: 'metal_plate', name: 'Metal Plate', basePrice: 20, description: 'Recycled metal, can be sold.', icon: '🔩', purchasable: false }
 };
 
 export const PRODUCTION_RECIPES = {
@@ -97,14 +97,14 @@ export const PRODUCTION_RECIPES = {
     ],
     output: { resourceId: 'basic_chip', amount: 1 }
   },
-  scrap_metal: {
-    id: 'scrap_metal',
-    name: 'Scrap Metal',
+  metal_plate: {
+    id: 'metal_plate',
+    name: 'Metal Plate',
     productionTime: 4,
     inputs: [
       { resourceId: 'coal', amount: 1 }
     ],
-    output: { resourceId: 'scrap_metal', amount: 2 }
+    output: { resourceId: 'metal_plate', amount: 2 }
   }
 };
 export const INITIAL_RESOURCES = {
@@ -129,7 +129,7 @@ export const INITIAL_RESOURCES = {
   research_points: 0,
   corn: 0,
   basic_chip: 0,
-  scrap_metal: 0
+  metal_plate: 0
 };
 // Possible sources for inputs
 export const INPUT_SOURCES = {

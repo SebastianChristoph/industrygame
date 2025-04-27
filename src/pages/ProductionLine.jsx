@@ -60,7 +60,7 @@ import { keyframes } from '@mui/system';
 import { styled } from '@mui/material/styles';
 import { useTheme } from '@mui/material/styles';
 import { MODULES } from '../config/modules';
-import { getResourceProductionImage, getResourceIcon } from '../config/resourceImages';
+import { getResourceProductionImage, getResourceIcon, getResourceImageWithFallback } from '../config/resourceImages';
 import { Tooltip as MuiTooltip } from '@mui/material';
 
 const styles = `
@@ -70,6 +70,33 @@ const styles = `
     100% { transform: scale(1); }
   }
 `;
+
+// Hilfskomponente für Icon mit Fallback-Handling
+const PLACEHOLDER_ICON = '/images/icons/placeholder.png';
+const ResourceIcon = ({ iconUrls, alt, resourceId, ...props }) => {
+  // Sonderfall: Research-Icons (Name, ResourceId oder Output-ResourceId enthält 'research')
+  if (
+    (alt && /research$/i.test(alt.trim())) ||
+    (resourceId && /research(_points)?/i.test(resourceId))
+  ) {
+    return <img src="/images/icons/Research.png" alt={alt} {...props} />;
+  }
+  const [idx, setIdx] = React.useState(0);
+  const handleError = () => {
+    if (idx < iconUrls.length - 1) setIdx(idx + 1);
+    else setIdx(-1);
+  };
+  if (!iconUrls || iconUrls.length === 0) return <img src={PLACEHOLDER_ICON} alt={alt} {...props} />;
+  if (idx === -1) return <img src={PLACEHOLDER_ICON} alt={alt} {...props} />;
+  return (
+    <img
+      src={iconUrls[idx]}
+      alt={alt}
+      onError={handleError}
+      {...props}
+    />
+  );
+};
 
 const ProductionLine = () => {
   const { id } = useParams();
@@ -285,12 +312,12 @@ const ProductionLine = () => {
   const renderResourceIcons = (resourceId, amount) => (
     <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1.5, mt: 1 }}>
       {Array.from({ length: amount }).map((_, idx) => (
-        <img
+        <ResourceIcon
           key={idx}
-          src={getResourceIcon(resourceId)}
+          iconUrls={getResourceImageWithFallback(resourceId, 'icon')}
           alt={RESOURCES[resourceId]?.name + ' icon'}
+          resourceId={resourceId}
           style={{ width: 40, height: 40, objectFit: 'contain' }}
-          onError={e => { e.target.onerror = null; e.target.src = '/images/icons/placeholder.png'; }}
         />
       ))}
     </Box>
@@ -319,11 +346,11 @@ const ProductionLine = () => {
       <Box sx={{ p: 3, position: 'relative', zIndex: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, mb: 8 }}>
-            <img
-              src={getResourceIcon(selectedRecipe.output.resourceId)}
-              alt={RESOURCES[selectedRecipe.output.resourceId].name + ' icon'}
+            <ResourceIcon
+              iconUrls={getResourceImageWithFallback(selectedRecipe.output.resourceId, 'icon')}
+              alt={RESOURCES[selectedRecipe.output.resourceId]?.name + ' icon'}
+              resourceId={selectedRecipe.output.resourceId}
               style={{ width: 40, height: 40, objectFit: 'contain', marginRight: 8 }}
-              onError={e => { e.target.onerror = null; e.target.src = '/images/icons/placeholder.png'; }}
             />
             <Typography variant="h1" sx={{ fontWeight: 800, letterSpacing: 1 }}>
               {productionLine.name}

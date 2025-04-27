@@ -46,7 +46,7 @@ const menuItems = [
   { text: "Storage", icon: <StorageIcon />, path: "/storage" },
   {
     text: 'Research',
-    icon: <ScienceIcon />,
+    icon: <img src="/images/icons/Research.png" alt="Research" style={{ width: 24, height: 24, objectFit: 'contain', verticalAlign: 'middle' }} />,
     path: '/research'
   },
   {
@@ -115,9 +115,11 @@ const Layout = () => {
   productionLines.forEach(line => {
     const config = productionConfigs[line.id];
     const status = productionStatus[line.id];
-    const { balancePerPing, balance: lineBalance } = calculateLineBalanceLogic(config, status);
-    totalBalance += lineBalance;
-    totalPerPing += balancePerPing;
+    if (status?.isActive) {
+      const { balancePerPing, balance: lineBalance } = calculateLineBalanceLogic(config, status);
+      totalBalance += lineBalance;
+      totalPerPing += balancePerPing;
+    }
   });
 
   const drawer = (
@@ -258,7 +260,7 @@ const Layout = () => {
                   boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
                 }}
               >
-                <ScienceIcon sx={{ color: theme.palette.primary.main, fontSize: '1.1rem' }} />
+                <img src="/images/icons/Research.png" alt="Research" style={{ width: 22, height: 22, objectFit: 'contain', verticalAlign: 'middle', filter: 'invert(22%) sepia(98%) saturate(7492%) hue-rotate(202deg) brightness(97%) contrast(101%)' }} />
                 <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '1rem' }}>{researchPoints.toLocaleString()}</Typography>
               </Box>
             </Tooltip>

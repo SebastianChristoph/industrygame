@@ -9,7 +9,7 @@ export const RESEARCH_TREE = {
         description: 'Unlock basic wheat production.',
         cost: 100,
         requirements: [],
-        unlocks: { resources: ['seeds'], recipes: ['wheat'] }
+        unlocks: { recipes: ['wheat'] }
       },
       MILLING: {
         id: 'MILLING',

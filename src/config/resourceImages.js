@@ -6,24 +6,34 @@ const PLACEHOLDER_PRODUCTION = '/images/production/Placeholder.png';
 
 // Helper function to convert resource ID to image filename
 const resourceIdToImageName = (resourceId) => {
-  // First try with lowercase
+  // First try with lowercase and underscores
   const lowercaseName = resourceId.toLowerCase();
-  // Then try with first letter capitalized
+  // Then try with first letter capitalized and underscores
   const capitalizedName = resourceId
     .split('_')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
     .join('_');
-  
+  // Try with spaces (for files like 'Copper Wire.png')
+  const spacedName = resourceId
+    .split('_')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(' ');
   return {
     lowercase: lowercaseName,
-    capitalized: capitalizedName
+    capitalized: capitalizedName,
+    spaced: spacedName
   };
 };
 
 // Maps resource IDs to their icon image paths
 export const getResourceIcon = (resourceId) => {
-  const { lowercase, capitalized } = resourceIdToImageName(resourceId);
-  return `/images/icons/${capitalized}.png`;
+  const { lowercase, capitalized, spaced } = resourceIdToImageName(resourceId);
+  // Return all possible variants for fallback handling in the component
+  return [
+    `/images/icons/${spaced}.png`,
+    `/images/icons/${capitalized}.png`,
+    `/images/icons/${lowercase}.png`
+  ];
 };
 
 // Maps resource IDs to their production image paths
@@ -34,15 +44,8 @@ export const getResourceProductionImage = (resourceId) => {
 
 // Fallback function to handle missing images
 export const getResourceImageWithFallback = (resourceId, type = 'icon') => {
-  const imagePath = type === 'icon' 
-    ? getResourceIcon(resourceId)
-    : getResourceProductionImage(resourceId);
-  
-  const placeholder = type === 'icon' 
-    ? PLACEHOLDER_ICON 
-    : PLACEHOLDER_PRODUCTION;
-
-  // You can implement image existence checking here if needed
-  // For now, we'll just return the path and let the browser handle 404s
-  return imagePath;
+  if (type === 'icon') {
+    return getResourceIcon(resourceId);
+  }
+  return [`/images/production/${resourceIdToImageName(resourceId).capitalized}.png`];
 }; 

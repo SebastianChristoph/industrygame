@@ -49,12 +49,38 @@ import {
 import { PRODUCTION_RECIPES, RESOURCES, OUTPUT_TARGETS, INPUT_SOURCES } from '../config/resources';
 import { MODULES } from '../config/modules';
 import ProductionBackground from '../components/ProductionBackground';
+import { getResourceImageWithFallback } from '../config/resourceImages';
 
 // @import url('https://fonts.googleapis.com/css2?family=Cal+Sans:wght@400;600;700&display=swap');
 
 function formatMoney(value) {
   return value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
+
+const PLACEHOLDER_ICON = '/images/icons/placeholder.png';
+const ResourceIcon = ({ iconUrls, alt, resourceId, ...props }) => {
+  if (
+    (alt && /research$/i.test(alt.trim())) ||
+    (resourceId && /research(_points)?/i.test(resourceId))
+  ) {
+    return <img src="/images/icons/Research.png" alt={alt} {...props} />;
+  }
+  const [idx, setIdx] = React.useState(0);
+  const handleError = () => {
+    if (idx < iconUrls.length - 1) setIdx(idx + 1);
+    else setIdx(-1);
+  };
+  if (!iconUrls || iconUrls.length === 0) return <img src={PLACEHOLDER_ICON} alt={alt} {...props} />;
+  if (idx === -1) return <img src={PLACEHOLDER_ICON} alt={alt} {...props} />;
+  return (
+    <img
+      src={iconUrls[idx]}
+      alt={alt}
+      onError={handleError}
+      {...props}
+    />
+  );
+};
 
 const ProductionLineCard = ({ line, onRenameClick, onDeleteClick }) => {
   const dispatch = useDispatch();
@@ -388,7 +414,7 @@ const ProductionLines = () => {
     // Fallback: nach Output-Resource
     const agriOutputs = ['wheat', 'corn', 'flour', 'bread', 'biofuel'];
     const techOutputs = ['copper_wire', 'circuit_board', 'computer', 'quantum_chip', 'basic_chip'];
-    const weaponOutputs = ['gunpowder', 'bullet', 'rifle', 'tank', 'scrap_metal'];
+    const weaponOutputs = ['gunpowder', 'bullet', 'rifle', 'tank', 'metal_plate'];
     const recipe = PRODUCTION_RECIPES[recipeId];
     if (!recipe) return null;
     if (agriOutputs.includes(recipe.output.resourceId)) return 'agriculture';
@@ -558,7 +584,14 @@ const ProductionLines = () => {
         const outputResource = recipe ? RESOURCES[recipe.output.resourceId] : null;
         return (
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-            {recipe && outputResource && outputResource.icon}
+            {outputResource && (
+              <ResourceIcon
+                iconUrls={getResourceImageWithFallback(outputResource.id, 'icon')}
+                alt={outputResource.name}
+                resourceId={outputResource.id}
+                style={{ width: 28, height: 28, objectFit: 'contain' }}
+              />
+            )}
           </Box>
         );
       }
@@ -778,9 +811,11 @@ const ProductionLines = () => {
               productionLines.forEach(line => {
                 const config = productionConfigs[line.id];
                 const status = productionStatus[line.id];
-                const { balance, balancePerPing } = calculateLineBalanceLogic(config, status);
-                totalBalance += balance;
-                totalPerPing += balancePerPing;
+                if (status?.isActive) {
+                  const { balance, balancePerPing } = calculateLineBalanceLogic(config, status);
+                  totalBalance += balance;
+                  totalPerPing += balancePerPing;
+                }
               });
               const colorTotal = totalBalance > 0 ? 'success.main' : totalBalance < 0 ? 'error.main' : 'warning.main';
               const colorPing = totalPerPing > 0 ? 'success.main' : totalPerPing < 0 ? 'error.main' : 'warning.main';
@@ -826,7 +861,18 @@ const ProductionLines = () => {
                 borderColor: 'divider'
               }
             }}
-            onRowClick={(params) => navigate(`/production/${params.row.id}`)}
+            onRowClick={(params, event) => {
+              if (params.field === 'status' || params.field === 'actions') {
+                event.stopPropagation();
+                return;
+              }
+              navigate(`/production/${params.row.id}`);
+            }}
+            onCellClick={(params, event) => {
+              if (params.field === 'status' || params.field === 'actions') {
+                event.stopPropagation();
+              }
+            }}
           />
         </Paper>
 
@@ -893,7 +939,12 @@ const ProductionLines = () => {
                       py: 1
                     }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        {RESOURCES[recipe.output.resourceId].icon}
+                        <ResourceIcon
+                          iconUrls={getResourceImageWithFallback(recipe.output.resourceId, 'icon')}
+                          alt={RESOURCES[recipe.output.resourceId].name}
+                          resourceId={recipe.output.resourceId}
+                          style={{ width: 22, height: 22, objectFit: 'contain', marginRight: 4, verticalAlign: 'middle' }}
+                        />
                         <Typography variant="subtitle1">
                           {recipe.name}
                           <span style={{ color: '#888', fontWeight: 400, marginLeft: 8 }}>
@@ -936,7 +987,12 @@ const ProductionLines = () => {
                               borderRadius: 1,
                               fontSize: '0.75rem'
                             }}>
-                              {resource.icon}
+                              <ResourceIcon
+                                iconUrls={getResourceImageWithFallback(resource.id, 'icon')}
+                                alt={resource.name}
+                                resourceId={resource.id}
+                                style={{ width: 18, height: 18, objectFit: 'contain', marginRight: 2, verticalAlign: 'middle' }}
+                              />
                               <Typography variant="caption">
                                 {input.amount}x {resource.name}
                               </Typography>
@@ -984,7 +1040,14 @@ const ProductionLines = () => {
                   return (
                     <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 2 }}>
                       <Typography variant="body2">
-                        • {input.amount}x {resource.icon} {resource.name}
+                        • {input.amount}x {
+                          <ResourceIcon
+                            iconUrls={getResourceImageWithFallback(resource.id, 'icon')}
+                            alt={resource.name}
+                            resourceId={resource.id}
+                            style={{ width: 18, height: 18, objectFit: 'contain', marginRight: 2, verticalAlign: 'middle' }}
+                          />
+                        } {resource.name}
                         <Typography 
                           component="span" 
                           variant="body2" 
@@ -1009,7 +1072,12 @@ const ProductionLines = () => {
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 2 }}>
                   <Typography variant="body2">
                     • {PRODUCTION_RECIPES[selectedRecipe].output.amount}x {
-                      RESOURCES[PRODUCTION_RECIPES[selectedRecipe].output.resourceId].icon
+                      <ResourceIcon
+                        iconUrls={getResourceImageWithFallback(PRODUCTION_RECIPES[selectedRecipe].output.resourceId, 'icon')}
+                        alt={RESOURCES[PRODUCTION_RECIPES[selectedRecipe].output.resourceId].name}
+                        resourceId={PRODUCTION_RECIPES[selectedRecipe].output.resourceId}
+                        style={{ width: 18, height: 18, objectFit: 'contain', marginRight: 2, verticalAlign: 'middle' }}
+                      />
                     } {
                       RESOURCES[PRODUCTION_RECIPES[selectedRecipe].output.resourceId].name
                     }

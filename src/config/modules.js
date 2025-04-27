@@ -20,7 +20,7 @@ export const MODULES = {
     name: 'Weapons Factory',
     description: 'Access to basic military resources',
     icon: '⚔️',
-    recipes: ['research_points_weapon', 'scrap_metal'], // <-- Jetzt auch Scrap Metal
+    recipes: ['research_points_weapon', 'metal_plate'], // <-- Jetzt auch Metal Plate
     resources: ['coal', 'oil']
   }
 };

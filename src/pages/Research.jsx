@@ -17,6 +17,34 @@ import { MODULES } from '../config/modules';
 import { RESEARCH_TREE } from '../config/research';
 import { unlockModule, researchTechnology } from '../store/gameSlice';
 import { RESOURCES, PRODUCTION_RECIPES } from '../config/resources';
+import { getResourceImageWithFallback } from '../config/resourceImages';
+
+// Hilfskomponente für Icon mit Fallback-Handling
+const PLACEHOLDER_ICON = '/images/icons/placeholder.png';
+const ResourceIcon = ({ iconUrls, alt, resourceId, ...props }) => {
+  // Sonderfall: Research-Icons (Name, ResourceId oder Output-ResourceId enthält 'research')
+  if (
+    (alt && /research$/i.test(alt.trim())) ||
+    (resourceId && /research(_points)?/i.test(resourceId))
+  ) {
+    return <img src="/images/icons/Research.png" alt={alt} {...props} />;
+  }
+  const [idx, setIdx] = React.useState(0);
+  const handleError = () => {
+    if (idx < iconUrls.length - 1) setIdx(idx + 1);
+    else setIdx(-1);
+  };
+  if (!iconUrls || iconUrls.length === 0) return <img src={PLACEHOLDER_ICON} alt={alt} {...props} />;
+  if (idx === -1) return <img src={PLACEHOLDER_ICON} alt={alt} {...props} />;
+  return (
+    <img
+      src={iconUrls[idx]}
+      alt={alt}
+      onError={handleError}
+      {...props}
+    />
+  );
+};
 
 const Research = () => {
   const dispatch = useDispatch();
@@ -81,7 +109,8 @@ const Research = () => {
               {purchasableResources.map(resourceId => (
                 <Tooltip key={resourceId} title={RESOURCES[resourceId]?.name || resourceId}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, bgcolor: 'action.hover', px: 1, py: 0.2, borderRadius: 1, fontSize: '0.85rem' }}>
-                    {RESOURCES[resourceId]?.icon || <ScienceIcon fontSize="small" />} {RESOURCES[resourceId]?.name || resourceId}
+                    <ResourceIcon iconUrls={getResourceImageWithFallback(resourceId, 'icon')} alt={RESOURCES[resourceId]?.name || resourceId} style={{ width: 22, height: 22, objectFit: 'contain', marginRight: 4, verticalAlign: 'middle' }} resourceId={resourceId} />
+                    {RESOURCES[resourceId]?.name || resourceId}
                   </Box>
                 </Tooltip>
               ))}
@@ -92,16 +121,20 @@ const Research = () => {
           <Box>
             <Typography variant="caption" color="text.secondary">Good for production:</Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 0.5 }}>
-              {producedGoods.map(recipe => (
-                <Tooltip key={recipe.id} title={recipe.name}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'action.hover', px: 1, py: 0.2, borderRadius: 1, fontSize: '0.85rem' }}>
-                    {RESOURCES[recipe.output.resourceId]?.icon || <ScienceIcon fontSize="small" />} {RESOURCES[recipe.output.resourceId]?.name || recipe.output.resourceId}
-                    <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                      (Recipe: {recipe.inputs.map((input, idx) => `${input.amount}x ${RESOURCES[input.resourceId]?.name || input.resourceId}`).join(' + ')} = {recipe.output.amount}x {RESOURCES[recipe.output.resourceId]?.name || recipe.output.resourceId})
-                    </Typography>
-                  </Box>
-                </Tooltip>
-              ))}
+              {producedGoods.map(recipe => {
+                const outputRes = RESOURCES[recipe.output.resourceId];
+                return (
+                  <Tooltip key={recipe.id} title={recipe.name}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'action.hover', px: 1, py: 0.2, borderRadius: 1, fontSize: '0.85rem' }}>
+                      <ResourceIcon iconUrls={getResourceImageWithFallback(recipe.output.resourceId, 'icon')} alt={RESOURCES[recipe.output.resourceId]?.name || recipe.output.resourceId} style={{ width: 22, height: 22, objectFit: 'contain', marginRight: 4, verticalAlign: 'middle' }} resourceId={recipe.output.resourceId} />
+                      {RESOURCES[recipe.output.resourceId]?.name || recipe.output.resourceId}
+                      <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                        (Recipe: {recipe.inputs.map((input, idx) => `${input.amount}x ${RESOURCES[input.resourceId]?.name || input.resourceId}`).join(' + ')} = {recipe.output.amount}x {RESOURCES[recipe.output.resourceId]?.name || recipe.output.resourceId})
+                      </Typography>
+                    </Box>
+                  </Tooltip>
+                );
+              })}
             </Box>
           </Box>
         )}
@@ -119,7 +152,8 @@ const Research = () => {
             {module.resources.map(resourceId => (
               <Tooltip key={resourceId} title={RESOURCES[resourceId]?.name || resourceId}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, bgcolor: 'action.hover', px: 1, py: 0.2, borderRadius: 1, fontSize: '0.95rem' }}>
-                  {RESOURCES[resourceId]?.icon || <ScienceIcon fontSize="small" />} {RESOURCES[resourceId]?.name || resourceId}
+                  <ResourceIcon iconUrls={getResourceImageWithFallback(resourceId, 'icon')} alt={RESOURCES[resourceId]?.name || resourceId} style={{ width: 22, height: 22, objectFit: 'contain', marginRight: 4, verticalAlign: 'middle' }} resourceId={resourceId} />
+                  {RESOURCES[resourceId]?.name || resourceId}
                 </Box>
               </Tooltip>
             ))}
@@ -138,7 +172,8 @@ const Research = () => {
                 <Tooltip key={recipeId} title={recipe.name}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, bgcolor: 'action.hover', px: 1, py: 0.2, borderRadius: 1, fontSize: '0.95rem', flexDirection: 'column', minWidth: 160 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                      {outputRes?.icon || <ScienceIcon fontSize="small" />} {recipe.name}
+                      <ResourceIcon iconUrls={getResourceImageWithFallback(recipe.output.resourceId, 'icon')} alt={RESOURCES[recipe.output.resourceId]?.name || recipe.output.resourceId} style={{ width: 22, height: 22, objectFit: 'contain', marginRight: 4, verticalAlign: 'middle' }} resourceId={recipe.output.resourceId} />
+                      {recipe.name}
                     </Box>
                     <Typography variant="caption" color="text.secondary" sx={{ ml: 0, mt: 0.5 }}>
                       (Recipe: {recipe.inputs.map((input, idx) => `${input.amount}x ${RESOURCES[input.resourceId]?.name || input.resourceId}`).join(' + ')} = {recipe.output.amount}x {outputRes?.name || recipe.output.resourceId})
@@ -181,16 +216,20 @@ const Research = () => {
               </Typography>
             </Box>
           </Box>
-          <Button
-            variant="contained"
-            fullWidth
-            disabled={isUnlocked}
-            onClick={() => handleUnlockModule(module.id)}
-            sx={{ mb: 2 }}
-          >
-            {isUnlocked ? 'Unlocked' : `Unlock (500 research points)`}
-          </Button>
-          {renderModuleBaseUnlocks(module)}
+          {!isUnlocked && (
+            <>
+              <Button
+                variant="contained"
+                fullWidth
+                disabled={isUnlocked}
+                onClick={() => handleUnlockModule(module.id)}
+                sx={{ mb: 2 }}
+              >
+                {isUnlocked ? 'Unlocked' : `Unlock (500 research points)`}
+              </Button>
+              {renderModuleBaseUnlocks(module)}
+            </>
+          )}
           {moduleResearch ? (
             <>
               <Divider sx={{ my: 2 }} />
