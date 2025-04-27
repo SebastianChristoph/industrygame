@@ -22,6 +22,31 @@ import { RESOURCES, calculateUpgradeCost } from '../config/resources';
 import { getResourceImageWithFallback } from '../config/resourceImages';
 import { upgradeStorage } from '../store/gameSlice';
 
+const PLACEHOLDER_ICON = '/images/icons/placeholder.png';
+const ResourceIcon = ({ iconUrls, alt, resourceId, ...props }) => {
+  if (
+    (alt && /research$/i.test(alt.trim())) ||
+    (resourceId && /research(_points)?/i.test(resourceId))
+  ) {
+    return <img src="/images/icons/Research.png" alt={alt} {...props} />;
+  }
+  const [idx, setIdx] = React.useState(0);
+  const handleError = () => {
+    if (idx < iconUrls.length - 1) setIdx(idx + 1);
+    else setIdx(-1);
+  };
+  if (!iconUrls || iconUrls.length === 0) return <img src={PLACEHOLDER_ICON} alt={alt} {...props} />;
+  if (idx === -1) return <img src={PLACEHOLDER_ICON} alt={alt} {...props} />;
+  return (
+    <img
+      src={iconUrls[idx]}
+      alt={alt}
+      onError={handleError}
+      {...props}
+    />
+  );
+};
+
 const StorageDrawer = ({ open, onClose }) => {
   const dispatch = useDispatch();
   const { credits, resources, unlockedResources } = useSelector(state => state.game);
@@ -90,11 +115,11 @@ const StorageDrawer = ({ open, onClose }) => {
                         <Tooltip title={resource.description}>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 120, maxWidth: 320, whiteSpace: 'nowrap', overflow: 'hidden' }}>
                             <Tooltip title={resource.name} placement="top">
-                              <img
-                                src={getResourceImageWithFallback(id, 'icon')}
+                              <ResourceIcon
+                                iconUrls={getResourceImageWithFallback(id, 'icon')}
                                 alt={resource.name}
+                                resourceId={id}
                                 style={{ width: 28, height: 28, objectFit: 'contain', marginRight: 8 }}
-                                onError={e => { e.target.onerror = null; e.target.src = '/images/icons/placeholder.png'; }}
                               />
                             </Tooltip>
                             <Typography variant="body2" sx={{ fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>

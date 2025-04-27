@@ -239,7 +239,7 @@ const Research = () => {
               <Box sx={{
                 display: 'grid',
                 gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-                gap: 16,
+                gap: 6,
                 mb: 2
               }}>
                 {Object.values(moduleResearch.technologies).map((technology) => {

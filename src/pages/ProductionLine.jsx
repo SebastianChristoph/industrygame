@@ -443,13 +443,31 @@ const ProductionLine = () => {
                       </Typography>
                     )}
                     {isAutoBuy && (
-                      <Box sx={{ mt: 1, color: 'error.main', fontSize: '1rem', fontWeight: 500, textAlign: 'center' }}>
-                        <div style={{ color: 'red', fontWeight: 600, fontSize: '1.1rem' }}>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          bgcolor: 'rgba(255, 0, 0, 0.07)',
+                          border: '1.5px solid',
+                          borderColor: 'error.light',
+                          borderRadius: 2,
+                          px: 2,
+                          py: 1,
+                          mt: 4,
+                          minWidth: 90,
+                          boxShadow: 1,
+                          fontSize: '1.05rem',
+                          fontWeight: 600,
+                        }}
+                      >
+                        <Typography variant="subtitle2" sx={{ color: 'error.main', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 0.5, fontSize: '1.05rem' }}>
+                          <MonetizationOn sx={{ fontSize: 18, color: 'error.main', mr: 0.5 }} />
                           {resource.name}: {singlePrice}$
-                        </div>
-                        <div style={{ color: 'red', fontWeight: 600, fontSize: '1.1rem' }}>
+                        </Typography>
+                        <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 600, fontSize: '1.05rem' }}>
                           Total: {totalPrice}$
-                        </div>
+                        </Typography>
                       </Box>
                     )}
                   </Box>
@@ -587,13 +605,59 @@ const ProductionLine = () => {
             {selectedRecipe.output.resourceId !== 'research_points' && (
               <Box sx={{ mt: 1, textAlign: 'center' }}>
                 {productionConfig?.outputTarget === OUTPUT_TARGETS.AUTO_SELL ? (
-                  <Typography variant="subtitle1" sx={{ color: 'success.main', fontWeight: 700, fontSize: '1.1rem' }}>
+                  <Paper
+                    elevation={2}
+                    sx={{
+                      bgcolor: 'success.light',
+                      color: 'success.dark',
+                      px: 2,
+                      py: 0.5,
+                      borderRadius: 2,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      mt: 1,
+                      mb: 0.5,
+                      fontWeight: 600,
+                      fontSize: '1.05rem',
+                      boxShadow: 1,
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <ResourceIcon
+                      iconUrls={getResourceImageWithFallback(selectedRecipe.output.resourceId, 'icon')}
+                      alt={RESOURCES[selectedRecipe.output.resourceId]?.name + ' icon'}
+                      resourceId={selectedRecipe.output.resourceId}
+                      style={{ width: 24, height: 24, objectFit: 'contain', marginRight: 6 }}
+                    />
                     {RESOURCES[selectedRecipe.output.resourceId]?.name}: {RESOURCES[selectedRecipe.output.resourceId]?.basePrice}$
-                  </Typography>
+                  </Paper>
                 ) : (
-                  <Typography variant="subtitle1" sx={{ color: 'success.main', fontWeight: 700, fontSize: '1.1rem' }}>
+                  <Paper
+                    elevation={2}
+                    sx={{
+                      bgcolor: 'success.light',
+                      color: 'success.dark',
+                      px: 2,
+                      py: 0.5,
+                      borderRadius: 2,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      mt: 1,
+                      mb: 0.5,
+                      fontWeight: 600,
+                      fontSize: '1.05rem',
+                      boxShadow: 1,
+                      justifyContent: 'center',
+                    }}
+                  >
+                    <ResourceIcon
+                      iconUrls={getResourceImageWithFallback(selectedRecipe.output.resourceId, 'icon')}
+                      alt={RESOURCES[selectedRecipe.output.resourceId]?.name + ' icon'}
+                      resourceId={selectedRecipe.output.resourceId}
+                      style={{ width: 24, height: 24, objectFit: 'contain', marginRight: 6 }}
+                    />
                     {RESOURCES[selectedRecipe.output.resourceId]?.name}
-                  </Typography>
+                  </Paper>
                 )}
               </Box>
             )}
@@ -608,16 +672,51 @@ const ProductionLine = () => {
                 const outputTotalPrice = outputSinglePrice * selectedRecipe.output.amount;
                 if (isStore) {
                   return (
-                    <Typography variant="subtitle2" sx={{ mt: 1, color: 'text.secondary', fontSize: '1rem' }}>
+                    <Box
+                      sx={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        bgcolor: 'grey.100',
+                        color: 'text.secondary',
+                        px: 2.5,
+                        py: 0.5,
+                        borderRadius: 999,
+                        fontWeight: 600,
+                        fontSize: '1.05rem',
+                        boxShadow: 1,
+                        mt: 1,
+                        mb: 0.5,
+                        minWidth: 90,
+                        justifyContent: 'center',
+                      }}
+                    >
                       {outputStock}/{outputMax} in stock
-                    </Typography>
+                    </Box>
                   );
                 }
                 if (isSell) {
                   return (
-                    <Typography variant="subtitle2" sx={{ mt: 1, color: 'success.main', fontWeight: 700, fontSize: '1.1rem'}}>
+                    <Box
+                      sx={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        bgcolor: 'success.light',
+                        color: 'success.dark',
+                        px: 2.5,
+                        py: 0.5,
+                        borderRadius: 999,
+                        fontWeight: 600,
+                        fontSize: '1.05rem',
+                        boxShadow: 1,
+                        mt: 1,
+                        mb: 0.5,
+                        minWidth: 90,
+                        justifyContent: 'center',
+                      }}
+                    >
+                      <MonetizationOn sx={{ fontSize: 20, color: 'success.dark', mr: 1 }} />
                       Total: {outputTotalPrice}$
-                    </Typography>
+                    </Box>
                   );
                 }
                 return null;
