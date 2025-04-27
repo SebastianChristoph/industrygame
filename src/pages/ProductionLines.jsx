@@ -50,6 +50,8 @@ import { PRODUCTION_RECIPES, RESOURCES, OUTPUT_TARGETS, INPUT_SOURCES } from '..
 import { MODULES } from '../config/modules';
 import ProductionBackground from '../components/ProductionBackground';
 
+// @import url('https://fonts.googleapis.com/css2?family=Cal+Sans:wght@400;600;700&display=swap');
+
 function formatMoney(value) {
   return value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
@@ -203,11 +205,7 @@ const ModuleSelectionPlaceholder = () => {
   const [hoveredIdx, setHoveredIdx] = React.useState(null);
   return (
     <Box sx={{ width: '100%' }}>
-      <Box sx={{ width: '100%', textAlign: 'center', mb: 2 }}>
-        <Typography variant="body1" color="text.secondary">
-          Before you can create a production line, you need to unlock a production module in the research area.
-        </Typography>
-      </Box>
+      
       <Box sx={{ width: '100%', display: 'flex', flexDirection: 'row', p: 0, m: 0, alignItems: 'center', justifyContent: 'center' }}>
         {MODULES_INFO.map((mod, idx) => (
           <Box
@@ -244,9 +242,9 @@ const ModuleSelectionPlaceholder = () => {
               }}
             />
             <Typography
-              variant="h6"
+              variant="h2"
               align="center"
-              sx={{ mt: 1, fontWeight: 600, color: 'text.primary', textShadow: '0 2px 8px #fff', width: '100%' }}
+              sx={{ mt: 1, fontWeight: 600, color: 'text.primary', textShadow: '0 2px 8px #fff', width: '100%', fontFamily: 'Cal Sans, sans-serif' }}
             >
               {mod.name}
             </Typography>
@@ -273,9 +271,16 @@ const ModuleSelectionPlaceholder = () => {
               </Box>
             )}
           </Box>
+          
         ))}
       </Box>
+      <Box sx={{ width: '100%', textAlign: 'center', mb: 2, mt: 6 }}>
+        <Typography variant="body1" color="text.secondary">
+          Before you can create a production line, you need to unlock a production module in the research area.
+        </Typography>
+      </Box>  
     </Box>
+    
   );
 };
 
