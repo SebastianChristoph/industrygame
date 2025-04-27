@@ -60,6 +60,7 @@ import { keyframes } from '@mui/system';
 import { styled } from '@mui/material/styles';
 import { useTheme } from '@mui/material/styles';
 import { MODULES } from '../config/modules';
+import { getResourceProductionImage } from '../config/resourceImages';
 
 const styles = `
   @keyframes pulseFast {
@@ -678,6 +679,31 @@ const ProductionLine = () => {
             </Button>
           </DialogActions>
         </Dialog>
+      </Box>
+      {/* Input and Output Production Images at the bottom, as often as needed */}
+      <Box style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 12, marginTop: 40 }}>
+        {/* Input images */}
+        {selectedRecipe.inputs.flatMap((input) => (
+          Array.from({ length: input.amount }).map((_, idx) => (
+            <img
+              key={`input-${input.resourceId}-${idx}`}
+              src={getResourceProductionImage(input.resourceId)}
+              alt={RESOURCES[input.resourceId]?.name + ' production'}
+              style={{ maxHeight: '100px', maxWidth: '80px', objectFit: 'contain', display: 'block' }}
+              onError={e => { e.target.onerror = null; e.target.src = '/images/production/Placeholder.png'; }}
+            />
+          ))
+        ))}
+        {/* Output images */}
+        {Array.from({ length: selectedRecipe.output.amount }).map((_, idx) => (
+          <img
+            key={`output-${selectedRecipe.output.resourceId}-${idx}`}
+            src={getResourceProductionImage(selectedRecipe.output.resourceId)}
+            alt={RESOURCES[selectedRecipe.output.resourceId]?.name + ' production'}
+            style={{ maxHeight: '140px', maxWidth: '120px', objectFit: 'contain', display: 'block' }}
+            onError={e => { e.target.onerror = null; e.target.src = '/images/production/Placeholder.png'; }}
+          />
+        ))}
       </Box>
     </Box>
   );
