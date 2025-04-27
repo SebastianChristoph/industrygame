@@ -163,6 +163,33 @@ const gameSlice = createSlice({
         const recipe = PRODUCTION_RECIPES[config.recipe];
         if (!recipe) return;
 
+        // Prüfe, ob genug Ressourcen im Lager sind (für alle Inputs aus GLOBAL_STORAGE)
+        let hasEnough = true;
+        for (let i = 0; i < recipe.inputs.length; i++) {
+          const input = recipe.inputs[i];
+          const inputConfig = config.inputs[i];
+          if (inputConfig && inputConfig.source === INPUT_SOURCES.GLOBAL_STORAGE) {
+            if (state.resources[input.resourceId].amount < input.amount) {
+              hasEnough = false;
+              break;
+            }
+          }
+        }
+        // Prüfe, ob genug Lagerplatz für Output vorhanden ist (nur bei auf Lager)
+        if (config.outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE) {
+          const outputRes = state.resources[recipe.output.resourceId];
+          if (outputRes.amount + recipe.output.amount > outputRes.capacity) {
+            status.error = 'Not enough storage space for output';
+            return;
+          }
+        }
+        if (!hasEnough) {
+          status.error = 'Not enough resources in stock';
+          return;
+        } else {
+          status.error = null;
+        }
+
         // Erhöhe die Pings
         status.currentPings = (status.currentPings || 0) + 1;
         status.totalPings = (status.totalPings || 0) + 1;

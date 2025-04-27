@@ -72,42 +72,53 @@ const Layout = () => {
     setMobileOpen(!mobileOpen);
   };
 
-  // Berechne Einnahmen und Ausgaben pro Ping
-  const calculateBalance = () => {
-    let income = 0;
-    let expenses = 0;
-
-    productionLines.forEach((line) => {
-      const config = productionConfigs[line.id];
-      const status = productionStatus[line.id];
-
-      // Nur Linien, die aktiv sind UND verkaufen!
-      if (!config?.recipe || !status?.isActive || config.outputTarget !== OUTPUT_TARGETS.AUTO_SELL) return;
-
-      const recipe = PRODUCTION_RECIPES[config.recipe];
-      const outputResource = RESOURCES[recipe.output.resourceId];
-
-      // Kosten für Inputs
-      recipe.inputs.forEach((input, index) => {
-        const inputConfig = config.inputs[index];
-        if (inputConfig?.source === INPUT_SOURCES.PURCHASE_MODULE) {
-          const resource = RESOURCES[input.resourceId];
-          expenses += (resource.basePrice * input.amount) / recipe.productionTime;
-        }
-      });
-
-      // Einnahmen aus Verkäufen
-      income += (outputResource.basePrice * recipe.output.amount) / recipe.productionTime;
+  // Hilfsfunktion für Bilanz wie in ProductionLines
+  function calculateLineBalanceLogic(config, status) {
+    if (!config?.recipe) return { balance: 0, balancePerPing: 0, totalBalance: 0 };
+    const recipe = PRODUCTION_RECIPES[config.recipe];
+    if (!recipe) return { balance: 0, balancePerPing: 0, totalBalance: 0 };
+    // Prüfe Inputquellen
+    const allInputsFromStock = recipe.inputs.every((input, idx) => {
+      const inputConfig = config.inputs[idx];
+      return inputConfig && inputConfig.source === INPUT_SOURCES.GLOBAL_STORAGE;
     });
+    // Einkaufskosten nur für eingekaufte Inputs
+    const purchaseCost = recipe.inputs.reduce((sum, input, idx) => {
+      const inputConfig = config.inputs[idx];
+      if (inputConfig && inputConfig.source === INPUT_SOURCES.PURCHASE_MODULE) {
+        return sum + RESOURCES[input.resourceId].basePrice * input.amount;
+      }
+      return sum;
+    }, 0);
+    // Verkaufserlös
+    const sellIncome = RESOURCES[recipe.output.resourceId].basePrice * recipe.output.amount;
+    const isSelling = config?.outputTarget === OUTPUT_TARGETS.AUTO_SELL;
+    const isStoring = config?.outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE;
+    let balance = 0;
+    if (allInputsFromStock && isStoring) {
+      balance = 0;
+    } else if (isSelling) {
+      balance = sellIncome - purchaseCost;
+    } else {
+      balance = -purchaseCost;
+    }
+    // Per Ping
+    const balancePerPing = recipe.productionTime > 0 ? Math.round((balance / recipe.productionTime) * 100) / 100 : 0;
+    // Total (für die Summen-Box: nimm status?.totalPings, sonst 0)
+    const totalBalance = status?.totalPings ? Math.round(balancePerPing * status.totalPings * 100) / 100 : balance;
+    return { balance, balancePerPing, totalBalance };
+  }
 
-    return {
-      income: Math.round(income * 100) / 100,
-      expenses: Math.round(expenses * 100) / 100,
-      balance: Math.round((income - expenses) * 100) / 100,
-    };
-  };
-
-  const { income, expenses, balance } = calculateBalance();
+  // Summen für alle Linien berechnen (wie in ProductionLines)
+  let totalBalance = 0;
+  let totalPerPing = 0;
+  productionLines.forEach(line => {
+    const config = productionConfigs[line.id];
+    const status = productionStatus[line.id];
+    const { balancePerPing, balance: lineBalance } = calculateLineBalanceLogic(config, status);
+    totalBalance += lineBalance;
+    totalPerPing += balancePerPing;
+  });
 
   const drawer = (
     <div>
@@ -162,48 +173,7 @@ const Layout = () => {
 
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mr: 2 }}>
             <PingIndicator />
-            <Tooltip title="Income per Ping">
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.5,
-                  px: 2,
-                  py: 0.5,
-                  bgcolor: '#fff',
-                  color: theme.palette.primary.main,
-                  borderRadius: '16px',
-                  border: `2px solid ${theme.palette.primary.main}`,
-                  fontWeight: 600,
-                  fontSize: '1rem',
-                  boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
-                }}
-              >
-                <MoneyIcon sx={{ color: theme.palette.primary.main, fontSize: '1.1rem' }} />
-                <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '1rem' }}>+{income}</Typography>
-              </Box>
-            </Tooltip>
-            <Tooltip title="Expenses per Ping">
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.5,
-                  px: 2,
-                  py: 0.5,
-                  bgcolor: '#fff',
-                  color: theme.palette.primary.main,
-                  borderRadius: '16px',
-                  border: `2px solid ${theme.palette.primary.main}`,
-                  fontWeight: 600,
-                  fontSize: '1rem',
-                  boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
-                }}
-              >
-                <ExpensesIcon sx={{ color: theme.palette.primary.main, fontSize: '1.1rem' }} />
-                <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '1rem' }}>-{expenses}</Typography>
-              </Box>
-            </Tooltip>
+            {/* Nur Bilanz pro Ping anzeigen */}
             <Tooltip title="Profit/Loss per Ping">
               <Box
                 sx={{
@@ -222,7 +192,30 @@ const Layout = () => {
                 }}
               >
                 <BalanceIcon sx={{ color: theme.palette.primary.main, fontSize: '1.1rem' }} />
-                <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '1rem' }}>{balance >= 0 ? '+' : ''}{balance}</Typography>
+                <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '1rem' }}>{totalPerPing >= 0 ? '+' : ''}{totalPerPing.toFixed(2)}</Typography>
+              </Box>
+            </Tooltip>
+            {/* Total Balance anzeigen */}
+            <Tooltip title="Total Balance (all lines)">
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 0.5,
+                  px: 2,
+                  py: 0.5,
+                  bgcolor: '#fff',
+                  color: theme.palette.primary.main,
+                  borderRadius: '16px',
+                  border: `2px solid ${theme.palette.primary.main}`,
+                  fontWeight: 600,
+                  fontSize: '1rem',
+                  minWidth: '100px',
+                  boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
+                }}
+              >
+                <BalanceIcon sx={{ color: theme.palette.primary.main, fontSize: '1.1rem' }} />
+                <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '1rem' }}>{totalBalance >= 0 ? '+' : ''}{totalBalance.toFixed(2)}</Typography>
               </Box>
             </Tooltip>
             <Tooltip title="Current Balance">

@@ -60,7 +60,8 @@ import { keyframes } from '@mui/system';
 import { styled } from '@mui/material/styles';
 import { useTheme } from '@mui/material/styles';
 import { MODULES } from '../config/modules';
-import { getResourceProductionImage } from '../config/resourceImages';
+import { getResourceProductionImage, getResourceIcon } from '../config/resourceImages';
+import { Tooltip as MuiTooltip } from '@mui/material';
 
 const styles = `
   @keyframes pulseFast {
@@ -280,6 +281,21 @@ const ProductionLine = () => {
     backgroundImg = '/images/pl_fade_weapons.png';
   }
 
+  // Helper: Render resource icons as images, repeated as needed
+  const renderResourceIcons = (resourceId, amount) => (
+    <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1.5, mt: 1 }}>
+      {Array.from({ length: amount }).map((_, idx) => (
+        <img
+          key={idx}
+          src={getResourceIcon(resourceId)}
+          alt={RESOURCES[resourceId]?.name + ' icon'}
+          style={{ width: 40, height: 40, objectFit: 'contain' }}
+          onError={e => { e.target.onerror = null; e.target.src = '/images/icons/placeholder.png'; }}
+        />
+      ))}
+    </Box>
+  );
+
   if (!productionLine || !selectedRecipe) {
     return (
       <Box sx={{ p: 3 }}>
@@ -302,275 +318,289 @@ const ProductionLine = () => {
       <style>{styles}</style>
       <Box sx={{ p: 3, position: 'relative', zIndex: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1 }}>
-            {RESOURCES[selectedRecipe.output.resourceId].icon}
-            <Typography variant="h4">
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, mb: 8 }}>
+            <img
+              src={getResourceIcon(selectedRecipe.output.resourceId)}
+              alt={RESOURCES[selectedRecipe.output.resourceId].name + ' icon'}
+              style={{ width: 40, height: 40, objectFit: 'contain', marginRight: 8 }}
+              onError={e => { e.target.onerror = null; e.target.src = '/images/icons/placeholder.png'; }}
+            />
+            <Typography variant="h1" sx={{ fontWeight: 800, letterSpacing: 1 }}>
               {productionLine.name}
             </Typography>
-            {/* Minimalistische Bilanz-Anzeige: Ausgaben + Einnahmen = Bilanz */}
-            <Box sx={{ ml: 3, display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography variant="subtitle2" sx={{ color: 'error.main', fontWeight: 500, fontSize: '1rem', ...theme.typography.victorMono }}>
-                -{inputCost}$
-              </Typography>
-              <Typography variant="subtitle2" sx={{ color: 'success.main', fontWeight: 500, fontSize: '1rem', ml: 1, ...theme.typography.victorMono }}>
-                +{sellIncome}$
-              </Typography>
-              <Typography variant="subtitle2" sx={{ color: 'text.secondary', fontWeight: 400, fontSize: '1rem', mx: 1, ...theme.typography.victorMono }}>
-                =
-              </Typography>
-              <Typography
-                variant="subtitle1"
-                sx={{
-                  color: balance > 0 ? 'success.main' : balance < 0 ? 'error.main' : 'text.secondary',
-                  fontWeight: 600,
-                  fontSize: '1.1rem',
-                  letterSpacing: 0.5,
-                  ...theme.typography.victorMono
-                }}
-              >
-                {balance > 0 ? '+' : ''}{balance}$
-              </Typography>
-            </Box>
-          </Box>
-          <Box sx={{ display: 'flex', gap: 1 }}>
             <Tooltip title="Rename">
               <IconButton onClick={handleRenameClick}>
                 <EditIcon />
               </IconButton>
             </Tooltip>
-            
             <Tooltip title="Delete">
               <IconButton color="error" onClick={handleDeleteClick}>
                 <DeleteIcon />
               </IconButton>
             </Tooltip>
+            {/* Minimalistische Bilanz-Anzeige: Ausgaben + Einnahmen = Bilanz */}
+         
+          </Box>
+        
+        </Box>
+
+        {/* Neues Produktions-Layout */}
+        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: 6, mt: 10 }}>
+          {/* Input-Bilder und Umschalter */}
+          <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4, alignItems: 'flex-end', mt:8 }}>
+            {selectedRecipe.inputs.map((input, idx) => {
+              const resource = RESOURCES[input.resourceId];
+              const inputConfig = productionConfig.inputs[idx];
+              const isGlobalStorage = (inputConfig?.source || INPUT_SOURCES.PURCHASE_MODULE) === INPUT_SOURCES.GLOBAL_STORAGE;
+              const isAutoBuy = (inputConfig?.source || INPUT_SOURCES.PURCHASE_MODULE) === INPUT_SOURCES.PURCHASE_MODULE;
+              const stock = resources[input.resourceId]?.amount ?? 0;
+              const singlePrice = resource.basePrice;
+              const totalPrice = singlePrice * input.amount;
+              return (
+                <React.Fragment key={input.resourceId}>
+                  {idx > 0 && (
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', height: 260, mx: 1 }}>
+                      <Box sx={{ flex: 1 }} />
+                      <Typography variant="h3" sx={{ color: 'text.secondary', fontWeight: 700, fontSize: '2.5rem', lineHeight: 1, mb: 9 }}>{'+'}</Typography>
+                    </Box>
+                  )}
+                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 220, justifyContent: 'flex-end', height: 260 }}>
+                    <img
+                      src={getResourceProductionImage(input.resourceId)}
+                      alt={resource?.name + ' production'}
+                      style={{ maxHeight: '220px', maxWidth: '220px', objectFit: 'contain', display: 'block' }}
+                      onError={e => { e.target.onerror = null; e.target.src = '/images/production/Placeholder.png'; }}
+                    />
+                    {renderResourceIcons(input.resourceId, input.amount)}
+                    <Box sx={{ display: 'flex', alignItems: 'flex-end', height: 48, mt: 2 }}>
+                      <ToggleButtonGroup
+                        value={inputConfig?.source || INPUT_SOURCES.PURCHASE_MODULE}
+                        exclusive
+                        onChange={(_, newSource) => {
+                          if (newSource) {
+                            dispatch(setInputSource({
+                              productionLineId,
+                              inputIndex: idx,
+                              source: newSource,
+                              resourceId: input.resourceId
+                            }));
+                          }
+                        }}
+                        size="small"
+                        sx={{ minHeight: 40 }}
+                      >
+                        <MuiTooltip title="From stock" arrow>
+                          <ToggleButton value={INPUT_SOURCES.GLOBAL_STORAGE} sx={{ flexDirection: 'column', p: 0.5, minWidth: 40, minHeight: 40, borderRadius: 0 }}>
+                            <Storage sx={{ fontSize: 22, mb: 0.5 }} />
+                          </ToggleButton>
+                        </MuiTooltip>
+                        {resource.purchasable && (
+                          <MuiTooltip title="Auto purchase" arrow>
+                            <ToggleButton value={INPUT_SOURCES.PURCHASE_MODULE} sx={{ flexDirection: 'column', p: 0.5, minWidth: 40, minHeight: 40, borderRadius: 0 }}>
+                              <ShoppingCart sx={{ fontSize: 22, mb: 0.5, color: 'action.active' }} />
+                            </ToggleButton>
+                          </MuiTooltip>
+                        )}
+                      </ToggleButtonGroup>
+                    </Box>
+                    {/* Info below the active toggle */}
+                    {isGlobalStorage && (
+                      <Typography variant="subtitle2" sx={{ mt: 1, color: 'text.secondary', fontSize: '1rem' }}>
+                        In stock: {stock}
+                      </Typography>
+                    )}
+                    {/* Info-Text, wenn Resource nicht purchaseable ist */}
+                    {isGlobalStorage && !resource.purchasable && (
+                      <Typography variant="caption" sx={{ mt: 0.5, color: 'warning.main', fontSize: '0.95rem', display: 'block', textAlign: 'center' }}>
+                        This resource cannot be purchased and must be supplied from your global stock.
+                      </Typography>
+                    )}
+                    {isAutoBuy && (
+                      <Box sx={{ mt: 1, color: 'error.main', fontSize: '1rem', fontWeight: 500, textAlign: 'center' }}>
+                        <div style={{ color: 'red', fontWeight: 600, fontSize: '1.1rem' }}>
+                          {resource.name}: {singlePrice}$
+                        </div>
+                        <div style={{ color: 'red', fontWeight: 600, fontSize: '1.1rem' }}>
+                          Total: {totalPrice}$
+                        </div>
+                      </Box>
+                    )}
+                  </Box>
+                </React.Fragment>
+              );
+            })}
+          </Box>
+
+          {/* Circular Progress in the center with percent and pings inside */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mx: 4, position: 'relative', minWidth: 220, minHeight: 220, justifyContent: 'center', height: 260 }}>
+            <Box sx={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', height: 220, mt: 0 }}>
+              <CircularProgress
+                variant="determinate"
+                value={displayProgressPercent}
+                size={120}
+                thickness={5}
+                sx={{ color: canStartProduction() ? 'primary.main' : 'error.main' }}
+              />
+              <Box
+                sx={{
+                  top: 0,
+                  left: 0,
+                  bottom: 0,
+                  right: 0,
+                  position: 'absolute',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: '100%',
+                  height: '100%'
+                }}
+              >
+                <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '1.5rem', lineHeight: 1 }}>{Math.round(displayProgressPercent)}%</Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '1.1rem', fontWeight: 500 }}>{selectedRecipe.productionTime} Pings</Typography>
+              </Box>
+            </Box>
+            {/* Arrow below spinner */}
+            <Box sx={{ mt: 10, display: 'flex', flexDirection: 'column', justifyContent: 'center', width: '100%', alignItems: 'flex-end', height: 60 }}>
+              <Typography variant="h2" sx={{ color: 'text.secondary', fontWeight: 700, fontSize: '3rem', lineHeight: 1, mb: 2 }}>
+                &#8594;
+              </Typography>
+              {/* Bilanz unter dem Pfeil anzeigen */}
+              {(() => {
+                // Prüfe Inputquellen
+                const allInputsFromStock = selectedRecipe.inputs.every((input, idx) => {
+                  const inputConfig = productionConfig.inputs[idx];
+                  return inputConfig && inputConfig.source === INPUT_SOURCES.GLOBAL_STORAGE;
+                });
+                // Einkaufskosten nur für eingekaufte Inputs
+                const purchaseCost = selectedRecipe.inputs.reduce((sum, input, idx) => {
+                  const inputConfig = productionConfig.inputs[idx];
+                  if (inputConfig && inputConfig.source === INPUT_SOURCES.PURCHASE_MODULE) {
+                    return sum + RESOURCES[input.resourceId].basePrice * input.amount;
+                  }
+                  return sum;
+                }, 0);
+                // Verkaufserlös
+                const sellIncome = RESOURCES[selectedRecipe.output.resourceId].basePrice * selectedRecipe.output.amount;
+                const isSelling = productionConfig?.outputTarget === OUTPUT_TARGETS.AUTO_SELL;
+                const isStoring = productionConfig?.outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE;
+                let balance = 0;
+                if (allInputsFromStock && isStoring) {
+                  balance = 0;
+                } else if (isSelling) {
+                  balance = sellIncome - purchaseCost;
+                } else {
+                  balance = -purchaseCost;
+                }
+                const color = balance >= 0 ? 'success.main' : 'error.main';
+                const sign = balance > 0 ? '+' : '';
+                return (
+                  <Typography
+                    variant="h3"
+                    sx={{
+                      color,
+                      fontWeight: 800,
+                      fontSize: '2.2rem',
+                      mt: 1,
+                      textAlign: 'center',
+                      width: '100%',
+                      animation: 'pulseFast 1.2s infinite',
+                    }}
+                  >
+                    {sign}{balance} $
+                  </Typography>
+                );
+              })()}
+            </Box>
+          </Box>
+
+          {/* Output-Bild und Umschalter */}
+          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 220, justifyContent: 'flex-end', height: 260, mt:8 }}>
+            <img
+              src={getResourceProductionImage(selectedRecipe.output.resourceId)}
+              alt={RESOURCES[selectedRecipe.output.resourceId]?.name + ' production'}
+              style={{ maxHeight: '220px', maxWidth: '220px', objectFit: 'contain', display: 'block' }}
+              onError={e => { e.target.onerror = null; e.target.src = '/images/production/Placeholder.png'; }}
+            />
+            {renderResourceIcons(selectedRecipe.output.resourceId, selectedRecipe.output.amount)}
+
+            
+
+            {selectedRecipe.output.resourceId !== 'research_points' && (
+              <Box sx={{ display: 'flex', alignItems: 'flex-end', height: 48, mt: 2 }}>
+                <ToggleButtonGroup
+                  value={productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE}
+                  exclusive
+                  onChange={(_, newTarget) => {
+                    if (newTarget) {
+                      dispatch(setOutputTarget({
+                        productionLineId,
+                        target: newTarget
+                      }));
+                    }
+                  }}
+                  sx={{ minHeight: 40 }}
+                >
+                  <MuiTooltip title="Store in stock" arrow>
+                    <ToggleButton value={OUTPUT_TARGETS.GLOBAL_STORAGE} sx={{ flexDirection: 'column', p: 0.5, minWidth: 40, minHeight: 40, borderRadius: 0 }}>
+                      <Storage sx={{ fontSize: 22, mb: 0.5 }} />
+                    </ToggleButton>
+                  </MuiTooltip>
+                  <MuiTooltip title="Sell automatically" arrow>
+                    <ToggleButton value={OUTPUT_TARGETS.AUTO_SELL} sx={{ flexDirection: 'column', p: 0.5, minWidth: 40, minHeight: 40, borderRadius: 0 }}>
+                      <SellIcon sx={{ fontSize: 22, mb: 0.5, color: 'action.active' }} />
+                    </ToggleButton>
+                  </MuiTooltip>
+                </ToggleButtonGroup>
+              </Box>
+            )}
+            {/* Info below the active output toggle */}
+
+            {/* Name und Verkaufspreis unter die Switch-Buttons verschieben */}
+            {selectedRecipe.output.resourceId !== 'research_points' && (
+              <Box sx={{ mt: 1, textAlign: 'center' }}>
+                {productionConfig?.outputTarget === OUTPUT_TARGETS.AUTO_SELL ? (
+                  <Typography variant="subtitle1" sx={{ color: 'success.main', fontWeight: 700, fontSize: '1.1rem' }}>
+                    {RESOURCES[selectedRecipe.output.resourceId]?.name}: {RESOURCES[selectedRecipe.output.resourceId]?.basePrice}$
+                  </Typography>
+                ) : (
+                  <Typography variant="subtitle1" sx={{ color: 'success.main', fontWeight: 700, fontSize: '1.1rem' }}>
+                    {RESOURCES[selectedRecipe.output.resourceId]?.name}
+                  </Typography>
+                )}
+              </Box>
+            )}
+
+            {selectedRecipe.output.resourceId !== 'research_points' && (
+              (() => {
+                const isStore = (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.GLOBAL_STORAGE;
+                const isSell = (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.AUTO_SELL;
+                const outputStock = resources[selectedRecipe.output.resourceId]?.amount ?? 0;
+                const outputMax = resources[selectedRecipe.output.resourceId]?.capacity ?? 0;
+                const outputSinglePrice = RESOURCES[selectedRecipe.output.resourceId].basePrice;
+                const outputTotalPrice = outputSinglePrice * selectedRecipe.output.amount;
+                if (isStore) {
+                  return (
+                    <Typography variant="subtitle2" sx={{ mt: 1, color: 'text.secondary', fontSize: '1rem' }}>
+                      {outputStock}/{outputMax} in stock
+                    </Typography>
+                  );
+                }
+                if (isSell) {
+                  return (
+                    <Typography variant="subtitle2" sx={{ mt: 1, color: 'success.main', fontWeight: 700, fontSize: '1.1rem'}}>
+                      Total: {outputTotalPrice}$
+                    </Typography>
+                  );
+                }
+                return null;
+              })()
+            )}
           </Box>
         </Box>
 
-        <Grid container spacing={3} direction="column" alignItems="center">
-          <Grid item xs={12} md={6} style={{ width: '100%' }}>
-            <Card sx={{ p: 0, m: 0, boxShadow: 0 }}>
-              <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
-                <Typography variant="h6" gutterBottom sx={{ mb: 1 }}>
-                  Input Configuration
-                </Typography>
-                <List sx={{ p: 0, m: 0 }}>
-                  {selectedRecipe.inputs.map((input, index) => {
-                    const resource = RESOURCES[input.resourceId];
-                    const inputConfig = productionConfig.inputs[index];
-                    const isGlobalStorage = inputConfig?.source === INPUT_SOURCES.GLOBAL_STORAGE;
-                    return (
-                      <ListItem key={index} sx={{ p: 0.5, minHeight: 32 }}>
-                        <ListItemIcon sx={{ minWidth: 32 }}>
-                          {resource.icon}
-                        </ListItemIcon>
-                        <ListItemText
-                          primary={<span style={{ fontSize: 15 }}>{`${resource.name} (${input.amount}x, Single Price: ${resource.basePrice} Credits)`}</span>}
-                          secondary={
-                            !isGlobalStorage ? (
-                              <span style={{ fontSize: 13 }}>
-                                Automatically purchased (Total: {resource.basePrice * input.amount} Credits per production)
-                              </span>
-                            ) : (
-                              <span style={{ fontSize: 13 }}>
-                                From global storage ({resources[input.resourceId].amount} available)
-                              </span>
-                            )
-                          }
-                          sx={{ my: 0 }}
-                        />
-                        <ToggleButtonGroup
-                          value={inputConfig?.source || INPUT_SOURCES.PURCHASE_MODULE}
-                          exclusive
-                          onChange={(_, newSource) => {
-                            if (newSource) {
-                              dispatch(setInputSource({
-                                productionLineId,
-                                inputIndex: index,
-                                source: newSource,
-                                resourceId: input.resourceId
-                              }));
-                            }
-                          }}
-                          size="small"
-                          sx={{ height: 28 }}
-                        >
-                          <ToggleButton value={INPUT_SOURCES.GLOBAL_STORAGE} sx={{ p: 0.5, minWidth: 28, height: 28 }}>
-                            <Tooltip title="From global storage">
-                              <Storage fontSize="small" />
-                            </Tooltip>
-                          </ToggleButton>
-                          {resource.purchasable && (
-                            <ToggleButton value={INPUT_SOURCES.PURCHASE_MODULE} sx={{ p: 0.5, minWidth: 28, height: 28 }}>
-                              <Tooltip title="Auto purchase">
-                                <ShoppingCart fontSize="small" />
-                              </Tooltip>
-                            </ToggleButton>
-                          )}
-                        </ToggleButtonGroup>
-                      </ListItem>
-                    );
-                  })}
-                </List>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          <Grid item xs={12} md={6} style={{ width: '100%' }}>
-            <Box sx={{ 
-              display: 'flex', 
-              flexDirection: 'column',
-              alignItems: 'center',
-              width: '100%',
-              gap: 2,
-              my: 2,
-              position: 'relative',
-              minHeight: '100px'
-            }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <ArrowDownIcon color="primary" sx={{ fontSize: 40 }} />
-              </Box>
-              <Typography variant="body1" color="text.primary" fontWeight="bold" align="center">
-                {selectedRecipe.productionTime} Pings
-              </Typography>
-              {(productionStatus?.isActive || productionStatus?.currentPings >= selectedRecipe?.productionTime) && (
-                <Box sx={{ position: 'relative', width: '100%' }}>
-                  <LinearProgress 
-                    variant="determinate"
-                    value={displayProgressPercent}
-                    sx={{
-                      width: '100%',
-                      height: 20,
-                      borderRadius: 2,
-                      backgroundColor: 'action.disabledBackground',
-                      '& .MuiLinearProgress-bar': {
-                        backgroundColor: canStartProduction() ? 'primary.main' : 'error.main',
-                        transition: 'transform 0.3s linear'
-                      }
-                    }}
-                  />
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      top: 0,
-                      left: 0,
-                      width: '100%',
-                      height: '100%',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      pointerEvents: 'none',
-                    }}
-                  >
-                    <Typography variant="body2" sx={{ fontWeight: 700, color: '#fff', textShadow: '0 2px 6px #000, 0 1px 1px #000' }}>
-                      {Math.round(displayProgressPercent)}%
-                    </Typography>
-                  </Box>
-                </Box>
-              )}
-            </Box>
-          </Grid>
-
-          <Grid item xs={12} md={6} style={{ width: '100%' }}>
-            <Card sx={{ p: 0, m: 0, boxShadow: 0 }}>
-              <CardContent sx={{ p: 1.5, '&:last-child': { pb: 1.5 } }}>
-                <Typography variant="h6" gutterBottom sx={{ mb: 1 }}>
-                  Output Configuration
-                </Typography>
-                <Box sx={{ mt: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                    {RESOURCES[selectedRecipe.output.resourceId].icon}
-                    <Typography variant="body2" sx={{ fontSize: 15 }}>
-                      {selectedRecipe.output.amount}x {RESOURCES[selectedRecipe.output.resourceId].name}
-                    </Typography>
-                  </Box>
-                  {selectedRecipe.output.resourceId === 'research_points' ? (
-                    <Box sx={{ 
-                      display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center',
-                      mt: 2,
-                      mb: 1,
-                      p: 2,
-                      bgcolor: 'action.hover',
-                      borderRadius: 2
-                    }}>
-                      <Typography variant="body2" color="text.secondary">
-                        Research Points are automatically added to your global research points
-                      </Typography>
-                    </Box>
-                  ) : (
-                    <ToggleButtonGroup
-                      value={productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE}
-                      exclusive
-                      onChange={(_, newTarget) => {
-                        if (newTarget) {
-                          dispatch(setOutputTarget({
-                            productionLineId,
-                            target: newTarget
-                          }));
-                        }
-                      }}
-                      sx={{
-                        width: '100%',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        mt: 2,
-                        mb: 1,
-                        gap: 2,
-                      }}
-                    >
-                      <ToggleButton
-                        value={OUTPUT_TARGETS.GLOBAL_STORAGE}
-                        sx={{
-                          flex: 1,
-                          minWidth: 120,
-                          height: 48,
-                          fontSize: 16,
-                          fontWeight: 600,
-                          borderRadius: 2,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: 0.5,
-                        }}
-                      >
-                        <Storage fontSize="medium" />
-                        <Typography variant="caption" sx={{ fontSize: 14 }}>
-                          Storage ({resources[selectedRecipe.output.resourceId].amount}/{resources[selectedRecipe.output.resourceId].capacity})
-                        </Typography>
-                      </ToggleButton>
-                      <ToggleButton
-                        value={OUTPUT_TARGETS.AUTO_SELL}
-                        sx={{
-                          flex: 1,
-                          minWidth: 120,
-                          height: 48,
-                          fontSize: 16,
-                          fontWeight: 600,
-                          borderRadius: 2,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: 0.5,
-                        }}
-                      >
-                        <SellIcon fontSize="medium" />
-                        <Typography variant="caption" sx={{ fontSize: 14 }}>
-                          Sell ({RESOURCES[selectedRecipe.output.resourceId].basePrice * selectedRecipe.output.amount} Credits per production)
-                        </Typography>
-                      </ToggleButton>
-                    </ToggleButtonGroup>
-                  )}
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 2, gap: 2 }}>
+        {/* Steuerungs-Buttons unten rechts */}
+        <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 6, gap: 2 }}>
           <Tooltip title={
             productionStatus?.error ? productionStatus.error :
             !canStartProduction() ?
@@ -601,6 +631,7 @@ const ProductionLine = () => {
           </Button>
         </Box>
 
+        {/* Fehleranzeige wie gehabt */}
         {productionStatus?.error && (
           <Box sx={{ 
             mt: 2, 
@@ -679,31 +710,6 @@ const ProductionLine = () => {
             </Button>
           </DialogActions>
         </Dialog>
-      </Box>
-      {/* Input and Output Production Images at the bottom, as often as needed */}
-      <Box style={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-end', gap: 12, marginTop: 40 }}>
-        {/* Input images */}
-        {selectedRecipe.inputs.flatMap((input) => (
-          Array.from({ length: input.amount }).map((_, idx) => (
-            <img
-              key={`input-${input.resourceId}-${idx}`}
-              src={getResourceProductionImage(input.resourceId)}
-              alt={RESOURCES[input.resourceId]?.name + ' production'}
-              style={{ maxHeight: '100px', maxWidth: '80px', objectFit: 'contain', display: 'block' }}
-              onError={e => { e.target.onerror = null; e.target.src = '/images/production/Placeholder.png'; }}
-            />
-          ))
-        ))}
-        {/* Output images */}
-        {Array.from({ length: selectedRecipe.output.amount }).map((_, idx) => (
-          <img
-            key={`output-${selectedRecipe.output.resourceId}-${idx}`}
-            src={getResourceProductionImage(selectedRecipe.output.resourceId)}
-            alt={RESOURCES[selectedRecipe.output.resourceId]?.name + ' production'}
-            style={{ maxHeight: '140px', maxWidth: '120px', objectFit: 'contain', display: 'block' }}
-            onError={e => { e.target.onerror = null; e.target.src = '/images/production/Placeholder.png'; }}
-          />
-        ))}
       </Box>
     </Box>
   );

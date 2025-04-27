@@ -377,21 +377,31 @@ const ProductionLines = () => {
     navigate(`/production/${id}`);
   };
 
-  // Filter recipes based on unlocked modules and unlockedRecipes
-  const availableRecipes = Object.entries(PRODUCTION_RECIPES).filter(([id, recipe]) => {
-    // Zeige ein Rezept, wenn es entweder durch ein Modul freigeschaltet ist ODER in unlockedRecipes steht
-    return (
-      unlockedRecipes.includes(id) ||
-      Object.values(MODULES).some(module =>
-        unlockedModules.includes(module.id) && module.recipes.includes(id)
-      )
-    );
-  });
+  // Hilfsfunktion, um den Modultyp für ein Rezept zu bestimmen
+  const getModuleTypeForRecipe = (recipeId) => {
+    if (!recipeId) return null;
+    for (const [moduleKey, moduleObj] of Object.entries(MODULES)) {
+      if (moduleObj.recipes.includes(recipeId)) {
+        return moduleObj.id;
+      }
+    }
+    // Fallback: nach Output-Resource
+    const agriOutputs = ['wheat', 'corn', 'flour', 'bread', 'biofuel'];
+    const techOutputs = ['copper_wire', 'circuit_board', 'computer', 'quantum_chip', 'basic_chip'];
+    const weaponOutputs = ['gunpowder', 'bullet', 'rifle', 'tank', 'scrap_metal'];
+    const recipe = PRODUCTION_RECIPES[recipeId];
+    if (!recipe) return null;
+    if (agriOutputs.includes(recipe.output.resourceId)) return 'agriculture';
+    if (techOutputs.includes(recipe.output.resourceId)) return 'technology';
+    if (weaponOutputs.includes(recipe.output.resourceId)) return 'weapons';
+    return null;
+  };
 
-  // Rezepte für das aktuell gewählte Modul
+  // Rezepte für das aktuell gewählte Modul (inkl. Research-Freischaltungen)
   const moduleRecipes = selectedModule
     ? Object.entries(PRODUCTION_RECIPES).filter(([id, recipe]) =>
-        MODULES[selectedModule]?.recipes.includes(id)
+        MODULES[selectedModule]?.recipes.includes(id) ||
+        (unlockedRecipes.includes(id) && getModuleTypeForRecipe(id) === MODULES[selectedModule].id)
       )
     : [];
 
@@ -402,6 +412,43 @@ const ProductionLines = () => {
       setSelectedModule(onlyKey || '');
     }
   }, [unlockedModules]);
+
+  // Hilfsfunktion für Bilanz wie im Detail
+  function calculateLineBalanceLogic(config, status) {
+    if (!config?.recipe) return { balance: 0, balancePerPing: 0, totalBalance: 0 };
+    const recipe = PRODUCTION_RECIPES[config.recipe];
+    if (!recipe) return { balance: 0, balancePerPing: 0, totalBalance: 0 };
+    // Prüfe Inputquellen
+    const allInputsFromStock = recipe.inputs.every((input, idx) => {
+      const inputConfig = config.inputs[idx];
+      return inputConfig && inputConfig.source === INPUT_SOURCES.GLOBAL_STORAGE;
+    });
+    // Einkaufskosten nur für eingekaufte Inputs
+    const purchaseCost = recipe.inputs.reduce((sum, input, idx) => {
+      const inputConfig = config.inputs[idx];
+      if (inputConfig && inputConfig.source === INPUT_SOURCES.PURCHASE_MODULE) {
+        return sum + RESOURCES[input.resourceId].basePrice * input.amount;
+      }
+      return sum;
+    }, 0);
+    // Verkaufserlös
+    const sellIncome = RESOURCES[recipe.output.resourceId].basePrice * recipe.output.amount;
+    const isSelling = config?.outputTarget === OUTPUT_TARGETS.AUTO_SELL;
+    const isStoring = config?.outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE;
+    let balance = 0;
+    if (allInputsFromStock && isStoring) {
+      balance = 0;
+    } else if (isSelling) {
+      balance = sellIncome - purchaseCost;
+    } else {
+      balance = -purchaseCost;
+    }
+    // Per Ping
+    const balancePerPing = recipe.productionTime > 0 ? Math.round((balance / recipe.productionTime) * 100) / 100 : 0;
+    // Total (für die Summen-Box: nimm status?.totalPings, sonst 0)
+    const totalBalance = status?.totalPings ? Math.round(balancePerPing * status.totalPings * 100) / 100 : balance;
+    return { balance, balancePerPing, totalBalance };
+  }
 
   const columns = [
     {
@@ -529,15 +576,12 @@ const ProductionLines = () => {
       align: 'right',
       renderCell: (params) => {
         const config = productionConfigs[params.row.id];
-        const recipe = config?.recipe ? PRODUCTION_RECIPES[config.recipe] : null;
-        if (!recipe) return '';
-        const inputCost = recipe.inputs.reduce((sum, input) => sum + RESOURCES[input.resourceId].basePrice * input.amount, 0);
-        const sellIncome = RESOURCES[recipe.output.resourceId].basePrice * recipe.output.amount;
-        const isSelling = config?.outputTarget === OUTPUT_TARGETS.AUTO_SELL;
-        const balance = isSelling ? (sellIncome - inputCost) : -inputCost;
+        const status = productionStatus[params.row.id];
+        const { balance } = calculateLineBalanceLogic(config, status);
+        const colorTotal = balance > 0 ? 'success.main' : balance < 0 ? 'error.main' : 'warning.main';
         return (
           <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-            <Typography color={balance >= 0 ? 'success.main' : 'error.main'}>
+            <Typography color={colorTotal}>
               {balance >= 0 ? '+' : ''}{formatMoney(balance)}$
             </Typography>
           </Box>
@@ -552,25 +596,11 @@ const ProductionLines = () => {
       renderCell: (params) => {
         const config = productionConfigs[params.row.id];
         const status = productionStatus[params.row.id];
-        const recipe = config?.recipe ? PRODUCTION_RECIPES[config.recipe] : null;
-        if (!recipe || !config || !status?.isActive) return '';
-        let income = 0;
-        let expenses = 0;
-        recipe.inputs.forEach((input, index) => {
-          const inputConfig = config.inputs[index];
-          if (inputConfig?.source === INPUT_SOURCES.PURCHASE_MODULE) {
-            const resource = RESOURCES[input.resourceId];
-            expenses += (resource.basePrice * input.amount) / recipe.productionTime;
-          }
-        });
-        if (config.outputTarget === OUTPUT_TARGETS.AUTO_SELL) {
-          const outputResource = RESOURCES[recipe.output.resourceId];
-          income += (outputResource.basePrice * recipe.output.amount) / recipe.productionTime;
-        }
-        const balancePerPing = Math.round((income - expenses) * 100) / 100;
+        const { balancePerPing } = calculateLineBalanceLogic(config, status);
+        const colorPing = balancePerPing > 0 ? 'success.main' : balancePerPing < 0 ? 'error.main' : 'warning.main';
         return (
           <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-            <Typography color={balancePerPing >= 0 ? 'success.main' : 'error.main'}>
+            <Typography color={colorPing}>
               {balancePerPing >= 0 ? '+' : ''}{formatMoney(balancePerPing)}$
             </Typography>
           </Box>
@@ -725,7 +755,7 @@ const ProductionLines = () => {
           </Button>
         </Box>
         {/* Summen-Box wie in Screenshot 2, zentriert und schwebend */}
-        <Box sx={{ width: '100%', ml: "730px", mb: 3 }}>
+        <Box sx={{ width: '100%', ml: "800px", mb: 3 }}>
           <Box sx={{
             display: 'flex',
             flexDirection: 'row',
@@ -746,29 +776,32 @@ const ProductionLines = () => {
               let totalBalance = 0;
               let totalPerPing = 0;
               productionLines.forEach(line => {
-                // Berechne die Total Balance wie in der Tabelle (nicht per Ping * totalPings)
                 const config = productionConfigs[line.id];
-                const recipe = config?.recipe ? PRODUCTION_RECIPES[config.recipe] : null;
-                if (!recipe) return;
-                const inputCost = recipe.inputs.reduce((sum, input) => sum + RESOURCES[input.resourceId].basePrice * input.amount, 0);
-                const sellIncome = RESOURCES[recipe.output.resourceId].basePrice * recipe.output.amount;
-                const isSelling = config?.outputTarget === OUTPUT_TARGETS.AUTO_SELL;
-                const rowBalance = isSelling ? (sellIncome - inputCost) : -inputCost;
-                totalBalance += rowBalance;
-                // balancePerPing wie gehabt:
-                const { balancePerPing: bp } = calculateLineBalance(line.id);
-                totalPerPing += bp;
+                const status = productionStatus[line.id];
+                const { balance, balancePerPing } = calculateLineBalanceLogic(config, status);
+                totalBalance += balance;
+                totalPerPing += balancePerPing;
               });
-              const colorTotal = totalBalance >= 0 ? 'success.main' : 'error.main';
-              const colorPing = totalPerPing >= 0 ? 'success.main' : 'error.main';
+              const colorTotal = totalBalance > 0 ? 'success.main' : totalBalance < 0 ? 'error.main' : 'warning.main';
+              const colorPing = totalPerPing > 0 ? 'success.main' : totalPerPing < 0 ? 'error.main' : 'warning.main';
               return (
                 <>
+                  <Box>
+                  <Typography variant="h3" sx={{ fontWeight: 700, minWidth: 120, textAlign: 'center', px: 4 }}>
+                    Total Balance:
+                    </Typography>
                   <Typography variant="h3" sx={{ fontWeight: 700, color: colorTotal, minWidth: 120, textAlign: 'center', px: 4 }}>
                     {totalBalance >= 0 ? '+' : ''}{formatMoney(totalBalance)}$
-                  </Typography>
+                    </Typography>
+                  </Box>
+                  <Box>
+                  <Typography variant="h3" sx={{ fontWeight: 700, minWidth: 120, textAlign: 'center', px: 4 }}>
+                    Balance per Ping:
+                    </Typography>
                   <Typography variant="h3" sx={{ fontWeight: 700, color: colorPing, minWidth: 120, textAlign: 'center', px: 4 }}>
                     {totalPerPing >= 0 ? '+' : ''}{formatMoney(totalPerPing)}$
-                  </Typography>
+                    </Typography>
+                    </Box>
                 </>
               );
             })()}

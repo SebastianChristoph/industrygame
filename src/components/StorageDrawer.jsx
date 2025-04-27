@@ -19,11 +19,12 @@ import {
 } from '@mui/material';
 import { Close, Warehouse } from '@mui/icons-material';
 import { RESOURCES, calculateUpgradeCost } from '../config/resources';
+import { getResourceImageWithFallback } from '../config/resourceImages';
 import { upgradeStorage } from '../store/gameSlice';
 
 const StorageDrawer = ({ open, onClose }) => {
   const dispatch = useDispatch();
-  const { credits, resources } = useSelector(state => state.game);
+  const { credits, resources, unlockedResources } = useSelector(state => state.game);
 
   const handleUpgradeStorage = (resourceId) => {
     dispatch(upgradeStorage(resourceId));
@@ -35,7 +36,7 @@ const StorageDrawer = ({ open, onClose }) => {
       open={open}
       onClose={onClose}
       PaperProps={{
-        sx: { width: { xs: '100%', sm: 700 } }
+        sx: { width: { xs: '100%', sm: 900 } }
       }}
     >
       <Box sx={{ p: 2 }}>
@@ -59,92 +60,110 @@ const StorageDrawer = ({ open, onClose }) => {
           >
             <TableHead>
               <TableRow>
-                <TableCell width="16%">Resource</TableCell>
-                <TableCell width="28%" align="right">Stock</TableCell>
+                <TableCell width="28%">Resource</TableCell>
+                <TableCell width="20%" align="right">Stock</TableCell>
                 <TableCell width="22%">Utilization</TableCell>
-                <TableCell width="14%" align="right">Level</TableCell>
+                <TableCell width="10%" align="right">Level</TableCell>
                 <TableCell width="24%" align="right">Action</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
-              {Object.entries(RESOURCES).map(([id, resource]) => {
-                const resourceData = resources[id];
-                const percentage = (resourceData.amount / resourceData.capacity) * 100;
-                const nextUpgradeCost = calculateUpgradeCost(resourceData.storageLevel);
+              {Object.entries(RESOURCES)
+                .filter(([id]) =>
+                  unlockedResources.includes(id) ||
+                  ['water', 'seeds', 'iron', 'copper', 'coal', 'oil'].includes(id)
+                )
+                .map(([id, resource]) => {
+                  const resourceData = resources[id];
+                  const percentage = (resourceData.amount / resourceData.capacity) * 100;
+                  const nextUpgradeCost = calculateUpgradeCost(resourceData.storageLevel);
 
-                return (
-                  <TableRow 
-                    key={id}
-                    sx={{
-                      '&:nth-of-type(odd)': { bgcolor: 'action.hover' },
-                      '& > *': { borderBottom: 'unset' }
-                    }}
-                  >
-                    <TableCell>
-                      <Tooltip title={resource.description}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Tooltip title={resource.name} placement="top">
-                            <span>{resource.icon}</span>
-                          </Tooltip>
+                  return (
+                    <TableRow 
+                      key={id}
+                      sx={{
+                        '&:nth-of-type(odd)': { bgcolor: 'action.hover' },
+                        '& > *': { borderBottom: 'unset' }
+                      }}
+                    >
+                      <TableCell>
+                        <Tooltip title={resource.description}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 120, maxWidth: 320, whiteSpace: 'nowrap', overflow: 'hidden' }}>
+                            <Tooltip title={resource.name} placement="top">
+                              <img
+                                src={getResourceImageWithFallback(id, 'icon')}
+                                alt={resource.name}
+                                style={{ width: 28, height: 28, objectFit: 'contain', marginRight: 8 }}
+                                onError={e => { e.target.onerror = null; e.target.src = '/images/icons/placeholder.png'; }}
+                              />
+                            </Tooltip>
+                            <Typography variant="body2" sx={{ fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                              {resource.name}
+                            </Typography>
+                          </Box>
+                        </Tooltip>
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="body2">
+                          {resourceData.amount} / {resourceData.capacity}
+                        </Typography>
+                      </TableCell>
+                      <TableCell sx={{ width: '30%' }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <Box sx={{ width: '100%', mr: 1 }}>
+                            <LinearProgress 
+                              variant="determinate" 
+                              value={percentage}
+                              sx={{
+                                height: 6,
+                                borderRadius: 1,
+                                bgcolor: 'grey.200',
+                                '& .MuiLinearProgress-bar': {
+                                  bgcolor: percentage > 90 ? 'error.main' : 
+                                          percentage > 75 ? 'warning.main' : 
+                                          'primary.main'
+                                }
+                              }}
+                            />
+                          </Box>
+                          <Box sx={{ minWidth: 35 }}>
+                            <Typography variant="body2" color="text.secondary">
+                              {Math.round(percentage)}%
+                            </Typography>
+                          </Box>
                         </Box>
-                      </Tooltip>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography variant="body2">
-                        {resourceData.amount} / {resourceData.capacity}
-                      </Typography>
-                    </TableCell>
-                    <TableCell sx={{ width: '30%' }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <Box sx={{ width: '100%', mr: 1 }}>
-                          <LinearProgress 
-                            variant="determinate" 
-                            value={percentage}
-                            sx={{
-                              height: 6,
-                              borderRadius: 1,
-                              bgcolor: 'grey.200',
-                              '& .MuiLinearProgress-bar': {
-                                bgcolor: percentage > 90 ? 'error.main' : 
-                                        percentage > 75 ? 'warning.main' : 
-                                        'primary.main'
-                              }
+                      </TableCell>
+                      <TableCell align="right">
+                        <Typography variant="body2">
+                          {resourceData.storageLevel}
+                        </Typography>
+                      </TableCell>
+                      <TableCell align="right" sx={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5 }}>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            startIcon={<Warehouse />}
+                            onClick={() => handleUpgradeStorage(id)}
+                            disabled={credits < nextUpgradeCost}
+                            sx={{ 
+                              whiteSpace: 'nowrap',
+                              fontSize: '0.75rem',
+                              padding: '4px 8px',
+                              minWidth: 0,
+                              maxWidth: '100%'
                             }}
-                          />
-                        </Box>
-                        <Box sx={{ minWidth: 35 }}>
-                          <Typography variant="body2" color="text.secondary">
-                            {Math.round(percentage)}%
+                          >
+                            {nextUpgradeCost} Credits
+                          </Button>
+                          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.2 }}>
+                            +{200} Capacity
                           </Typography>
                         </Box>
-                      </Box>
-                    </TableCell>
-                    <TableCell align="right">
-                      <Typography variant="body2">
-                        {resourceData.storageLevel}
-                      </Typography>
-                    </TableCell>
-                    <TableCell align="right" sx={{ overflow: 'hidden', whiteSpace: 'nowrap' }}>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        startIcon={<Warehouse />}
-                        onClick={() => handleUpgradeStorage(id)}
-                        disabled={credits < nextUpgradeCost}
-                        sx={{ 
-                          whiteSpace: 'nowrap',
-                          fontSize: '0.75rem',
-                          padding: '4px 8px',
-                          minWidth: 0,
-                          maxWidth: '100%'
-                        }}
-                      >
-                        {nextUpgradeCost} Credits
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
             </TableBody>
           </Table>
         </TableContainer>
