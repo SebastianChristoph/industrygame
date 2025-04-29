@@ -41,7 +41,8 @@ import {
   Delete as DeleteIcon,
   Sell as SellIcon,
   KeyboardArrowDown as ArrowDownIcon,
-  MonetizationOn
+  MonetizationOn,
+  InfoOutlined
 } from '@mui/icons-material';
 import {
   PRODUCTION_RECIPES,
@@ -963,6 +964,14 @@ const ProductionLine = () => {
           <Grid item xs={12} sx={{ minWidth: 0, flex: 1 }}>
             <Paper sx={{ p: 2 }}>
               <Typography variant="subtitle1" sx={{ mb: 1 }}>Cumulative Win/Loss since production line start</Typography>
+              {chartData.length === 0 && (
+                <Paper elevation={0} sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'info.light', color: 'info.dark', p: 2, mb: 2, borderRadius: 2 }}>
+                  <InfoOutlined sx={{ color: 'info.main', fontSize: 28 }} />
+                  <Typography variant="body1" sx={{ fontWeight: 500 }}>
+                    The chart will appear after the first production cycle.
+                  </Typography>
+                </Paper>
+              )}
               <ResponsiveContainer width="100%" height={420}>
                 <LineChart data={chartData} margin={{ top: 20, right: 40, left: 0, bottom: 20 }}>
                   <CartesianGrid strokeDasharray="3 3" />

@@ -21,7 +21,8 @@ import {
   CircularProgress,
   Grid,
   Card,
-  CardContent
+  CardContent,
+  Chip
 } from '@mui/material';
 import { DataGrid } from '@mui/x-data-grid';
 import {
@@ -44,7 +45,8 @@ import {
   setProductionRecipe, 
   renameProductionLine,
   toggleProduction,
-  unlockModule
+  unlockModule,
+  spendCredits
 } from '../store/gameSlice';
 import { PRODUCTION_RECIPES, RESOURCES, OUTPUT_TARGETS, INPUT_SOURCES } from '../config/resources';
 import { MODULES } from '../config/modules';
@@ -65,7 +67,8 @@ import StorageInfoDialog from '../components/StorageInfoDialog';
 // @import url('https://fonts.googleapis.com/css2?family=Cal+Sans:wght@400;600;700&display=swap');
 
 function formatMoney(value) {
-  return value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (value === undefined || value === null) return '0';
+  return value.toLocaleString(undefined, { maximumFractionDigits: 0 });
 }
 
 const PLACEHOLDER_ICON = '/images/icons/placeholder.png';
@@ -330,6 +333,7 @@ const ProductionLines = () => {
   const productionLines = useSelector(state => state.game.productionLines);
   const productionConfigs = useSelector(state => state.game.productionConfigs);
   const resources = useSelector(state => state.game.resources);
+  const credits = useSelector(state => state.game.credits);
   const productionStatus = useSelector(state => state.game.productionStatus);
   const unlockedModules = useSelector(state => state.game.unlockedModules);
   const unlockedRecipes = useSelector(state => state.game.unlockedRecipes);
@@ -348,6 +352,16 @@ const ProductionLines = () => {
   const [pendingModuleTab, setPendingModuleTab] = useState(null);
   const [showStorageInfo, setShowStorageInfo] = useState(false);
   const [hasAcceptedStorage, setHasAcceptedStorage] = useState(() => !!localStorage.getItem('storageInfoAccepted'));
+
+  // Calculate cost for new production line
+  const calculateNewLineCost = () => {
+    const baseCost = 1000; // Base cost for first line
+    const costMultiplier = 1.5; // Each line costs 50% more than the previous
+    return Math.round(baseCost * Math.pow(costMultiplier, productionLines.length));
+  };
+
+  const newLineCost = calculateNewLineCost();
+  const canAffordNewLine = credits >= newLineCost;
 
   const checkNameUniqueness = (name) => {
     return !productionLines.some(line => 
@@ -370,6 +384,11 @@ const ProductionLines = () => {
       return;
     }
 
+    if (credits < newLineCost) {
+      setNameError('Not enough credits to create new production line');
+      return;
+    }
+
     const newId = Math.max(0, ...productionLines.map(line => line.id)) + 1;
     dispatch(addProductionLine({
       id: newId,
@@ -382,6 +401,9 @@ const ProductionLines = () => {
         recipeId: selectedRecipe
       }));
     }
+
+    // Deduct the cost
+    dispatch(spendCredits(newLineCost));
     
     setIsCreateDialogOpen(false);
     navigate(`/production/${newId}`);
@@ -728,10 +750,10 @@ const ProductionLines = () => {
       }
     });
 
-    if (requiredCredits > resources.credits) {
+    if (requiredCredits > credits) {
       missingResources.push({
         name: 'Credits',
-        reason: `${resources.credits}/${requiredCredits} available`
+        reason: `${credits}/${requiredCredits} available`
       });
     }
 
@@ -839,15 +861,24 @@ const ProductionLines = () => {
             Production Lines
           </Typography>
         </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 1, mb: 3 }}>
           <Button
             variant="contained"
             color="primary"
             startIcon={<AddIcon />}
             onClick={handleAddLine}
+            disabled={!canAffordNewLine}
           >
-            NEW PRODUCTION LINE
+            NEW PRODUCTION LINE ({formatMoney(newLineCost)}$)
           </Button>
+          {!canAffordNewLine && (
+            <Chip
+              color="error"
+              variant="filled"
+              label={`Not enough credits (need ${formatMoney(newLineCost)}$)`}
+              sx={{ mt: 1 }}
+            />
+          )}
         </Box>
         {/* Summen-Box wie in Screenshot 2, zentriert und schwebend */}
         <Box sx={{ width: '100%', ml: "800px", mb: 3 }}>
@@ -1022,6 +1053,15 @@ const ProductionLines = () => {
         <Dialog open={isCreateDialogOpen} onClose={() => setIsCreateDialogOpen(false)}>
           <DialogTitle>Create New Production Line</DialogTitle>
           <DialogContent sx={{ minWidth: 400 }}>
+            <Box sx={{ mb: 2, p: 2, bgcolor: 'warning.light', borderRadius: 1 }}>
+              <Typography variant="body1" color="warning.contrastText">
+                Cost to create new production line: {formatMoney(newLineCost)}$
+              </Typography>
+              <Typography variant="body2" color="warning.contrastText">
+                Your current balance: {formatMoney(credits)}$
+              </Typography>
+            </Box>
+
             {/* Modul-Auswahl vor Rezept-Auswahl */}
             <FormControl fullWidth sx={{ mt: 2, mb: 2 }}>
               <InputLabel>Choose Module</InputLabel>
@@ -1236,9 +1276,9 @@ const ProductionLines = () => {
             <Button 
               onClick={handleCreateLine}
               variant="contained"
-              disabled={!selectedRecipe || !newLineName.trim() || !!nameError}
+              disabled={!selectedRecipe || !newLineName.trim() || !!nameError || !canAffordNewLine}
             >
-              Create
+              Create ({formatMoney(newLineCost)}$)
             </Button>
           </DialogActions>
         </Dialog>

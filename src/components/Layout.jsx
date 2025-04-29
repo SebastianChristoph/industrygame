@@ -57,7 +57,7 @@ const menuItems = [
     path: '/tutorial'
   },
   {
-    text: 'Your Browser Data',
+    text: 'Browser Data',
     icon: <MemoryIcon />,
     path: '/storage-overview'
   }

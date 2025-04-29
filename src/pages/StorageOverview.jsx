@@ -18,7 +18,10 @@ import {
   DialogTitle,
   DialogContent,
   DialogContentText,
-  DialogActions
+  DialogActions,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
 } from '@mui/material';
 import {
   Storage as StorageIcon,
@@ -28,6 +31,7 @@ import {
   TrendingUp as TrendingUpIcon,
   Memory as MemoryIcon
 } from '@mui/icons-material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 const StorageOverview = () => {
   const gameState = useSelector(state => state.game);
@@ -119,7 +123,7 @@ const StorageOverview = () => {
 
         {/* Resources */}
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
+          <Paper sx={{ p: 2, maxHeight: 300, overflowY: 'auto' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
               <StorageIcon color="primary" />
               <Typography variant="h6">Resources</Typography>
@@ -139,7 +143,7 @@ const StorageOverview = () => {
 
         {/* Production Lines */}
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
+          <Paper sx={{ p: 2, maxHeight: 300, overflowY: 'auto' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
               <FactoryIcon color="primary" />
               <Typography variant="h6">Production Lines</Typography>
@@ -159,7 +163,7 @@ const StorageOverview = () => {
 
         {/* Research Progress */}
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
+          <Paper sx={{ p: 2, maxHeight: 300, overflowY: 'auto' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
               <ScienceIcon color="primary" />
               <Typography variant="h6">Research Progress</Typography>
@@ -185,7 +189,7 @@ const StorageOverview = () => {
 
         {/* Statistics */}
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
+          <Paper sx={{ p: 2, maxHeight: 300, overflowY: 'auto' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
               <TrendingUpIcon color="primary" />
               <Typography variant="h6">Statistics</Typography>
@@ -215,23 +219,31 @@ const StorageOverview = () => {
 
         {/* Raw Data */}
         <Grid item xs={12}>
-          <Paper sx={{ p: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <MemoryIcon color="primary" />
-              <Typography variant="h6">Raw Data</Typography>
-            </Box>
-            <Box sx={{ 
-              bgcolor: 'grey.100', 
-              p: 2, 
-              borderRadius: 1,
-              maxHeight: 400,
-              overflow: 'auto',
-              fontFamily: 'monospace',
-              fontSize: '0.9rem'
-            }}>
-              <pre>{formatData(gameState)}</pre>
-            </Box>
-          </Paper>
+          <Accordion sx={{ width: '100%' }} defaultExpanded={false}>
+            <AccordionSummary
+              expandIcon={<ExpandMoreIcon />}
+              aria-controls="raw-data-content"
+              id="raw-data-header"
+            >
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <MemoryIcon color="primary" />
+                <Typography variant="h6">Raw Data</Typography>
+              </Box>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Box sx={{ 
+                bgcolor: 'grey.100', 
+                p: 2, 
+                borderRadius: 1,
+                maxHeight: 400,
+                overflow: 'auto',
+                fontFamily: 'monospace',
+                fontSize: '0.9rem'
+              }}>
+                <pre>{formatData(gameState)}</pre>
+              </Box>
+            </AccordionDetails>
+          </Accordion>
         </Grid>
       </Grid>
     </Box>
