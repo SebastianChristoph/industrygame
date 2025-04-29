@@ -7,6 +7,7 @@ import {
   Storage as StorageIcon,
   Warehouse,
   Help as HelpIcon,
+  GitHub as GitHubIcon,
 } from "@mui/icons-material";
 import {
   AppBar,
@@ -285,6 +286,29 @@ const Layout = () => {
                 onClick={() => setStorageOpen(true)}
               >
                 Storage
+              </Button>
+            </Tooltip>
+            <Tooltip title="View on GitHub">
+              <Button
+                sx={{
+                  color: theme.palette.primary.main,
+                  bgcolor: '#fff',
+                  border: `2px solid ${theme.palette.primary.main}`,
+                  borderRadius: '16px',
+                  fontWeight: 700,
+                  fontSize: '1rem',
+                  px: 3,
+                  py: 1,
+                  boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
+                  '&:hover': {
+                    bgcolor: '#FFE3C2',
+                    borderColor: theme.palette.primary.light,
+                  },
+                }}
+                startIcon={<GitHubIcon sx={{ color: theme.palette.primary.main }} />}
+                onClick={() => window.open('https://github.com/SebastianChristoph/industrygame', '_blank')}
+              >
+                GitHub
               </Button>
             </Tooltip>
           </Box>
