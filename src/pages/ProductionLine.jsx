@@ -713,10 +713,71 @@ const ProductionLine = () => {
             />
             {renderResourceIcons(selectedRecipe.output.resourceId, selectedRecipe.output.amount)}
 
-            
-
-            {selectedRecipe.output.resourceId !== 'research_points' && (
-              <Box sx={{ display: 'flex', alignItems: 'flex-end', height: 48, mt: 2 }}>
+            {/* Output handling for research points: only store, no sell */}
+            {selectedRecipe.output.resourceId === 'research_points' ? (
+              <Box sx={{
+                mt: 3,
+                mb: 1,
+                px: 2,
+                py: 2,
+                bgcolor: 'grey.50',
+                borderRadius: 2,
+                boxShadow: 1,
+                border: '1px solid',
+                borderColor: 'grey.200',
+                minWidth: 180,
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+              }}>
+                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1, fontWeight: 600, letterSpacing: 0.2 }}>
+                  Output handling:
+                </Typography>
+                <Box sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1,
+                  bgcolor: 'primary.50',
+                  color: 'primary.main',
+                  border: '2px solid',
+                  borderColor: 'primary.main',
+                  borderRadius: 2,
+                  px: 3,
+                  py: 1.5,
+                  fontWeight: 600,
+                  fontSize: '1rem',
+                  width: '100%',
+                  justifyContent: 'center',
+                  mb: 1
+                }}>
+                  <Storage sx={{ fontSize: 24, mr: 1 }} />
+                  Store in stock
+                </Box>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 1, textAlign: 'center' }}>
+                  Research points cannot be sold. They are automatically stored and used for unlocking technologies.
+                </Typography>
+              </Box>
+            ) : (
+              <Box sx={{
+                mt: 3,
+                mb: 1,
+                px: 2,
+                py: 2,
+                bgcolor: 'grey.50',
+                borderRadius: 2,
+                boxShadow: 1,
+                border: '1px solid',
+                borderColor: 'grey.200',
+                minWidth: 180,
+                width: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+              }}>
+                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1, fontWeight: 600, letterSpacing: 0.2 }}>
+                  Output handling:
+                </Typography>
                 <ToggleButtonGroup
                   value={productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE}
                   exclusive
@@ -728,143 +789,60 @@ const ProductionLine = () => {
                       }));
                     }
                   }}
-                  sx={{ minHeight: 40 }}
+                  sx={{ minHeight: 48, width: '100%' }}
                 >
-                  <MuiTooltip title="Store in stock" arrow>
-                    <ToggleButton value={OUTPUT_TARGETS.GLOBAL_STORAGE} sx={{ flexDirection: 'column', p: 0.5, minWidth: 40, minHeight: 40, borderRadius: 0 }}>
-                      <Storage sx={{ fontSize: 22, mb: 0.5 }} />
+                  <MuiTooltip title="Store the produced resources in your stock." arrow>
+                    <ToggleButton
+                      value={OUTPUT_TARGETS.GLOBAL_STORAGE}
+                      sx={{
+                        flex: 1,
+                        py: 1.5,
+                        px: 2,
+                        borderRadius: 2,
+                        fontWeight: 600,
+                        fontSize: '1rem',
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 1,
+                        color: (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.GLOBAL_STORAGE ? 'primary.main' : 'text.secondary',
+                        bgcolor: (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.GLOBAL_STORAGE ? 'primary.50' : 'grey.100',
+                        border: '2px solid',
+                        borderColor: (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.GLOBAL_STORAGE ? 'primary.main' : 'grey.300',
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      <Storage sx={{ fontSize: 24, mr: 1 }} />
+                      Store in stock
                     </ToggleButton>
                   </MuiTooltip>
-                  <MuiTooltip title="Sell automatically" arrow>
-                    <ToggleButton value={OUTPUT_TARGETS.AUTO_SELL} sx={{ flexDirection: 'column', p: 0.5, minWidth: 40, minHeight: 40, borderRadius: 0 }}>
-                      <SellIcon sx={{ fontSize: 22, mb: 0.5, color: 'action.active' }} />
+                  <MuiTooltip title="Sell the produced resources automatically for credits." arrow>
+                    <ToggleButton
+                      value={OUTPUT_TARGETS.AUTO_SELL}
+                      sx={{
+                        flex: 1,
+                        py: 1.5,
+                        px: 2,
+                        borderRadius: 2,
+                        fontWeight: 600,
+                        fontSize: '1rem',
+                        display: 'flex',
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 1,
+                        color: (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.AUTO_SELL ? 'success.dark' : 'text.secondary',
+                        bgcolor: (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.AUTO_SELL ? 'success.50' : 'grey.100',
+                        border: '2px solid',
+                        borderColor: (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.AUTO_SELL ? 'success.main' : 'grey.300',
+                        transition: 'all 0.2s',
+                      }}
+                    >
+                      <SellIcon sx={{ fontSize: 24, mr: 1 }} />
+                      Sell automatically
                     </ToggleButton>
                   </MuiTooltip>
                 </ToggleButtonGroup>
               </Box>
-            )}
-            {/* Info below the active output toggle */}
-
-            {/* Name und Verkaufspreis unter die Switch-Buttons verschieben */}
-            {selectedRecipe.output.resourceId !== 'research_points' && (
-              <Box sx={{ mt: 1, textAlign: 'center' }}>
-                {productionConfig?.outputTarget === OUTPUT_TARGETS.AUTO_SELL ? (
-                  <Paper
-                    elevation={2}
-                    sx={{
-                      bgcolor: 'success.light',
-                      color: 'success.dark',
-                      px: 2,
-                      py: 0.5,
-                      borderRadius: 2,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      mt: 1,
-                      mb: 0.5,
-                      fontWeight: 600,
-                      fontSize: '1.05rem',
-                      boxShadow: 1,
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <ResourceIcon
-                      iconUrls={getResourceImageWithFallback(selectedRecipe.output.resourceId, 'icon')}
-                      alt={RESOURCES[selectedRecipe.output.resourceId]?.name + ' icon'}
-                      resourceId={selectedRecipe.output.resourceId}
-                      style={{ width: 24, height: 24, objectFit: 'contain', marginRight: 6 }}
-                    />
-                    {RESOURCES[selectedRecipe.output.resourceId]?.name}: {RESOURCES[selectedRecipe.output.resourceId]?.basePrice}$
-                  </Paper>
-                ) : (
-                  <Paper
-                    elevation={2}
-                    sx={{
-                      bgcolor: 'success.light',
-                      color: 'success.dark',
-                      px: 2,
-                      py: 0.5,
-                      borderRadius: 2,
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      mt: 1,
-                      mb: 0.5,
-                      fontWeight: 600,
-                      fontSize: '1.05rem',
-                      boxShadow: 1,
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <ResourceIcon
-                      iconUrls={getResourceImageWithFallback(selectedRecipe.output.resourceId, 'icon')}
-                      alt={RESOURCES[selectedRecipe.output.resourceId]?.name + ' icon'}
-                      resourceId={selectedRecipe.output.resourceId}
-                      style={{ width: 24, height: 24, objectFit: 'contain', marginRight: 6 }}
-                    />
-                    {RESOURCES[selectedRecipe.output.resourceId]?.name}
-                  </Paper>
-                )}
-              </Box>
-            )}
-
-            {selectedRecipe.output.resourceId !== 'research_points' && (
-              (() => {
-                const isStore = (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.GLOBAL_STORAGE;
-                const isSell = (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.AUTO_SELL;
-                const outputStock = resources[selectedRecipe.output.resourceId]?.amount ?? 0;
-                const outputMax = resources[selectedRecipe.output.resourceId]?.capacity ?? 0;
-                const outputSinglePrice = RESOURCES[selectedRecipe.output.resourceId].basePrice;
-                const outputTotalPrice = outputSinglePrice * selectedRecipe.output.amount;
-                if (isStore) {
-                  return (
-                    <Box
-                      sx={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        bgcolor: 'grey.100',
-                        color: 'text.secondary',
-                        px: 2.5,
-                        py: 0.5,
-                        borderRadius: 999,
-                        fontWeight: 600,
-                        fontSize: '1.05rem',
-                        boxShadow: 1,
-                        mt: 1,
-                        mb: 0.5,
-                        minWidth: 90,
-                        justifyContent: 'center',
-                      }}
-                    >
-                      {outputStock}/{outputMax} in stock
-                    </Box>
-                  );
-                }
-                if (isSell) {
-                  return (
-                    <Box
-                      sx={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        bgcolor: 'success.light',
-                        color: 'success.dark',
-                        px: 2.5,
-                        py: 0.5,
-                        borderRadius: 999,
-                        fontWeight: 600,
-                        fontSize: '1.05rem',
-                        boxShadow: 1,
-                        mt: 1,
-                        mb: 0.5,
-                        minWidth: 90,
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <MonetizationOn sx={{ fontSize: 20, color: 'success.dark', mr: 1 }} />
-                      Total: {outputTotalPrice}$
-                    </Box>
-                  );
-                }
-                return null;
-              })()
             )}
           </Box>
         </Box>

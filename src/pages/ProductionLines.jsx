@@ -875,7 +875,7 @@ const ProductionLines = () => {
             <Chip
               color="error"
               variant="filled"
-              label={`Not enough credits (need ${formatMoney(newLineCost)}$)`}
+              label="Not enough credits"
               sx={{ mt: 1 }}
             />
           )}

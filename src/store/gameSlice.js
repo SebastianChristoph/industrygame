@@ -13,7 +13,7 @@ import { RESEARCH_TREE } from '../config/research';
 import { MODULES } from '../config/modules';
 
 const initialState = {
-  credits: 1000, // Starting credits
+  credits: 2000, // Starting credits
   researchPoints: 1000,
   resources: Object.keys(INITIAL_RESOURCES).reduce((acc, resource) => ({
     ...acc,
