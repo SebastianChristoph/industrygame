@@ -31,6 +31,14 @@ const initialState = {
   researchedTechnologies: [],
   unlockedRecipes: [],
   unlockedResources: [],
+  // New statistics data
+  statistics: {
+    resourceHistory: {}, // { [resourceId]: [{ timestamp: number, amount: number }] }
+    salesHistory: [], // [{ timestamp: number, amount: number, resourceId: string }]
+    purchaseHistory: [], // [{ timestamp: number, amount: number, resourceId: string }]
+    productionHistory: [], // [{ timestamp: number, productionLineId: number, amount: number }]
+    profitHistory: [] // [{ timestamp: number, profit: number }]
+  }
 };
 
 const gameSlice = createSlice({
@@ -263,6 +271,59 @@ const gameSlice = createSlice({
           }
         }
       }
+    },
+    // New reducers for statistics
+    recordResourceChange: (state, action) => {
+      const { resourceId, amount } = action.payload;
+      const timestamp = Date.now();
+      
+      if (!state.statistics.resourceHistory[resourceId]) {
+        state.statistics.resourceHistory[resourceId] = [];
+      }
+      
+      state.statistics.resourceHistory[resourceId].push({
+        timestamp,
+        amount: state.resources[resourceId].amount
+      });
+    },
+    recordSale: (state, action) => {
+      const { amount, resourceId } = action.payload;
+      const timestamp = Date.now();
+      
+      state.statistics.salesHistory.push({
+        timestamp,
+        amount,
+        resourceId
+      });
+    },
+    recordPurchase: (state, action) => {
+      const { amount, resourceId } = action.payload;
+      const timestamp = Date.now();
+      
+      state.statistics.purchaseHistory.push({
+        timestamp,
+        amount,
+        resourceId
+      });
+    },
+    recordProduction: (state, action) => {
+      const { productionLineId, amount } = action.payload;
+      const timestamp = Date.now();
+      
+      state.statistics.productionHistory.push({
+        timestamp,
+        productionLineId,
+        amount
+      });
+    },
+    recordProfit: (state, action) => {
+      const { profit, productionLineId } = action.payload;
+      const timestamp = Date.now();
+      state.statistics.profitHistory.push({
+        timestamp,
+        profit,
+        productionLineId
+      });
     }
   },
 });
@@ -283,7 +344,12 @@ export const {
   setOutputTarget,
   handlePing,
   unlockModule,
-  researchTechnology
+  researchTechnology,
+  recordResourceChange,
+  recordSale,
+  recordPurchase,
+  recordProduction,
+  recordProfit
 } = gameSlice.actions;
 
 export default gameSlice.reducer; 

@@ -54,7 +54,12 @@ import {
   toggleProduction,
   removeProductionLine,
   renameProductionLine,
-  setOutputTarget
+  setOutputTarget,
+  recordProduction,
+  recordProfit,
+  recordResourceChange,
+  recordSale,
+  recordPurchase
 } from '../store/gameSlice';
 import { keyframes } from '@mui/system';
 import { styled } from '@mui/material/styles';
@@ -62,6 +67,20 @@ import { useTheme } from '@mui/material/styles';
 import { MODULES } from '../config/modules';
 import { getResourceProductionImage, getResourceIcon, getResourceImageWithFallback } from '../config/resourceImages';
 import { Tooltip as MuiTooltip } from '@mui/material';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  Legend,
+  ResponsiveContainer
+} from 'recharts';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 
 const styles = `
   @keyframes pulseFast {
@@ -98,6 +117,34 @@ const ResourceIcon = ({ iconUrls, alt, resourceId, ...props }) => {
   );
 };
 
+// Hilfsfunktion für Bilanz pro Zyklus (wie im UI unter dem Pfeil)
+function calculateCycleProfit(selectedRecipe, productionConfig, resources, OUTPUT_TARGETS, RESOURCES, INPUT_SOURCES) {
+  const inputsArr = Array.isArray(productionConfig?.inputs) ? productionConfig.inputs : [];
+  const allInputsFromStock = selectedRecipe.inputs.every((input, idx) => {
+    const inputConfig = inputsArr[idx];
+    return inputConfig && inputConfig.source === INPUT_SOURCES.GLOBAL_STORAGE;
+  });
+  const purchaseCost = selectedRecipe.inputs.reduce((sum, input, idx) => {
+    const inputConfig = inputsArr[idx];
+    if (inputConfig && inputConfig.source === INPUT_SOURCES.PURCHASE_MODULE) {
+      return sum + RESOURCES[input.resourceId].basePrice * input.amount;
+    }
+    return sum;
+  }, 0);
+  const sellIncome = RESOURCES[selectedRecipe.output.resourceId].basePrice * selectedRecipe.output.amount;
+  const isSelling = productionConfig?.outputTarget === OUTPUT_TARGETS.AUTO_SELL;
+  const isStoring = productionConfig?.outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE;
+  let balance = 0;
+  if (allInputsFromStock && isStoring) {
+    balance = 0;
+  } else if (isSelling) {
+    balance = sellIncome - purchaseCost;
+  } else {
+    balance = -purchaseCost;
+  }
+  return balance;
+}
+
 const ProductionLine = () => {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -131,6 +178,9 @@ const ProductionLine = () => {
   const productionLines = useSelector(state => state.game.productionLines);
 
   const theme = useTheme();
+
+  // Hole Statistikdaten aus dem Redux-Store
+  const statistics = useSelector(state => state.game.statistics);
 
   // Berechne den Fortschritt in Prozent
   const progressPercent = productionStatus?.currentPings 
@@ -170,6 +220,58 @@ const ProductionLine = () => {
     }
     prevPingsRef.current = currentPings;
   }, [productionStatus?.currentPings, productionStatus?.isActive, selectedRecipe]);
+
+  // Add effect to record statistics
+  useEffect(() => {
+    if (!productionStatus?.isActive || !selectedRecipe) return;
+
+    // Record production
+    if (productionStatus.currentPings === 0 && productionStatus.totalPings > 0) {
+      dispatch(recordProduction({
+        productionLineId,
+        amount: selectedRecipe.output.amount
+      }));
+
+      // Nutze die exakte Bilanz-Logik für den Profit
+      const profit = calculateCycleProfit(
+        selectedRecipe,
+        productionConfig,
+        resources,
+        OUTPUT_TARGETS,
+        RESOURCES,
+        INPUT_SOURCES
+      );
+      dispatch(recordProfit({ profit, productionLineId }));
+
+      // Record resource changes
+      selectedRecipe.inputs.forEach(input => {
+        const inputConfig = productionConfig.inputs.find(c => c.resourceId === input.resourceId);
+        if (inputConfig?.source === INPUT_SOURCES.GLOBAL_STORAGE) {
+          dispatch(recordResourceChange({
+            resourceId: input.resourceId,
+            amount: -input.amount
+          }));
+        } else if (inputConfig?.source === INPUT_SOURCES.PURCHASE_MODULE) {
+          dispatch(recordPurchase({
+            resourceId: input.resourceId,
+            amount: input.amount
+          }));
+        }
+      });
+
+      if (productionConfig.outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE) {
+        dispatch(recordResourceChange({
+          resourceId: selectedRecipe.output.resourceId,
+          amount: selectedRecipe.output.amount
+        }));
+      } else if (productionConfig.outputTarget === OUTPUT_TARGETS.AUTO_SELL) {
+        dispatch(recordSale({
+          resourceId: selectedRecipe.output.resourceId,
+          amount: selectedRecipe.output.amount
+        }));
+      }
+    }
+  }, [productionStatus?.currentPings, productionStatus?.isActive, selectedRecipe, productionConfig, dispatch, productionLineId, resources]);
 
   const handleToggleProduction = () => {
     dispatch(toggleProduction(productionLineId));
@@ -322,6 +424,40 @@ const ProductionLine = () => {
       ))}
     </Box>
   );
+
+  // Add new state for chart data (nur noch profit)
+  const [chartData, setChartData] = useState([]);
+
+  // Add effect to update chart data (nur noch profit)
+  useEffect(() => {
+    const currentTime = Date.now();
+    const timeWindow = 5 * 60 * 1000;
+
+    const prod = statistics.productionHistory
+      .filter(e => e.productionLineId === productionLineId && e.timestamp > currentTime - timeWindow);
+
+    const profits = statistics.profitHistory
+      .filter(e => e.productionLineId === productionLineId && e.timestamp > currentTime - timeWindow);
+
+    let cumProfit = 0;
+    const chartData = prod.map((entry) => {
+      const profitEntry = profits.find(
+        p => Math.abs(p.timestamp - entry.timestamp) < 20
+      );
+      const profit = profitEntry ? profitEntry.profit : 0;
+      cumProfit += profit;
+      return {
+        time: new Date(entry.timestamp).toLocaleTimeString(),
+        profit: cumProfit
+      };
+    });
+
+    setChartData(chartData);
+  }, [statistics, productionLineId]);
+
+  // Filtere productionHistory und profitHistory für diese Linie
+  const productionHistory = statistics.productionHistory.filter(e => e.productionLineId === productionLineId);
+  const profitHistory = statistics.profitHistory;
 
   if (!productionLine || !selectedRecipe) {
     return (
@@ -817,6 +953,54 @@ const ProductionLine = () => {
             </Button>
           </DialogActions>
         </Dialog>
+      </Box>
+
+      {/* Add charts section */}
+      <Box sx={{ mt: 4, p: 3, bgcolor: 'background.paper', borderRadius: 2 }}>
+        <Typography variant="h6" sx={{ mb: 2 }}>Production Statistics</Typography>
+        <Grid container spacing={3}>
+          {/* Profit Chart */}
+          <Grid item xs={12} sx={{ minWidth: 0, flex: 1 }}>
+            <Paper sx={{ p: 2 }}>
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>Cumulative Win/Loss since production line start</Typography>
+              <ResponsiveContainer width="100%" height={420}>
+                <LineChart data={chartData} margin={{ top: 20, right: 40, left: 0, bottom: 20 }}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="time" minTickGap={30} />
+                  <YAxis />
+                  <RechartsTooltip />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="profit"
+                    name="Profit"
+                    strokeDasharray={chartData.some(d => d.profit < 0) ? "" : undefined}
+                    dot={false}
+                    isAnimationActive={false}
+                    stroke={
+                      chartData.length > 0 && chartData[chartData.length - 1].profit < 0
+                        ? '#e53935' // rot
+                        : '#43a047' // grün
+                    }
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </Paper>
+          </Grid>
+        </Grid>
+
+        {/* Debug-Box als dezentes Akkordeon */}
+        <Accordion sx={{ mt: 2, bgcolor: '#fafbfc', border: '1px solid #e0e0e0', boxShadow: 'none', borderRadius: 1 }}>
+          <AccordionSummary expandIcon={<ExpandMoreIcon sx={{ color: '#bbb' }} />} sx={{ minHeight: 36, '& .MuiAccordionSummary-content': { my: 0.5 } }}>
+            <Typography variant="caption" sx={{ color: '#888', fontWeight: 500 }}>Debug-Info</Typography>
+          </AccordionSummary>
+          <AccordionDetails sx={{ fontSize: '0.92rem', color: '#666', bgcolor: '#fafbfc', p: 2 }}>
+            <div><b>productionStatus:</b> {JSON.stringify(productionStatus)}</div>
+            <div><b>productionHistory (nur diese Linie):</b> {JSON.stringify(productionHistory)}</div>
+            <div><b>profitHistory:</b> {JSON.stringify(profitHistory)}</div>
+            <div><b>chartData:</b> {JSON.stringify(chartData)}</div>
+          </AccordionDetails>
+        </Accordion>
       </Box>
     </Box>
   );

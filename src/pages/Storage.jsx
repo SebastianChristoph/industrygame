@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import {
   Box,
@@ -12,12 +12,23 @@ import {
   TableRow,
   Paper,
   LinearProgress,
-  useTheme
+  useTheme,
+  Grid
 } from '@mui/material';
 import { RESOURCES, calculateUpgradeCost, STORAGE_CONFIG, PRODUCTION_RECIPES } from '../config/resources';
 import { upgradeStorage } from '../store/gameSlice';
 import { Warehouse } from '@mui/icons-material';
 import { getResourceImageWithFallback } from '../config/resourceImages';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+  ResponsiveContainer
+} from 'recharts';
 
 const PLACEHOLDER_ICON = '/images/icons/placeholder.png';
 const ResourceIcon = ({ iconUrls, alt, resourceId, ...props }) => {
@@ -46,7 +57,7 @@ const ResourceIcon = ({ iconUrls, alt, resourceId, ...props }) => {
 
 const Storage = () => {
   const dispatch = useDispatch();
-  const { credits, resources, unlockedResources, unlockedRecipes } = useSelector(state => state.game);
+  const { credits, resources, unlockedResources, unlockedRecipes, statistics } = useSelector(state => state.game);
   const theme = useTheme();
 
   // Alle Output-Resource-IDs aus den freigeschalteten Rezepten
@@ -71,8 +82,54 @@ const Storage = () => {
     dispatch(upgradeStorage(resourceId));
   };
 
+  // Add new state for chart data
+  const [resourceChartData, setResourceChartData] = useState([]);
+  const [financialChartData, setFinancialChartData] = useState([]);
+
+  // Add effect to update chart data
+  useEffect(() => {
+    const currentTime = Date.now();
+    const timeWindow = 5 * 60 * 1000; // 5 minutes
+
+    // Process resource history
+    const resourceData = Object.entries(statistics.resourceHistory).map(([resourceId, history]) => {
+      const filteredHistory = history.filter(entry => entry.timestamp > currentTime - timeWindow);
+      return {
+        resourceId,
+        data: filteredHistory.map(entry => ({
+          time: new Date(entry.timestamp).toLocaleTimeString(),
+          amount: entry.amount
+        }))
+      };
+    });
+
+    // Process financial history
+    const salesData = statistics.salesHistory
+      .filter(entry => entry.timestamp > currentTime - timeWindow)
+      .map(entry => ({
+        time: new Date(entry.timestamp).toLocaleTimeString(),
+        amount: entry.amount,
+        type: 'Sales'
+      }));
+
+    const purchaseData = statistics.purchaseHistory
+      .filter(entry => entry.timestamp > currentTime - timeWindow)
+      .map(entry => ({
+        time: new Date(entry.timestamp).toLocaleTimeString(),
+        amount: -entry.amount, // Negative for purchases
+        type: 'Purchases'
+      }));
+
+    const financialData = [...salesData, ...purchaseData].sort((a, b) => 
+      new Date(a.time) - new Date(b.time)
+    );
+
+    setResourceChartData(resourceData);
+    setFinancialChartData(financialData);
+  }, [statistics]);
+
   return (
-    <Box sx={{ p: 2 }}>
+    <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <Typography variant="h4" color="text.primary">
           Resource Storage
@@ -186,6 +243,61 @@ const Storage = () => {
           </TableBody>
         </Table>
       </TableContainer>
+
+      {/* Add charts section */}
+      <Box sx={{ mt: 4, p: 3, bgcolor: 'background.paper', borderRadius: 2 }}>
+        <Typography variant="h6" sx={{ mb: 2 }}>Storage Statistics</Typography>
+        
+        <Grid container spacing={3}>
+          {/* Resource History Chart */}
+          <Grid item xs={12}>
+            <Paper sx={{ p: 2 }}>
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>Resource Levels Over Time</Typography>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="time" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  {resourceChartData.map((resource, index) => (
+                    <Line
+                      key={resource.resourceId}
+                      type="monotone"
+                      data={resource.data}
+                      dataKey="amount"
+                      name={RESOURCES[resource.resourceId]?.name || resource.resourceId}
+                      stroke={`hsl(${index * 137.5 % 360}, 70%, 50%)`}
+                    />
+                  ))}
+                </LineChart>
+              </ResponsiveContainer>
+            </Paper>
+          </Grid>
+
+          {/* Financial Chart */}
+          <Grid item xs={12}>
+            <Paper sx={{ p: 2 }}>
+              <Typography variant="subtitle1" sx={{ mb: 1 }}>Financial Transactions</Typography>
+              <ResponsiveContainer width="100%" height={300}>
+                <LineChart data={financialChartData}>
+                  <CartesianGrid strokeDasharray="3 3" />
+                  <XAxis dataKey="time" />
+                  <YAxis />
+                  <Tooltip />
+                  <Legend />
+                  <Line
+                    type="monotone"
+                    dataKey="amount"
+                    name="Amount"
+                    stroke="#8884d8"
+                  />
+                </LineChart>
+              </ResponsiveContainer>
+            </Paper>
+          </Grid>
+        </Grid>
+      </Box>
     </Box>
   );
 };
