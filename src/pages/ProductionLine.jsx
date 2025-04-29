@@ -436,6 +436,16 @@ const ProductionLine = () => {
                       onError={e => { e.target.onerror = null; e.target.src = '/images/production/Placeholder.png'; }}
                     />
                     {renderResourceIcons(input.resourceId, input.amount)}
+                    {/* Anzeige unter den Input-Icons: */}
+                    {isGlobalStorage ? (
+                      <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5, mb: 0.5, fontSize: '0.98rem', fontWeight: 400, textAlign: 'center' }}>
+                        In stock: {stock}/{resources[input.resourceId]?.capacity ?? '-'}
+                      </Typography>
+                    ) : (
+                      <Typography variant="caption" sx={{ color: 'error.main', mt: 0.5, mb: 0.5, fontSize: '0.98rem', fontWeight: 400, textAlign: 'center' }}>
+                        {resource.name}: {singlePrice}$ · Total: {totalPrice}$
+                      </Typography>
+                    )}
                     <Box sx={{ display: 'flex', alignItems: 'flex-end', height: 48, mt: 2 }}>
                       <ToggleButtonGroup
                         value={inputConfig?.source || INPUT_SOURCES.PURCHASE_MODULE}
@@ -467,46 +477,6 @@ const ProductionLine = () => {
                         )}
                       </ToggleButtonGroup>
                     </Box>
-                    {/* Info below the active toggle */}
-                    {isGlobalStorage && (
-                      <Typography variant="subtitle2" sx={{ mt: 1, color: 'text.secondary', fontSize: '1rem' }}>
-                        In stock: {stock}
-                      </Typography>
-                    )}
-                    {/* Info-Text, wenn Resource nicht purchaseable ist */}
-                    {isGlobalStorage && !resource.purchasable && (
-                      <Typography variant="caption" sx={{ mt: 0.5, color: 'warning.main', fontSize: '0.95rem', display: 'block', textAlign: 'center' }}>
-                        This resource cannot be purchased and must be supplied from your global stock.
-                      </Typography>
-                    )}
-                    {isAutoBuy && (
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          bgcolor: 'rgba(255, 0, 0, 0.07)',
-                          border: '1.5px solid',
-                          borderColor: 'error.light',
-                          borderRadius: 2,
-                          px: 2,
-                          py: 1,
-                          mt: 4,
-                          minWidth: 90,
-                          boxShadow: 1,
-                          fontSize: '1.05rem',
-                          fontWeight: 600,
-                        }}
-                      >
-                        <Typography variant="subtitle2" sx={{ color: 'error.main', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 0.5, fontSize: '1.05rem' }}>
-                          <MonetizationOn sx={{ fontSize: 18, color: 'error.main', mr: 0.5 }} />
-                          {resource.name}: {singlePrice}$
-                        </Typography>
-                        <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 600, fontSize: '1.05rem' }}>
-                          Total: {totalPrice}$
-                        </Typography>
-                      </Box>
-                    )}
                   </Box>
                 </React.Fragment>
               );
