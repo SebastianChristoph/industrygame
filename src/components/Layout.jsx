@@ -261,7 +261,7 @@ const Layout = () => {
                   boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
                 }}
               >
-                <img src="/images/icons/Research.png" alt="Research" style={{ width: 22, height: 22, objectFit: 'contain', verticalAlign: 'middle', filter: 'invert(22%) sepia(98%) saturate(7492%) hue-rotate(202deg) brightness(97%) contrast(101%)' }} />
+                <img src="/images/icons/Research.png" alt="Research" style={{ width: 22, height: 22, objectFit: 'contain', verticalAlign: 'middle' }} />
                 <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '1rem' }}>{researchPoints.toLocaleString()}</Typography>
               </Box>
             </Tooltip>
