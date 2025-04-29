@@ -270,12 +270,19 @@ const gameSlice = createSlice({
           }
         }
       });
-      state.statistics.globalStatsHistory.push({
-        timestamp: Date.now(),
-        perPing: totalPerPing,
-        totalBalance: totalBalance,
-        credits: state.credits
-      });
+      // Schreibe nur, wenn mindestens eine Linie existiert
+      if (state.productionLines.length > 0) {
+        state.statistics.globalStatsHistory.push({
+          timestamp: Date.now(),
+          perPing: totalPerPing,
+          totalBalance: totalBalance,
+          credits: state.credits
+        });
+        // Optional: Limitiere die Länge auf 1000 Einträge
+        if (state.statistics.globalStatsHistory.length > 1000) {
+          state.statistics.globalStatsHistory = state.statistics.globalStatsHistory.slice(-1000);
+        }
+      }
     },
     unlockModule: (state, action) => {
       if (!state.unlockedModules.includes(action.payload)) {

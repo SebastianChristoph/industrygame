@@ -60,6 +60,7 @@ import {
   Legend,
   ResponsiveContainer
 } from 'recharts';
+import StorageInfoDialog from '../components/StorageInfoDialog';
 
 // @import url('https://fonts.googleapis.com/css2?family=Cal+Sans:wght@400;600;700&display=swap');
 
@@ -239,17 +240,19 @@ const MODULES_INFO = [
   },
 ];
 
-const ModuleSelectionPlaceholder = () => {
+const ModuleSelectionPlaceholder = ({ onModuleClick }) => {
   const navigate = useNavigate();
   const [hoveredIdx, setHoveredIdx] = React.useState(null);
+  const handleModuleImageClick = (tabKey) => {
+    onModuleClick(tabKey);
+  };
   return (
     <Box sx={{ width: '100%' }}>
-      
       <Box sx={{ width: '100%', display: 'flex', flexDirection: 'row', p: 0, m: 0, alignItems: 'center', justifyContent: 'center' }}>
         {MODULES_INFO.map((mod, idx) => (
           <Box
             key={idx}
-            onClick={() => navigate(`/research?tab=${mod.tabKey}`)}
+            onClick={() => handleModuleImageClick(mod.tabKey)}
             onMouseEnter={() => setHoveredIdx(idx)}
             onMouseLeave={() => setHoveredIdx(null)}
             sx={{
@@ -310,7 +313,6 @@ const ModuleSelectionPlaceholder = () => {
               </Box>
             )}
           </Box>
-          
         ))}
       </Box>
       <Box sx={{ width: '100%', textAlign: 'center', mb: 2, mt: 6 }}>
@@ -319,7 +321,6 @@ const ModuleSelectionPlaceholder = () => {
         </Typography>
       </Box>  
     </Box>
-    
   );
 };
 
@@ -344,6 +345,9 @@ const ProductionLines = () => {
   const [isModuleSelectionOpen, setIsModuleSelectionOpen] = useState(false);
   const [selectedModule, setSelectedModule] = useState('');
   const [statsChartData, setStatsChartData] = React.useState([]);
+  const [pendingModuleTab, setPendingModuleTab] = useState(null);
+  const [showStorageInfo, setShowStorageInfo] = useState(false);
+  const [hasAcceptedStorage, setHasAcceptedStorage] = useState(() => !!localStorage.getItem('storageInfoAccepted'));
 
   const checkNameUniqueness = (name) => {
     return !productionLines.some(line => 
@@ -778,12 +782,42 @@ const ProductionLines = () => {
     };
   };
 
+  const handleModuleClick = (tabKey) => {
+    if (!hasAcceptedStorage) {
+      setPendingModuleTab(tabKey);
+      setShowStorageInfo(true);
+    } else {
+      navigate(`/research?tab=${tabKey}`);
+    }
+  };
+
+  const handleStorageAccept = () => {
+    localStorage.setItem('storageInfoAccepted', 'true');
+    setHasAcceptedStorage(true);
+    setShowStorageInfo(false);
+    if (pendingModuleTab) {
+      navigate(`/research?tab=${pendingModuleTab}`);
+      setPendingModuleTab(null);
+    }
+  };
+
   // If no production lines exist and no modules are unlocked, show module selection
   if (productionLines.length === 0 && unlockedModules.length === 0) {
-    return <ModuleSelectionPlaceholder />;
+    return <>
+      <ModuleSelectionPlaceholder onModuleClick={handleModuleClick} />
+      <StorageInfoDialog 
+        open={showStorageInfo} 
+        onClose={() => setShowStorageInfo(false)}
+        onAccept={handleStorageAccept}
+      />
+    </>;
   }
 
   React.useEffect(() => {
+    if (productionLines.length === 0) {
+      setStatsChartData([]);
+      return;
+    }
     // Zeige die letzten 60 Minuten
     const currentTime = Date.now();
     const timeWindow = 60 * 60 * 1000;
@@ -794,7 +828,7 @@ const ProductionLines = () => {
       credits: e.credits
     }));
     setStatsChartData(data);
-  }, [statistics.globalStatsHistory]);
+  }, [statistics.globalStatsHistory, productionLines.length]);
 
   return (
     <>

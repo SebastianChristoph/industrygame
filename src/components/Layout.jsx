@@ -8,6 +8,7 @@ import {
   Warehouse,
   Help as HelpIcon,
   GitHub as GitHubIcon,
+  Memory as MemoryIcon,
 } from "@mui/icons-material";
 import {
   AppBar,
@@ -54,6 +55,11 @@ const menuItems = [
     text: 'Tutorial',
     icon: <HelpIcon />,
     path: '/tutorial'
+  },
+  {
+    text: 'Your Browser Data',
+    icon: <MemoryIcon />,
+    path: '/storage-overview'
   }
 ];
 
