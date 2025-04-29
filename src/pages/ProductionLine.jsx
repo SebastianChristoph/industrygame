@@ -344,6 +344,14 @@ const ProductionLine = () => {
     <Box sx={{ position: 'relative', minHeight: '100vh' }}>
       <style>{styles}</style>
       <Box sx={{ p: 3, position: 'relative', zIndex: 1 }}>
+        {/* Back-Button oben links über dem Titel */}
+        <Button
+          startIcon={<ArrowBack />}
+          onClick={() => navigate('/production')}
+          sx={{ mb: 2, boxShadow: 'none', border: 'none', color: 'primary.main', fontWeight: 600, fontSize: '1.1rem', pl: 0, minWidth: 0, '&:hover': { bgcolor: 'transparent', textDecoration: 'underline' } }}
+        >
+          Back
+        </Button>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, mb: 8 }}>
             <ResourceIcon
@@ -365,10 +373,39 @@ const ProductionLine = () => {
                 <DeleteIcon />
               </IconButton>
             </Tooltip>
-            {/* Minimalistische Bilanz-Anzeige: Ausgaben + Einnahmen = Bilanz */}
-         
           </Box>
-        
+          {/* Play/Stop Button rechts oben als Kreis-Button */}
+          <Tooltip title={
+            productionStatus?.error ? productionStatus.error :
+            !canStartProduction() ?
+            "Not enough resources, storage capacity or credits" :
+            productionStatus?.isActive ?
+            "Stop production" :
+            "Start production"
+          }>
+            <span>
+              <IconButton
+                onClick={handleToggleProduction}
+                disabled={!canStartProduction() && !productionStatus?.isActive}
+                sx={{
+                  bgcolor: productionStatus?.isActive ? "#f5f5f5" : "#f5f5f5",
+                  color: productionStatus?.isActive ? "#b71c1c" : "#222",
+                  width: 80,
+                  height: 80,
+                  borderRadius: "50%",
+                  boxShadow: 2,
+                  ml: 2,
+                  transition: 'background 0.2s, color 0.2s',
+                  '&:hover': {
+                    bgcolor: '#e0e0e0',
+                    color: productionStatus?.isActive ? "#b71c1c" : "#111"
+                  }
+                }}
+              >
+                {productionStatus?.isActive ? <Stop sx={{ fontSize: 48 }} /> : <PlayArrow sx={{ fontSize: 48 }} />}
+              </IconButton>
+            </span>
+          </Tooltip>
         </Box>
 
         {/* Neues Produktions-Layout */}
@@ -727,34 +764,8 @@ const ProductionLine = () => {
 
         {/* Steuerungs-Buttons unten rechts */}
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', mt: 6, gap: 2 }}>
-          <Tooltip title={
-            productionStatus?.error ? productionStatus.error :
-            !canStartProduction() ?
-            "Not enough resources, storage capacity or credits" :
-            productionStatus?.isActive ?
-            "Stop production" :
-            "Start production"
-          }>
-            <span>
-              <Button
-                variant="contained"
-                color={productionStatus?.isActive ? "error" : "primary"}
-                startIcon={productionStatus?.isActive ? <Stop /> : <PlayArrow />}
-                onClick={handleToggleProduction}
-                disabled={!canStartProduction() && !productionStatus?.isActive}
-              >
-                {productionStatus?.isActive ? "Stop" : "Start"}
-              </Button>
-            </span>
-          </Tooltip>
-          <Button
-            startIcon={<ArrowBack />}
-            onClick={() => navigate('/production')}
-            variant="outlined"
-            sx={{ ml: 2 }}
-          >
-            Back
-          </Button>
+          {/* Play/Stop Button entfernt, nur noch Zurück-Button */}
+          {/* Back-Button ist jetzt oben links, daher hier entfernt */}
         </Box>
 
         {/* Fehleranzeige wie gehabt */}
