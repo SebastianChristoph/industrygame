@@ -50,6 +50,16 @@ import { PRODUCTION_RECIPES, RESOURCES, OUTPUT_TARGETS, INPUT_SOURCES } from '..
 import { MODULES } from '../config/modules';
 import ProductionBackground from '../components/ProductionBackground';
 import { getResourceImageWithFallback } from '../config/resourceImages';
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip as RechartsTooltip,
+  Legend,
+  ResponsiveContainer
+} from 'recharts';
 
 // @import url('https://fonts.googleapis.com/css2?family=Cal+Sans:wght@400;600;700&display=swap');
 
@@ -322,6 +332,7 @@ const ProductionLines = () => {
   const productionStatus = useSelector(state => state.game.productionStatus);
   const unlockedModules = useSelector(state => state.game.unlockedModules);
   const unlockedRecipes = useSelector(state => state.game.unlockedRecipes);
+  const statistics = useSelector(state => state.game.statistics);
   
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -332,6 +343,7 @@ const ProductionLines = () => {
   const [nameError, setNameError] = useState('');
   const [isModuleSelectionOpen, setIsModuleSelectionOpen] = useState(false);
   const [selectedModule, setSelectedModule] = useState('');
+  const [statsChartData, setStatsChartData] = React.useState([]);
 
   const checkNameUniqueness = (name) => {
     return !productionLines.some(line => 
@@ -771,6 +783,19 @@ const ProductionLines = () => {
     return <ModuleSelectionPlaceholder />;
   }
 
+  React.useEffect(() => {
+    // Zeige die letzten 60 Minuten
+    const currentTime = Date.now();
+    const timeWindow = 60 * 60 * 1000;
+    const data = (statistics.globalStatsHistory || []).filter(e => e.timestamp > currentTime - timeWindow).map(e => ({
+      time: new Date(e.timestamp).toLocaleTimeString(),
+      perPing: e.perPing,
+      totalBalance: e.totalBalance,
+      credits: e.credits
+    }));
+    setStatsChartData(data);
+  }, [statistics.globalStatsHistory]);
+
   return (
     <>
       <ProductionBackground />
@@ -878,6 +903,87 @@ const ProductionLines = () => {
             }}
           />
         </Paper>
+
+        <Box sx={{ mt: 6, p: 3, bgcolor: 'background.paper', borderRadius: 2 }}>
+          <Typography variant="h6" sx={{ mb: 2 }}>Global Production Statistics (last 60 min)</Typography>
+          <Grid container spacing={3} sx={{ width: '100%', m: 0 }}>
+            {/* Profit/Loss per Ping over Time */}
+            <Grid item xs={12} md={4} lg={4} sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+              <Paper sx={{ p: 2, height: 320, display: 'flex', flexDirection: 'column' }}>
+                <Typography variant="subtitle1" sx={{ mb: 1 }}>Profit/Loss per Ping</Typography>
+                <Box sx={{ flex: 1, minHeight: 0 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={statsChartData} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="time" minTickGap={30} />
+                      <YAxis />
+                      <RechartsTooltip />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="perPing"
+                        name="Per Ping"
+                        stroke={statsChartData.length > 0 && statsChartData[statsChartData.length - 1].perPing < 0 ? '#e53935' : '#43a047'}
+                        dot={false}
+                        isAnimationActive={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </Box>
+              </Paper>
+            </Grid>
+            {/* Profit/Loss Total Balance over Time */}
+            <Grid item xs={12} md={4} lg={4} sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+              <Paper sx={{ p: 2, height: 320, display: 'flex', flexDirection: 'column' }}>
+                <Typography variant="subtitle1" sx={{ mb: 1 }}>Total Balance</Typography>
+                <Box sx={{ flex: 1, minHeight: 0 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={statsChartData} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="time" minTickGap={30} />
+                      <YAxis />
+                      <RechartsTooltip />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="totalBalance"
+                        name="Total Balance"
+                        stroke={statsChartData.length > 0 && statsChartData[statsChartData.length - 1].totalBalance < 0 ? '#e53935' : '#43a047'}
+                        dot={false}
+                        isAnimationActive={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </Box>
+              </Paper>
+            </Grid>
+            {/* Current Balance over Time */}
+            <Grid item xs={12} md={4} lg={4} sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+              <Paper sx={{ p: 2, height: 320, display: 'flex', flexDirection: 'column' }}>
+                <Typography variant="subtitle1" sx={{ mb: 1 }}>Current Balance (Credits)</Typography>
+                <Box sx={{ flex: 1, minHeight: 0 }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={statsChartData} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="time" minTickGap={30} />
+                      <YAxis />
+                      <RechartsTooltip />
+                      <Legend />
+                      <Line
+                        type="monotone"
+                        dataKey="credits"
+                        name="Credits"
+                        stroke="#1976d2"
+                        dot={false}
+                        isAnimationActive={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </Box>
+              </Paper>
+            </Grid>
+          </Grid>
+        </Box>
 
         <Dialog open={isCreateDialogOpen} onClose={() => setIsCreateDialogOpen(false)}>
           <DialogTitle>Create New Production Line</DialogTitle>

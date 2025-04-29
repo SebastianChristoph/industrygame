@@ -37,7 +37,8 @@ const initialState = {
     salesHistory: [], // [{ timestamp: number, amount: number, resourceId: string }]
     purchaseHistory: [], // [{ timestamp: number, amount: number, resourceId: string }]
     productionHistory: [], // [{ timestamp: number, productionLineId: number, amount: number }]
-    profitHistory: [] // [{ timestamp: number, profit: number }]
+    profitHistory: [], // [{ timestamp: number, profit: number, productionLineId: number }]
+    globalStatsHistory: [] // [{ timestamp, perPing, totalBalance, credits }]
   }
 };
 
@@ -228,6 +229,52 @@ const gameSlice = createSlice({
             state.credits += outputResource.basePrice * recipe.output.amount;
           }
         }
+      });
+
+      // Nach der Verarbeitung aller Linien:
+      // Summiere perPing und totalBalance wie im Header
+      let totalBalance = 0;
+      let totalPerPing = 0;
+      Object.values(state.productionLines).forEach(line => {
+        const config = state.productionConfigs[line.id];
+        const status = state.productionStatus[line.id];
+        if (status?.isActive) {
+          const recipe = config?.recipe ? PRODUCTION_RECIPES[config.recipe] : null;
+          if (recipe) {
+            // Bilanz-Logik wie in calculateLineBalanceLogic
+            const allInputsFromStock = recipe.inputs.every((input, idx) => {
+              const inputConfig = config.inputs[idx];
+              return inputConfig && inputConfig.source === INPUT_SOURCES.GLOBAL_STORAGE;
+            });
+            const purchaseCost = recipe.inputs.reduce((sum, input, idx) => {
+              const inputConfig = config.inputs[idx];
+              if (inputConfig && inputConfig.source === INPUT_SOURCES.PURCHASE_MODULE) {
+                return sum + RESOURCES[input.resourceId].basePrice * input.amount;
+              }
+              return sum;
+            }, 0);
+            const sellIncome = RESOURCES[recipe.output.resourceId].basePrice * recipe.output.amount;
+            const isSelling = config?.outputTarget === OUTPUT_TARGETS.AUTO_SELL;
+            const isStoring = config?.outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE;
+            let balance = 0;
+            if (allInputsFromStock && isStoring) {
+              balance = 0;
+            } else if (isSelling) {
+              balance = sellIncome - purchaseCost;
+            } else {
+              balance = -purchaseCost;
+            }
+            const balancePerPing = recipe.productionTime > 0 ? Math.round((balance / recipe.productionTime) * 100) / 100 : 0;
+            totalBalance += balance;
+            totalPerPing += balancePerPing;
+          }
+        }
+      });
+      state.statistics.globalStatsHistory.push({
+        timestamp: Date.now(),
+        perPing: totalPerPing,
+        totalBalance: totalBalance,
+        credits: state.credits
       });
     },
     unlockModule: (state, action) => {
