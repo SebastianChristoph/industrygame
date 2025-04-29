@@ -18,6 +18,7 @@ import { RESEARCH_TREE } from '../config/research';
 import { unlockModule, researchTechnology } from '../store/gameSlice';
 import { RESOURCES, PRODUCTION_RECIPES } from '../config/resources';
 import { getResourceImageWithFallback } from '../config/resourceImages';
+import { useLocation } from 'react-router-dom';
 
 // Hilfskomponente für Icon mit Fallback-Handling
 const PLACEHOLDER_ICON = '/images/icons/placeholder.png';
@@ -51,14 +52,28 @@ const Research = () => {
   const unlockedModules = useSelector(state => state.game.unlockedModules);
   const researchedTechnologies = useSelector(state => state.game.researchedTechnologies);
   const researchPoints = useSelector(state => state.game.researchPoints);
-  const [tab, setTab] = useState(0);
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const tabParam = params.get('tab'); // z.B. 'technology'
+
+  const moduleKeys = Object.keys(MODULES);
+  // Mapping von tabKey zu Index, unabhängig von Großschreibung der Keys in MODULES
+  const tabKeyToIndex = {
+    agriculture: moduleKeys.findIndex(key => MODULES[key].id === 'agriculture'),
+    technology: moduleKeys.findIndex(key => MODULES[key].id === 'technology'),
+    weapons: moduleKeys.findIndex(key => MODULES[key].id === 'weapons'),
+  };
+
+  const [tab, setTab] = useState(
+    tabParam && tabKeyToIndex[tabParam] !== -1 ? tabKeyToIndex[tabParam] : 0
+  );
   const cardRefs = useRef({});
   const [arrowPositions, setArrowPositions] = useState([]);
 
-  const moduleKeys = Object.keys(MODULES);
   const module = MODULES[moduleKeys[tab]];
   const moduleResearch = RESEARCH_TREE[module.id];
   const isUnlocked = unlockedModules.includes(module.id);
+  const hasEnoughPoints = researchPoints >= 500;
 
   const handleUnlockModule = (moduleId) => {
     if (researchPoints >= 500) {
@@ -270,11 +285,11 @@ const Research = () => {
               <Button
                 variant="contained"
                 fullWidth
-                disabled={isUnlocked}
-                onClick={() => handleUnlockModule(module.id)}
-                sx={{ mb: 2 }}
+                disabled={!hasEnoughPoints}
+                onClick={hasEnoughPoints ? () => handleUnlockModule(module.id) : undefined}
+                sx={{ mb: 2, bgcolor: !hasEnoughPoints ? 'grey.400' : undefined }}
               >
-                {isUnlocked ? 'Unlocked' : `Unlock (500 research points)`}
+                {hasEnoughPoints ? 'Unlock (500 research points)' : 'Not enough research points (500 needed)'}
               </Button>
               {renderModuleBaseUnlocks(module)}
             </>

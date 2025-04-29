@@ -18,7 +18,7 @@ import {
   Tooltip
 } from '@mui/material';
 import { Close, Warehouse } from '@mui/icons-material';
-import { RESOURCES, calculateUpgradeCost } from '../config/resources';
+import { RESOURCES, calculateUpgradeCost, PRODUCTION_RECIPES } from '../config/resources';
 import { getResourceImageWithFallback } from '../config/resourceImages';
 import { upgradeStorage } from '../store/gameSlice';
 
@@ -49,7 +49,25 @@ const ResourceIcon = ({ iconUrls, alt, resourceId, ...props }) => {
 
 const StorageDrawer = ({ open, onClose }) => {
   const dispatch = useDispatch();
-  const { credits, resources, unlockedResources } = useSelector(state => state.game);
+  const { credits, resources, unlockedResources, unlockedRecipes } = useSelector(state => state.game);
+
+  // Alle Output-Resource-IDs aus den freigeschalteten Rezepten
+  const unlockedOutputResources = new Set();
+  if (unlockedRecipes && Array.isArray(unlockedRecipes)) {
+    for (const recipeId of unlockedRecipes) {
+      const recipe = PRODUCTION_RECIPES[recipeId];
+      if (recipe && recipe.output && recipe.output.resourceId) {
+        unlockedOutputResources.add(recipe.output.resourceId);
+      }
+    }
+  }
+  const shouldShowResource = (id) =>
+    id !== 'research_points' && (
+      unlockedResources.includes(id) ||
+      ['water', 'seeds', 'iron', 'copper', 'coal', 'oil'].includes(id) ||
+      (resources[id] && resources[id].amount > 0) ||
+      unlockedOutputResources.has(id)
+    );
 
   const handleUpgradeStorage = (resourceId) => {
     dispatch(upgradeStorage(resourceId));
@@ -94,10 +112,7 @@ const StorageDrawer = ({ open, onClose }) => {
             </TableHead>
             <TableBody>
               {Object.entries(RESOURCES)
-                .filter(([id]) =>
-                  unlockedResources.includes(id) ||
-                  ['water', 'seeds', 'iron', 'copper', 'coal', 'oil'].includes(id)
-                )
+                .filter(([id]) => shouldShowResource(id))
                 .map(([id, resource]) => {
                   const resourceData = resources[id];
                   const percentage = (resourceData.amount / resourceData.capacity) * 100;

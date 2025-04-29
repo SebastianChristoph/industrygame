@@ -212,17 +212,20 @@ const MODULES_INFO = [
   {
     name: 'Agriculture Module',
     img: '/images/title_agriculture.png',
-    info: 'Enables the production of agricultural resources such as crops and food. Unlock this module to start building supply chains for the food industry and basic goods.'
+    info: 'Enables the production of agricultural resources such as crops and food. Unlock this module to start building supply chains for the food industry and basic goods.',
+    tabKey: 'agriculture'
   },
   {
     name: 'Technology Module',
     img: '/images/title_technology.png',
-    info: "Allows the production of advanced technology resources, including electronics and IT components. Unlock this module to develop high-tech products and boost your industry's efficiency."
+    info: "Allows the production of advanced technology resources, including electronics and IT components. Unlock this module to develop high-tech products and boost your industry's efficiency.",
+    tabKey: 'technology'
   },
   {
     name: 'Weapons Module',
     img: '/images/title_weapons.png',
-    info: 'Unlocks the production of weapons and military equipment. Use this module to manufacture arms for defense contracts or to expand into the security sector.'
+    info: 'Unlocks the production of weapons and military equipment. Use this module to manufacture arms for defense contracts or to expand into the security sector.',
+    tabKey: 'weapons'
   },
 ];
 
@@ -236,7 +239,7 @@ const ModuleSelectionPlaceholder = () => {
         {MODULES_INFO.map((mod, idx) => (
           <Box
             key={idx}
-            onClick={() => navigate('/research')}
+            onClick={() => navigate(`/research?tab=${mod.tabKey}`)}
             onMouseEnter={() => setHoveredIdx(idx)}
             onMouseLeave={() => setHoveredIdx(null)}
             sx={{
