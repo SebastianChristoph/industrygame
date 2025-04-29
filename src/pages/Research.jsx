@@ -96,6 +96,21 @@ const Research = () => {
   };
   const TECHNOLOGY_NAME_MAP = getAllTechnologyNames();
 
+  // Helper for displaying sell value only if resource is sellable
+  const getSellValueSpan = (resourceId) => {
+    const res = RESOURCES[resourceId];
+    if (!res || res.purchasable || resourceId === 'research_points' || res.basePrice === 0) return null;
+    // Only show for non-special, non-research, non-zero basePrice
+    if (resourceId !== 'research_points' && res.basePrice > 0 && res.purchasable !== false) {
+      return <span style={{ color: '#2e7d32', fontWeight: 600 }}>(+${res.basePrice})</span>;
+    }
+    // Show for all with basePrice > 0 and not research_points
+    if (resourceId !== 'research_points' && res.basePrice > 0 && res.purchasable === false) {
+      return <span style={{ color: '#2e7d32', fontWeight: 600 }}>(+${res.basePrice})</span>;
+    }
+    return null;
+  };
+
   // Hilfsfunktion für Freischaltungen
   const renderUnlocks = (unlocks) => {
     const purchasableResources = (unlocks?.resources || []).filter(
@@ -112,7 +127,7 @@ const Research = () => {
                 <Tooltip key={resourceId} title={RESOURCES[resourceId]?.name || resourceId}>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, bgcolor: 'action.hover', px: 1, py: 0.2, borderRadius: 1, fontSize: '0.85rem' }}>
                     <ResourceIcon iconUrls={getResourceImageWithFallback(resourceId, 'icon')} alt={RESOURCES[resourceId]?.name || resourceId} style={{ width: 22, height: 22, objectFit: 'contain', marginRight: 4, verticalAlign: 'middle' }} resourceId={resourceId} />
-                    {RESOURCES[resourceId]?.name || resourceId}
+                    {RESOURCES[resourceId]?.name || resourceId} {getSellValueSpan(resourceId)}
                   </Box>
                 </Tooltip>
               ))}
@@ -130,7 +145,7 @@ const Research = () => {
                     <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 0, bgcolor: 'action.hover', px: 1, py: 0.2, borderRadius: 1, fontSize: '0.85rem' }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <ResourceIcon iconUrls={getResourceImageWithFallback(recipe.output.resourceId, 'icon')} alt={RESOURCES[recipe.output.resourceId]?.name || recipe.output.resourceId} style={{ width: 22, height: 22, objectFit: 'contain', marginRight: 4, verticalAlign: 'middle' }} resourceId={recipe.output.resourceId} />
-                        {RESOURCES[recipe.output.resourceId]?.name || recipe.output.resourceId}
+                        {RESOURCES[recipe.output.resourceId]?.name || recipe.output.resourceId} {getSellValueSpan(recipe.output.resourceId)}
                       </Box>
                       <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
                         (Recipe: {recipe.inputs.map((input, idx) => `${input.amount}x ${RESOURCES[input.resourceId]?.name || input.resourceId}`).join(' + ')} = {recipe.output.amount}x {RESOURCES[recipe.output.resourceId]?.name || recipe.output.resourceId})
@@ -157,7 +172,7 @@ const Research = () => {
               <Tooltip key={resourceId} title={RESOURCES[resourceId]?.name || resourceId}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, bgcolor: 'action.hover', px: 1, py: 0.2, borderRadius: 1, fontSize: '0.95rem' }}>
                   <ResourceIcon iconUrls={getResourceImageWithFallback(resourceId, 'icon')} alt={RESOURCES[resourceId]?.name || resourceId} style={{ width: 22, height: 22, objectFit: 'contain', marginRight: 4, verticalAlign: 'middle' }} resourceId={resourceId} />
-                  {RESOURCES[resourceId]?.name || resourceId}
+                  {RESOURCES[resourceId]?.name || resourceId} {getSellValueSpan(resourceId)}
                 </Box>
               </Tooltip>
             ))}
@@ -177,7 +192,7 @@ const Research = () => {
                   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 0, bgcolor: 'action.hover', px: 1, py: 0.2, borderRadius: 1, fontSize: '0.95rem', minWidth: 160 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                       <ResourceIcon iconUrls={getResourceImageWithFallback(recipe.output.resourceId, 'icon')} alt={RESOURCES[recipe.output.resourceId]?.name || recipe.output.resourceId} style={{ width: 22, height: 22, objectFit: 'contain', marginRight: 4, verticalAlign: 'middle' }} resourceId={recipe.output.resourceId} />
-                      {recipe.name}
+                      {RESOURCES[recipe.output.resourceId]?.name || recipe.output.resourceId} {getSellValueSpan(recipe.output.resourceId)}
                     </Box>
                     <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
                       (Recipe: {recipe.inputs.map((input, idx) => `${input.amount}x ${RESOURCES[input.resourceId]?.name || input.resourceId}`).join(' + ')} = {recipe.output.amount}x {outputRes?.name || recipe.output.resourceId})
@@ -322,7 +337,7 @@ const Research = () => {
                     const hasEnoughPoints = researchPoints >= technology.cost;
                     const canResearch = isUnlocked && canResearchTechnology(technology) && hasEnoughPoints;
                     let buttonLabel = isResearched ? 'Researched' : `Research (${technology.cost} research points)`;
-                    if (!isResearched && !hasEnoughPoints) buttonLabel = 'Not enough research points';
+                    if (!isResearched && !hasEnoughPoints) buttonLabel = `Not enough research points (${technology.cost} needed)`;
                     return (
                       <Card
                         key={technology.id}
@@ -359,7 +374,7 @@ const Research = () => {
                               size="small"
                               disabled={!canResearch}
                               onClick={() => handleResearchTechnology(technology.id, technology.cost)}
-                              sx={{ fontSize: '1rem', py: 0.5, borderRadius: 2 }}
+                              sx={{ fontSize: '1rem', py: 0.5, borderRadius: 2, minHeight: 48, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                             >
                               {buttonLabel}
                             </Button>

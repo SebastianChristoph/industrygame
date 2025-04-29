@@ -34,6 +34,38 @@ export const RESEARCH_TREE = {
         cost: 600,
         requirements: ['BAKERY'],
         unlocks: { recipes: ['biofuel'] }
+      },
+      ORGANIC_FARMING: {
+        id: 'ORGANIC_FARMING',
+        name: 'Organic Farming',
+        description: 'Unlock organic fertilizer production.',
+        cost: 800,
+        requirements: ['BIOFUEL'],
+        unlocks: { recipes: ['organic_fertilizer'] }
+      },
+      GENETIC_ENGINEERING: {
+        id: 'GENETIC_ENGINEERING',
+        name: 'Genetic Engineering',
+        description: 'Create hybrid seeds for better yields.',
+        cost: 1200,
+        requirements: ['ORGANIC_FARMING'],
+        unlocks: { recipes: ['hybrid_seeds'] }
+      },
+      VITICULTURE: {
+        id: 'VITICULTURE',
+        name: 'Viticulture',
+        description: 'Master the art of wine making.',
+        cost: 1600,
+        requirements: ['GENETIC_ENGINEERING'],
+        unlocks: { recipes: ['premium_wine'] }
+      },
+      GOURMET_CUISINE: {
+        id: 'GOURMET_CUISINE',
+        name: 'Gourmet Cuisine',
+        description: 'Create luxury food products.',
+        cost: 2000,
+        requirements: ['VITICULTURE'],
+        unlocks: { recipes: ['luxury_food'] }
       }
     }
   },
@@ -72,6 +104,38 @@ export const RESEARCH_TREE = {
         cost: 1200,
         requirements: ['COMPUTER_SCIENCE'],
         unlocks: { recipes: ['quantum_chip'] }
+      },
+      RENEWABLE_ENERGY: {
+        id: 'RENEWABLE_ENERGY',
+        name: 'Renewable Energy',
+        description: 'Develop solar panel technology.',
+        cost: 800,
+        requirements: ['PCB_DESIGN'],
+        unlocks: { recipes: ['solar_panel'] }
+      },
+      SMART_DEVICES: {
+        id: 'SMART_DEVICES',
+        name: 'Smart Devices',
+        description: 'Create advanced consumer electronics.',
+        cost: 1000,
+        requirements: ['COMPUTER_SCIENCE'],
+        unlocks: { recipes: ['smart_device'] }
+      },
+      ARTIFICIAL_INTELLIGENCE: {
+        id: 'ARTIFICIAL_INTELLIGENCE',
+        name: 'Artificial Intelligence',
+        description: 'Develop AI processors.',
+        cost: 1600,
+        requirements: ['QUANTUM_TECH'],
+        unlocks: { recipes: ['ai_processor'] }
+      },
+      QUANTUM_COMPUTING: {
+        id: 'QUANTUM_COMPUTING',
+        name: 'Quantum Computing',
+        description: 'Build quantum computers.',
+        cost: 2000,
+        requirements: ['ARTIFICIAL_INTELLIGENCE'],
+        unlocks: { recipes: ['quantum_computer'] }
       }
     }
   },
@@ -110,6 +174,38 @@ export const RESEARCH_TREE = {
         cost: 1000,
         requirements: ['FIREARMS'],
         unlocks: { recipes: ['tank'] }
+      },
+      ADVANCED_ARMOR: {
+        id: 'ADVANCED_ARMOR',
+        name: 'Advanced Armor',
+        description: 'Develop enhanced protective gear.',
+        cost: 800,
+        requirements: ['FIREARMS'],
+        unlocks: { recipes: ['advanced_armor'] }
+      },
+      DRONE_TECHNOLOGY: {
+        id: 'DRONE_TECHNOLOGY',
+        name: 'Drone Technology',
+        description: 'Create combat drones.',
+        cost: 1200,
+        requirements: ['ADVANCED_ARMOR'],
+        unlocks: { recipes: ['combat_drone'] }
+      },
+      MISSILE_SYSTEMS: {
+        id: 'MISSILE_SYSTEMS',
+        name: 'Missile Systems',
+        description: 'Develop advanced missile technology.',
+        cost: 1600,
+        requirements: ['DRONE_TECHNOLOGY'],
+        unlocks: { recipes: ['missile_system'] }
+      },
+      MECH_SUITS: {
+        id: 'MECH_SUITS',
+        name: 'Mech Suits',
+        description: 'Create advanced combat exoskeletons.',
+        cost: 2000,
+        requirements: ['MISSILE_SYSTEMS'],
+        unlocks: { recipes: ['mech_suit'] }
       }
     }
   }
