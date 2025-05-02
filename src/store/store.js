@@ -2,6 +2,7 @@ import { configureStore, combineReducers } from '@reduxjs/toolkit';
 import { persistStore, persistReducer } from 'redux-persist';
 import storage from 'redux-persist/lib/storage';
 import gameReducer from './gameSlice';
+import { encryptTransform } from '../utils/encryptTransform';
 
 const rootReducer = combineReducers({
   game: gameReducer,
@@ -10,6 +11,7 @@ const rootReducer = combineReducers({
 const persistConfig = {
   key: 'root',
   storage,
+  transforms: [encryptTransform],
   // Keine whitelist mehr, wir persistieren den gesamten Root-State
 };
 
