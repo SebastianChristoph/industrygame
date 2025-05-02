@@ -855,9 +855,9 @@ const ProductionLines = () => {
   return (
     <>
       <ProductionBackground />
-      <Box sx={{ p: 3 }}>
+      <Box sx={{ p: { xs: 1, sm: 2, md: 3 }, overflowX: 'hidden', maxWidth: '100vw' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-          <Typography variant="h4" sx={{ flex: 1 }}>
+          <Typography variant="h4" sx={{ flex: 1, fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' } }}>
             Production Lines
           </Typography>
         </Box>
@@ -868,6 +868,11 @@ const ProductionLines = () => {
             startIcon={<AddIcon />}
             onClick={handleAddLine}
             disabled={!canAffordNewLine}
+            fullWidth
+            sx={{ 
+              maxWidth: { xs: '100%', sm: '300px' },
+              fontSize: { xs: '0.875rem', sm: '1rem' }
+            }}
           >
             NEW PRODUCTION LINE ({formatMoney(newLineCost)}$)
           </Button>
@@ -880,23 +885,26 @@ const ProductionLines = () => {
             />
           )}
         </Box>
-        {/* Summen-Box wie in Screenshot 2, zentriert und schwebend */}
-        <Box sx={{ width: '100%', ml: "800px", mb: 3 }}>
+        {/* Summen-Box - jetzt responsiv */}
+        <Box sx={{ 
+          width: '100%', 
+          display: 'flex',
+          justifyContent: { xs: 'center', md: 'flex-end' },
+          mb: 3 
+        }}>
           <Box sx={{
             display: 'flex',
-            flexDirection: 'row',
+            flexDirection: { xs: 'column', md: 'row' },
             alignItems: 'center',
-            justifyContent: 'center',
-            gap: 8,
+            gap: { xs: 2, md: 8 },
             bgcolor: 'background.paper',
             borderRadius: 8,
             boxShadow: 2,
             border: '1px solid',
             borderColor: 'divider',
-            minWidth: 0,
-            width: 'max-content',
+            width: { xs: '100%', md: 'auto' },
             py: 2,
-            px: 10,
+            px: { xs: 2, md: 10 },
           }}>
             {(() => {
               let totalBalance = 0;
@@ -914,29 +922,61 @@ const ProductionLines = () => {
               const colorPing = totalPerPing > 0 ? 'success.main' : totalPerPing < 0 ? 'error.main' : 'warning.main';
               return (
                 <>
-                  <Box>
-                  <Typography variant="h3" sx={{ fontWeight: 700, minWidth: 120, textAlign: 'center', px: 4 }}>
-                    Total Balance:
+                  <Box sx={{ width: { xs: '100%', md: 'auto' } }}>
+                    <Typography variant="h3" sx={{ 
+                      fontWeight: 700, 
+                      minWidth: { xs: 'auto', md: 120 }, 
+                      textAlign: 'center', 
+                      px: { xs: 1, md: 4 },
+                      fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2rem' }
+                    }}>
+                      Total Balance:
                     </Typography>
-                  <Typography variant="h3" sx={{ fontWeight: 700, color: colorTotal, minWidth: 120, textAlign: 'center', px: 4 }}>
-                    {totalBalance >= 0 ? '+' : ''}{formatMoney(totalBalance)}$
+                    <Typography variant="h3" sx={{ 
+                      fontWeight: 700, 
+                      color: colorTotal, 
+                      minWidth: { xs: 'auto', md: 120 }, 
+                      textAlign: 'center', 
+                      px: { xs: 1, md: 4 },
+                      fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2rem' }
+                    }}>
+                      {totalBalance >= 0 ? '+' : ''}{formatMoney(totalBalance)}$
                     </Typography>
                   </Box>
-                  <Box>
-                  <Typography variant="h3" sx={{ fontWeight: 700, minWidth: 120, textAlign: 'center', px: 4 }}>
-                    Balance per Ping:
+                  <Box sx={{ width: { xs: '100%', md: 'auto' } }}>
+                    <Typography variant="h3" sx={{ 
+                      fontWeight: 700, 
+                      minWidth: { xs: 'auto', md: 120 }, 
+                      textAlign: 'center', 
+                      px: { xs: 1, md: 4 },
+                      fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2rem' }
+                    }}>
+                      Balance per Ping:
                     </Typography>
-                  <Typography variant="h3" sx={{ fontWeight: 700, color: colorPing, minWidth: 120, textAlign: 'center', px: 4 }}>
-                    {totalPerPing >= 0 ? '+' : ''}{formatMoney(totalPerPing)}$
+                    <Typography variant="h3" sx={{ 
+                      fontWeight: 700, 
+                      color: colorPing, 
+                      minWidth: { xs: 'auto', md: 120 }, 
+                      textAlign: 'center', 
+                      px: { xs: 1, md: 4 },
+                      fontSize: { xs: '1.25rem', sm: '1.5rem', md: '2rem' }
+                    }}>
+                      {totalPerPing >= 0 ? '+' : ''}{formatMoney(totalPerPing)}$
                     </Typography>
-                    </Box>
+                  </Box>
                 </>
               );
             })()}
           </Box>
         </Box>
 
-        <Paper sx={{ height: 600, width: '100%' }}>
+        <Paper sx={{ 
+          height: { xs: 400, sm: 500, md: 600 }, 
+          width: '100%',
+          '& .MuiDataGrid-root': {
+            fontSize: { xs: '0.875rem', sm: '1rem' }
+          }
+        }}>
           <DataGrid
             rows={productionLines}
             columns={columns}
@@ -969,13 +1009,25 @@ const ProductionLines = () => {
           />
         </Paper>
 
-        <Box sx={{ mt: 6, p: 3, bgcolor: 'background.paper', borderRadius: 2 }}>
-          <Typography variant="h6" sx={{ mb: 2 }}>Global Production Statistics (last 60 min)</Typography>
-          <Grid container spacing={3} sx={{ width: '100%', m: 0 }}>
+        <Box sx={{ 
+          mt: { xs: 3, md: 6 }, 
+          p: { xs: 1, sm: 2, md: 3 }, 
+          bgcolor: 'background.paper', 
+          borderRadius: 2 
+        }}>
+          <Typography variant="h6" sx={{ 
+            mb: 2,
+            fontSize: { xs: '1rem', sm: '1.25rem' }
+          }}>
+            Global Production Statistics (last 60 min)
+          </Typography>
+          <Grid container spacing={{ xs: 1, sm: 2, md: 3 }} sx={{ width: '100%', m: 0 }}>
             {/* Profit/Loss per Ping over Time */}
             <Grid item xs={12} md={4} lg={4} sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-              <Paper sx={{ p: 2, height: 320, display: 'flex', flexDirection: 'column' }}>
-                <Typography variant="subtitle1" sx={{ mb: 1 }}>Profit/Loss per Ping</Typography>
+              <Paper sx={{ p: { xs: 1, sm: 2 }, height: { xs: 250, sm: 300, md: 320 }, display: 'flex', flexDirection: 'column' }}>
+                <Typography variant="subtitle1" sx={{ mb: 1, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+                  Profit/Loss per Ping
+                </Typography>
                 <Box sx={{ flex: 1, minHeight: 0 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={statsChartData} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
@@ -999,8 +1051,10 @@ const ProductionLines = () => {
             </Grid>
             {/* Profit/Loss Total Balance over Time */}
             <Grid item xs={12} md={4} lg={4} sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-              <Paper sx={{ p: 2, height: 320, display: 'flex', flexDirection: 'column' }}>
-                <Typography variant="subtitle1" sx={{ mb: 1 }}>Total Balance</Typography>
+              <Paper sx={{ p: { xs: 1, sm: 2 }, height: { xs: 250, sm: 300, md: 320 }, display: 'flex', flexDirection: 'column' }}>
+                <Typography variant="subtitle1" sx={{ mb: 1, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+                  Total Balance
+                </Typography>
                 <Box sx={{ flex: 1, minHeight: 0 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={statsChartData} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
@@ -1024,8 +1078,10 @@ const ProductionLines = () => {
             </Grid>
             {/* Current Balance over Time */}
             <Grid item xs={12} md={4} lg={4} sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-              <Paper sx={{ p: 2, height: 320, display: 'flex', flexDirection: 'column' }}>
-                <Typography variant="subtitle1" sx={{ mb: 1 }}>Current Balance (Credits)</Typography>
+              <Paper sx={{ p: { xs: 1, sm: 2 }, height: { xs: 250, sm: 300, md: 320 }, display: 'flex', flexDirection: 'column' }}>
+                <Typography variant="subtitle1" sx={{ mb: 1, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
+                  Current Balance (Credits)
+                </Typography>
                 <Box sx={{ flex: 1, minHeight: 0 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={statsChartData} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>

@@ -63,6 +63,111 @@ const menuItems = [
   }
 ];
 
+const MobileStatsAndGitHub = ({ totalPerPing, totalBalance, researchPoints, theme }) => (
+  <Box
+    sx={{
+      display: { xs: 'flex', sm: 'none' },
+      flexDirection: 'column',
+      gap: 1.5,
+      p: 2,
+      borderTop: `1px solid ${theme.palette.divider}`,
+      bgcolor: theme.palette.background.paper,
+      position: 'absolute',
+      bottom: 0,
+      left: 0,
+      width: '100%',
+      zIndex: 10,
+    }}
+  >
+    <Box sx={{ display: 'flex', gap: 1, width: '100%' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5,
+          px: 1,
+          py: 0.25,
+          bgcolor: '#fff',
+          color: theme.palette.primary.main,
+          borderRadius: '16px',
+          border: `1.5px solid ${theme.palette.primary.main}`,
+          fontWeight: 600,
+          fontSize: '0.95rem',
+          minWidth: '70px',
+          boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
+        }}
+      >
+        <BalanceIcon sx={{ color: theme.palette.primary.main, fontSize: '1rem' }} />
+        <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '0.95rem' }}>{totalPerPing >= 0 ? '+' : ''}{totalPerPing.toFixed(2)}</Typography>
+      </Box>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5,
+          px: 1,
+          py: 0.25,
+          bgcolor: '#fff',
+          color: theme.palette.primary.main,
+          borderRadius: '16px',
+          border: `1.5px solid ${theme.palette.primary.main}`,
+          fontWeight: 600,
+          fontSize: '0.95rem',
+          minWidth: '70px',
+          boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
+        }}
+      >
+        <BalanceIcon sx={{ color: theme.palette.primary.main, fontSize: '1rem' }} />
+        <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '0.95rem' }}>{totalBalance >= 0 ? '+' : ''}{totalBalance.toFixed(2)}</Typography>
+      </Box>
+    </Box>
+    <Box sx={{ display: 'flex', gap: 1, width: '100%' }}>
+      <Box
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 0.5,
+          px: 1,
+          py: 0.25,
+          bgcolor: '#fff',
+          color: theme.palette.primary.main,
+          borderRadius: '16px',
+          border: `1.5px solid ${theme.palette.primary.main}`,
+          fontWeight: 600,
+          fontSize: '0.95rem',
+          minWidth: '70px',
+          boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
+        }}
+      >
+        <img src="/images/icons/Research.png" alt="Research" style={{ width: 22, height: 22, objectFit: 'contain', verticalAlign: 'middle' }} />
+        <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '0.95rem' }}>{researchPoints.toLocaleString()}</Typography>
+      </Box>
+    </Box>
+    <Button
+      sx={{
+        color: theme.palette.primary.main,
+        bgcolor: '#fff',
+        border: `2px solid ${theme.palette.primary.main}`,
+        borderRadius: '16px',
+        fontWeight: 700,
+        fontSize: '1rem',
+        px: 3,
+        py: 1,
+        boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
+        '&:hover': {
+          bgcolor: '#FFE3C2',
+          borderColor: theme.palette.primary.light,
+        },
+        width: '100%',
+      }}
+      startIcon={<GitHubIcon sx={{ color: theme.palette.primary.main }} />}
+      onClick={() => window.open('https://github.com/SebastianChristoph/industrygame', '_blank')}
+    >
+      GitHub
+    </Button>
+  </Box>
+);
+
 const Layout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [storageOpen, setStorageOpen] = useState(false);
@@ -136,7 +241,14 @@ const Layout = () => {
       <List>
         {menuItems.map((item) => (
           <ListItem key={item.text} disablePadding>
-            <ListItemButton component={Link} to={item.path}>
+            <ListItemButton
+              component={Link}
+              to={item.path}
+              onClick={() => {
+                // Drawer nur auf Mobile schließen
+                if (window.innerWidth < 600) setMobileOpen(false);
+              }}
+            >
               <ListItemIcon>{item.icon}</ListItemIcon>
               <ListItemText primary={item.text} />
             </ListItemButton>
@@ -166,157 +278,189 @@ const Layout = () => {
           zIndex: (theme) => theme.zIndex.drawer + 1,
         }}
       >
-        <Toolbar disableGutters sx={{ minHeight: '64px !important', px: 4, width: '100%' }}>
+        <Toolbar disableGutters sx={{ minHeight: '64px !important', px: { xs: 1, sm: 4 }, width: '100%' }}>
+          {/* Burger-Menü für Mobile */}
+          <IconButton
+            color="inherit"
+            aria-label="open drawer"
+            edge="start"
+            onClick={handleDrawerToggle}
+            sx={{
+              mr: 1,
+              display: { xs: 'inline-flex', sm: 'none' },
+            }}
+          >
+            <MenuIcon />
+          </IconButton>
           <Typography
             variant="h4"
             sx={{
               flexGrow: 1,
-              fontSize: '1.65rem',
+              fontSize: { xs: '1.2rem', sm: '1.65rem' },
               fontWeight: 600,
               color: '#fff',
-              ml: 2,
+              ml: { xs: 1, sm: 2 },
+              whiteSpace: 'nowrap',
             }}
           >
             Industry Game
           </Typography>
 
-          <Box sx={{ display: 'flex', gap: 2, alignItems: 'center', mr: 2 }}>
-            <PingIndicator />
-            {/* Nur Bilanz pro Ping anzeigen */}
-            <Tooltip title="Profit/Loss per Ping">
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.5,
-                  px: 2,
-                  py: 0.5,
-                  bgcolor: '#fff',
-                  color: theme.palette.primary.main,
-                  borderRadius: '16px',
-                  border: `2px solid ${theme.palette.primary.main}`,
-                  fontWeight: 600,
-                  fontSize: '1rem',
-                  boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
-                }}
-              >
-                <BalanceIcon sx={{ color: theme.palette.primary.main, fontSize: '1.1rem' }} />
-                <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '1rem' }}>{totalPerPing >= 0 ? '+' : ''}{totalPerPing.toFixed(2)}</Typography>
-              </Box>
-            </Tooltip>
-            {/* Total Balance anzeigen */}
-            <Tooltip title="Total Balance (all lines)">
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.5,
-                  px: 2,
-                  py: 0.5,
-                  bgcolor: '#fff',
-                  color: theme.palette.primary.main,
-                  borderRadius: '16px',
-                  border: `2px solid ${theme.palette.primary.main}`,
-                  fontWeight: 600,
-                  fontSize: '1rem',
-                  minWidth: '100px',
-                  boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
-                }}
-              >
-                <BalanceIcon sx={{ color: theme.palette.primary.main, fontSize: '1.1rem' }} />
-                <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '1rem' }}>{totalBalance >= 0 ? '+' : ''}{totalBalance.toFixed(2)}</Typography>
-              </Box>
-            </Tooltip>
-            <Tooltip title="Current Balance">
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.5,
-                  px: 2,
-                  py: 0.5,
-                  bgcolor: '#fff',
-                  color: theme.palette.primary.main,
-                  borderRadius: '16px',
-                  border: `2px solid ${theme.palette.primary.main}`,
-                  fontWeight: 600,
-                  fontSize: '1rem',
-                  minWidth: '100px',
-                  boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
-                }}
-              >
-                <MoneyIcon sx={{ color: theme.palette.primary.main, fontSize: '1.1rem' }} />
-                <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '1rem' }}>${credits.toLocaleString()}</Typography>
-              </Box>
-            </Tooltip>
-            <Tooltip title="Research Points">
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 0.5,
-                  px: 2,
-                  py: 0.5,
-                  bgcolor: '#fff',
-                  color: theme.palette.primary.main,
-                  borderRadius: '16px',
-                  border: `2px solid ${theme.palette.primary.main}`,
-                  fontWeight: 600,
-                  fontSize: '1rem',
-                  minWidth: '100px',
-                  boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
-                }}
-              >
-                <img src="/images/icons/Research.png" alt="Research" style={{ width: 22, height: 22, objectFit: 'contain', verticalAlign: 'middle' }} />
-                <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '1rem' }}>{researchPoints.toLocaleString()}</Typography>
-              </Box>
-            </Tooltip>
-            <Tooltip title="Open Storage">
-              <Button
-                sx={{
-                  color: theme.palette.primary.main,
-                  bgcolor: '#fff',
-                  border: `2px solid ${theme.palette.primary.main}`,
-                  borderRadius: '16px',
-                  fontWeight: 700,
-                  fontSize: '1rem',
-                  px: 3,
-                  py: 1,
-                  boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
-                  '&:hover': {
-                    bgcolor: '#FFE3C2',
-                    borderColor: theme.palette.primary.light,
-                  },
-                }}
-                startIcon={<Warehouse sx={{ color: theme.palette.primary.main }} />}
-                onClick={() => setStorageOpen(true)}
-              >
-                Storage
-              </Button>
-            </Tooltip>
-            <Tooltip title="View on GitHub">
-              <Button
-                sx={{
-                  color: theme.palette.primary.main,
-                  bgcolor: '#fff',
-                  border: `2px solid ${theme.palette.primary.main}`,
-                  borderRadius: '16px',
-                  fontWeight: 700,
-                  fontSize: '1rem',
-                  px: 3,
-                  py: 1,
-                  boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
-                  '&:hover': {
-                    bgcolor: '#FFE3C2',
-                    borderColor: theme.palette.primary.light,
-                  },
-                }}
-                startIcon={<GitHubIcon sx={{ color: theme.palette.primary.main }} />}
-                onClick={() => window.open('https://github.com/SebastianChristoph/industrygame', '_blank')}
-              >
-                GitHub
-              </Button>
-            </Tooltip>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: { xs: 1, sm: 2, md: 2 },
+              mr: { xs: 0.5, sm: 2, md: 2 },
+              overflowX: { xs: 'auto', md: 'visible' },
+              whiteSpace: { xs: 'nowrap', md: 'normal' },
+              maxWidth: { xs: 'calc(100vw - 120px)', md: 'none' },
+              '& > *': { flexShrink: 0 },
+            }}
+          >
+            {/* Credits-Box immer sichtbar */}
+            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+              <Tooltip title="Current Balance">
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    px: { xs: 1, sm: 2 },
+                    py: { xs: 0.25, sm: 0.5 },
+                    bgcolor: '#fff',
+                    color: theme.palette.primary.main,
+                    borderRadius: '16px',
+                    border: `1.5px solid ${theme.palette.primary.main}`,
+                    fontWeight: 600,
+                    fontSize: { xs: '0.95rem', sm: '1rem' },
+                    minWidth: { xs: '70px', sm: '100px' },
+                    boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
+                  }}
+                >
+                  <MoneyIcon sx={{ color: theme.palette.primary.main, fontSize: { xs: '1rem', sm: '1.1rem' } }} />
+                  <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: { xs: '0.95rem', sm: '1rem' } }}>${credits.toLocaleString()}</Typography>
+                </Box>
+              </Tooltip>
+            </Box>
+            <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 2 }}>
+              <PingIndicator />
+              {/* Bilanz pro Ping und Total Balance nur ab md */}
+              <Tooltip title="Profit/Loss per Ping">
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    px: 2,
+                    py: 0.5,
+                    bgcolor: '#fff',
+                    color: theme.palette.primary.main,
+                    borderRadius: '16px',
+                    border: `1.5px solid ${theme.palette.primary.main}`,
+                    fontWeight: 600,
+                    fontSize: '1rem',
+                    boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
+                  }}
+                >
+                  <BalanceIcon sx={{ color: theme.palette.primary.main, fontSize: '1.1rem' }} />
+                  <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '1rem' }}>{totalPerPing >= 0 ? '+' : ''}{totalPerPing.toFixed(2)}</Typography>
+                </Box>
+              </Tooltip>
+              <Tooltip title="Total Balance (all lines)">
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    px: 2,
+                    py: 0.5,
+                    bgcolor: '#fff',
+                    color: theme.palette.primary.main,
+                    borderRadius: '16px',
+                    border: `1.5px solid ${theme.palette.primary.main}`,
+                    fontWeight: 600,
+                    fontSize: '1rem',
+                    minWidth: '100px',
+                    boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
+                  }}
+                >
+                  <BalanceIcon sx={{ color: theme.palette.primary.main, fontSize: '1.1rem' }} />
+                  <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '1rem' }}>{totalBalance >= 0 ? '+' : ''}{totalBalance.toFixed(2)}</Typography>
+                </Box>
+              </Tooltip>
+              <Tooltip title="Research Points">
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    px: 2,
+                    py: 0.5,
+                    bgcolor: '#fff',
+                    color: theme.palette.primary.main,
+                    borderRadius: '16px',
+                    border: `1.5px solid ${theme.palette.primary.main}`,
+                    fontWeight: 600,
+                    fontSize: '1rem',
+                    minWidth: '100px',
+                    boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
+                  }}
+                >
+                  <img src="/images/icons/Research.png" alt="Research" style={{ width: 22, height: 22, objectFit: 'contain', verticalAlign: 'middle' }} />
+                  <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '1rem' }}>{researchPoints.toLocaleString()}</Typography>
+                </Box>
+              </Tooltip>
+            </Box>
+            {/* Storage & GitHub: nur ab md im Header sichtbar */}
+            <Box sx={{ display: { xs: 'none', md: 'flex' }, alignItems: 'center', gap: 2 }}>
+              <Tooltip title="Open Storage">
+                <Button
+                  sx={{
+                    color: theme.palette.primary.main,
+                    bgcolor: '#fff',
+                    border: `2px solid ${theme.palette.primary.main}`,
+                    borderRadius: '16px',
+                    fontWeight: 700,
+                    fontSize: '1rem',
+                    px: 3,
+                    py: 1,
+                    boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
+                    '&:hover': {
+                      bgcolor: '#FFE3C2',
+                      borderColor: theme.palette.primary.light,
+                    },
+                  }}
+                  startIcon={<Warehouse sx={{ color: theme.palette.primary.main }} />}
+                  onClick={() => setStorageOpen(true)}
+                >
+                  Storage
+                </Button>
+              </Tooltip>
+              <Tooltip title="View on GitHub">
+                <Button
+                  sx={{
+                    color: theme.palette.primary.main,
+                    bgcolor: '#fff',
+                    border: `2px solid ${theme.palette.primary.main}`,
+                    borderRadius: '16px',
+                    fontWeight: 700,
+                    fontSize: '1rem',
+                    px: 3,
+                    py: 1,
+                    boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
+                    '&:hover': {
+                      bgcolor: '#FFE3C2',
+                      borderColor: theme.palette.primary.light,
+                    },
+                  }}
+                  startIcon={<GitHubIcon sx={{ color: theme.palette.primary.main }} />}
+                  onClick={() => window.open('https://github.com/SebastianChristoph/industrygame', '_blank')}
+                >
+                  GitHub
+                </Button>
+              </Tooltip>
+            </Box>
           </Box>
         </Toolbar>
       </AppBar>
@@ -336,10 +480,13 @@ const Layout = () => {
             "& .MuiDrawer-paper": {
               boxSizing: "border-box",
               width: drawerWidth,
+              position: 'relative',
+              pb: '120px', // Platz für Stats unten
             },
           }}
         >
           {drawer}
+          <MobileStatsAndGitHub totalPerPing={totalPerPing} totalBalance={totalBalance} researchPoints={researchPoints} theme={theme} />
         </Drawer>
         <Drawer
           variant="permanent"
@@ -359,11 +506,12 @@ const Layout = () => {
       <Box
         component="main"
         sx={{
-          ml: "300px",
-          minHeight: "100vh",
-          padding: 3,
-          width: "80vw",
-          pt: "80px"
+          ml: { xs: 0, sm: `${drawerWidth}px` },
+          minHeight: '100vh',
+          padding: { xs: 1, sm: 3 },
+          width: { xs: '100vw', sm: `calc(100vw - ${drawerWidth}px)` },
+          pt: '80px',
+          boxSizing: 'border-box',
         }}
       >
         <Toolbar />
