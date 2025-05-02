@@ -81,6 +81,14 @@ export const RESEARCH_TREE = {
         requirements: [],
         unlocks: { recipes: ['copper_wire'] }
       },
+      STEEL_PRODUCTION: {
+        id: 'STEEL_PRODUCTION',
+        name: 'Steel Production',
+        description: 'Learn to produce steel from iron and coal.',
+        cost: 200,
+        requirements: [],
+        unlocks: { recipes: ['steel'] }
+      },
       PCB_DESIGN: {
         id: 'PCB_DESIGN',
         name: 'PCB Design',

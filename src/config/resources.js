@@ -243,6 +243,16 @@ export const PRODUCTION_RECIPES = {
       { resourceId: 'ai_processor', amount: 2 }
     ],
     output: { resourceId: 'mech_suit', amount: 1 }
+  },
+  steel: {
+    id: 'steel',
+    name: 'Steel',
+    productionTime: 8,
+    inputs: [
+      { resourceId: 'iron', amount: 2 },
+      { resourceId: 'coal', amount: 1 }
+    ],
+    output: { resourceId: 'steel', amount: 1 }
   }
 };
 
