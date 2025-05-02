@@ -9,6 +9,7 @@ import ProductionLine from './pages/ProductionLine';
 import Research from './pages/Research';
 import Tutorial from './pages/Tutorial';
 import StorageOverview from './pages/StorageOverview';
+import Resources from './pages/Resources';
 import { useState, useEffect } from 'react';
 import StorageInfoDialog from './components/StorageInfoDialog';
 import { theme } from './theme/theme';
@@ -52,6 +53,7 @@ function App() {
                 <Route path="/research" element={<Research />} />
                 <Route path="/tutorial" element={<Tutorial />} />
                 <Route path="/storage-overview" element={<StorageOverview />} />
+                <Route path="/resources" element={<Resources />} />
               </Route>
             </Routes>
           </Router>

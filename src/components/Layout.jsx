@@ -9,6 +9,7 @@ import {
   Help as HelpIcon,
   GitHub as GitHubIcon,
   Memory as MemoryIcon,
+  Category as CategoryIcon,
 } from "@mui/icons-material";
 import {
   AppBar,
@@ -52,10 +53,16 @@ const menuItems = [
     path: '/research'
   },
   {
+    text: 'Resources',
+    icon: <CategoryIcon />,
+    path: '/resources'
+  },
+  {
     text: 'Tutorial',
     icon: <HelpIcon />,
     path: '/tutorial'
   },
+  
   {
     text: 'Browser Data',
     icon: <MemoryIcon />,
