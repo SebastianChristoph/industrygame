@@ -19,6 +19,8 @@ import { unlockModule, researchTechnology } from '../store/gameSlice';
 import { RESOURCES, PRODUCTION_RECIPES } from '../config/resources';
 import { getResourceImageWithFallback } from '../config/resourceImages';
 import { useLocation } from 'react-router-dom';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
 
 // Hilfskomponente für Icon mit Fallback-Handling
 const PLACEHOLDER_ICON = '/images/icons/placeholder.png';
@@ -49,6 +51,8 @@ const ResourceIcon = ({ iconUrls, alt, resourceId, ...props }) => {
 
 const Research = () => {
   const dispatch = useDispatch();
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const unlockedModules = useSelector(state => state.game.unlockedModules);
   const researchedTechnologies = useSelector(state => state.game.researchedTechnologies);
   const researchPoints = useSelector(state => state.game.researchPoints);
@@ -259,9 +263,37 @@ const Research = () => {
       </Typography>
 
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-        <Tabs value={tab} onChange={(_, v) => setTab(v)} aria-label="Module Tabs">
+        <Tabs
+          value={tab}
+          onChange={(_, v) => setTab(v)}
+          aria-label="Module Tabs"
+          variant="scrollable"
+          scrollButtons="auto"
+          centered={false}
+          TabIndicatorProps={{ sx: { height: 3 } }}
+        >
           {moduleKeys.map((key, idx) => (
-            <Tab key={key} label={MODULES[key].name} icon={MODULES[key].icon} iconPosition="start" />
+            <Tab
+              key={key}
+              label={
+                <span style={{ fontSize: '1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                  {MODULES[key].icon}
+                  <span style={{ fontSize: '1rem', fontWeight: 600 }}>{MODULES[key].name}</span>
+                </span>
+              }
+              icon={null}
+              iconPosition="start"
+              sx={{
+                minWidth: { xs: 120, sm: 160 },
+                px: { xs: 1, sm: 2 },
+                fontSize: { xs: '1rem', sm: '1.1rem' },
+                '& .MuiTab-wrapper': {
+                  flexDirection: 'row',
+                  gap: 1,
+                  alignItems: 'center',
+                },
+              }}
+            />
           ))}
         </Tabs>
       </Box>
@@ -301,50 +333,54 @@ const Research = () => {
                 Technologies
               </Typography>
               <Box sx={{ position: 'relative' }}>
-                {/* SVG-Overlay für Abhängigkeits-Pfeile */}
-                <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 2 }}>
-                  {arrowPositions.map((arrow, idx) => {
-                    // Berechne Start- und Endpunkte (mittig oben/unten der Cards)
-                    const gridBox = document.querySelector('[data-research-grid]');
-                    if (!gridBox) return null;
-                    const gridRect = gridBox.getBoundingClientRect();
-                    const from = arrow.fromRect;
-                    const to = arrow.toRect;
-                    // Start: unten Mitte der from-Card
-                    const startX = from.left + from.width / 2 - gridRect.left;
-                    const startY = from.bottom - gridRect.top;
-                    // Ende: oben Mitte der to-Card
-                    const endX = to.left + to.width / 2 - gridRect.left;
-                    const endY = to.top - gridRect.top;
-                    return (
-                      <line
-                        key={idx}
-                        x1={startX}
-                        y1={startY}
-                        x2={endX}
-                        y2={endY}
-                        stroke="#222"
-                        strokeWidth={2}
-                        markerEnd="url(#arrowhead)"
-                        opacity={0.7}
-                      />
-                    );
-                  })}
-                  <defs>
-                    <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto" markerUnits="strokeWidth">
-                      <polygon points="0 0, 8 4, 0 8" fill="#222" />
-                    </marker>
-                  </defs>
-                </svg>
+                {/* SVG-Overlay für Abhängigkeits-Pfeile nur auf Desktop/Tablet */}
+                {!isMobile && (
+                  <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 2 }}>
+                    {arrowPositions.map((arrow, idx) => {
+                      // Berechne Start- und Endpunkte (mittig oben/unten der Cards)
+                      const gridBox = document.querySelector('[data-research-grid]');
+                      if (!gridBox) return null;
+                      const gridRect = gridBox.getBoundingClientRect();
+                      const from = arrow.fromRect;
+                      const to = arrow.toRect;
+                      // Start: unten Mitte der from-Card
+                      const startX = from.left + from.width / 2 - gridRect.left;
+                      const startY = from.bottom - gridRect.top;
+                      // Ende: oben Mitte der to-Card
+                      const endX = to.left + to.width / 2 - gridRect.left;
+                      const endY = to.top - gridRect.top;
+                      return (
+                        <line
+                          key={idx}
+                          x1={startX}
+                          y1={startY}
+                          x2={endX}
+                          y2={endY}
+                          stroke="#222"
+                          strokeWidth={2}
+                          markerEnd="url(#arrowhead)"
+                          opacity={0.7}
+                        />
+                      );
+                    })}
+                    <defs>
+                      <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto" markerUnits="strokeWidth">
+                        <polygon points="0 0, 8 4, 0 8" fill="#222" />
+                      </marker>
+                    </defs>
+                  </svg>
+                )}
                 <Box
                   data-research-grid
                   sx={{
                     display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-                    gap: 6,
+                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(auto-fit, minmax(320px, 1fr))' },
+                    gap: { xs: 2, sm: 6 },
                     mb: 2,
                     position: 'relative',
                     zIndex: 3,
+                    justifyItems: 'center',
+                    px: { xs: 1, sm: 0 },
                   }}
                 >
                   {Object.values(moduleResearch.technologies).map((technology) => {
@@ -358,7 +394,19 @@ const Research = () => {
                         key={technology.id}
                         ref={el => (cardRefs.current[technology.id] = el)}
                         variant="outlined"
-                        sx={{ p: 0, borderRadius: 2, boxShadow: 0, minHeight: 0, display: 'flex', flexDirection: 'column', height: '100%' }}
+                        sx={{
+                          p: 0,
+                          borderRadius: 2,
+                          boxShadow: 0,
+                          minHeight: 0,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          height: '100%',
+                          width: '100%',
+                          maxWidth: 360,
+                          mx: { xs: 'auto', sm: 0 },
+                          boxSizing: 'border-box',
+                        }}
                       >
                         <CardContent sx={{ p: 0, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                           <Box sx={{ p: 1.5, pb: 0, display: 'flex', flexDirection: 'column', height: '100%' }}>

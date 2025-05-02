@@ -63,110 +63,160 @@ const menuItems = [
   }
 ];
 
-const MobileStatsAndGitHub = ({ totalPerPing, totalBalance, researchPoints, theme }) => (
-  <Box
-    sx={{
-      display: { xs: 'flex', sm: 'none' },
-      flexDirection: 'column',
-      gap: 1.5,
-      p: 2,
-      borderTop: `1px solid ${theme.palette.divider}`,
-      bgcolor: theme.palette.background.paper,
-      position: 'absolute',
-      bottom: 0,
-      left: 0,
-      width: '100%',
-      zIndex: 10,
-    }}
-  >
-    <Box sx={{ display: 'flex', gap: 1, width: '100%' }}>
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 0.5,
-          px: 1,
-          py: 0.25,
-          bgcolor: '#fff',
-          color: theme.palette.primary.main,
-          borderRadius: '16px',
-          border: `1.5px solid ${theme.palette.primary.main}`,
-          fontWeight: 600,
-          fontSize: '0.95rem',
-          minWidth: '70px',
-          boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
-        }}
-      >
-        <BalanceIcon sx={{ color: theme.palette.primary.main, fontSize: '1rem' }} />
-        <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '0.95rem' }}>{totalPerPing >= 0 ? '+' : ''}{totalPerPing.toFixed(2)}</Typography>
-      </Box>
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 0.5,
-          px: 1,
-          py: 0.25,
-          bgcolor: '#fff',
-          color: theme.palette.primary.main,
-          borderRadius: '16px',
-          border: `1.5px solid ${theme.palette.primary.main}`,
-          fontWeight: 600,
-          fontSize: '0.95rem',
-          minWidth: '70px',
-          boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
-        }}
-      >
-        <BalanceIcon sx={{ color: theme.palette.primary.main, fontSize: '1rem' }} />
-        <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '0.95rem' }}>{totalBalance >= 0 ? '+' : ''}{totalBalance.toFixed(2)}</Typography>
-      </Box>
-    </Box>
-    <Box sx={{ display: 'flex', gap: 1, width: '100%' }}>
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 0.5,
-          px: 1,
-          py: 0.25,
-          bgcolor: '#fff',
-          color: theme.palette.primary.main,
-          borderRadius: '16px',
-          border: `1.5px solid ${theme.palette.primary.main}`,
-          fontWeight: 600,
-          fontSize: '0.95rem',
-          minWidth: '70px',
-          boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
-        }}
-      >
-        <img src="/images/icons/Research.png" alt="Research" style={{ width: 22, height: 22, objectFit: 'contain', verticalAlign: 'middle' }} />
-        <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '0.95rem' }}>{researchPoints.toLocaleString()}</Typography>
-      </Box>
-    </Box>
-    <Button
+const MobileStatsAndGitHub = ({ totalPerPing, totalBalance, researchPoints, theme }) => {
+  const [openTooltip, setOpenTooltip] = useState(null);
+  // Helper to handle tooltip open/close
+  const handleTooltip = (name) => {
+    if (openTooltip === name) {
+      setOpenTooltip(null);
+    } else {
+      setOpenTooltip(name);
+      setTimeout(() => {
+        setOpenTooltip((current) => (current === name ? null : current));
+      }, 2200);
+    }
+  };
+  return (
+    <Box
       sx={{
-        color: theme.palette.primary.main,
-        bgcolor: '#fff',
-        border: `2px solid ${theme.palette.primary.main}`,
-        borderRadius: '16px',
-        fontWeight: 700,
-        fontSize: '1rem',
-        px: 3,
-        py: 1,
-        boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
-        '&:hover': {
-          bgcolor: '#FFE3C2',
-          borderColor: theme.palette.primary.light,
-        },
+        display: { xs: 'flex', sm: 'none' },
+        flexDirection: 'column',
+        gap: 1.5,
+        p: 2,
+        borderTop: `1px solid ${theme.palette.divider}`,
+        bgcolor: theme.palette.background.paper,
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
         width: '100%',
+        zIndex: 10,
       }}
-      startIcon={<GitHubIcon sx={{ color: theme.palette.primary.main }} />}
-      onClick={() => window.open('https://github.com/SebastianChristoph/industrygame', '_blank')}
     >
-      GitHub
-    </Button>
-  </Box>
-);
+      <Box sx={{ display: 'flex', gap: 1, width: '100%' }}>
+        {/* Per Ping */}
+        <Tooltip
+          title="Profit/Loss per Ping"
+          open={openTooltip === 'perPing'}
+          onClose={() => setOpenTooltip(null)}
+          disableHoverListener
+          disableFocusListener
+          placement="top"
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.5,
+              px: 1,
+              py: 0.25,
+              bgcolor: '#fff',
+              color: theme.palette.primary.main,
+              borderRadius: '16px',
+              border: `1.5px solid ${theme.palette.primary.main}`,
+              fontWeight: 600,
+              fontSize: '0.95rem',
+              minWidth: '70px',
+              boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
+              cursor: 'pointer',
+            }}
+            onClick={() => handleTooltip('perPing')}
+          >
+            <BalanceIcon sx={{ color: theme.palette.primary.main, fontSize: '1rem' }} />
+            <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '0.95rem' }}>{totalPerPing >= 0 ? '+' : ''}{totalPerPing.toFixed(2)}</Typography>
+          </Box>
+        </Tooltip>
+        {/* Total Balance */}
+        <Tooltip
+          title="Total Balance (all lines)"
+          open={openTooltip === 'totalBalance'}
+          onClose={() => setOpenTooltip(null)}
+          disableHoverListener
+          disableFocusListener
+          placement="top"
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.5,
+              px: 1,
+              py: 0.25,
+              bgcolor: '#fff',
+              color: theme.palette.primary.main,
+              borderRadius: '16px',
+              border: `1.5px solid ${theme.palette.primary.main}`,
+              fontWeight: 600,
+              fontSize: '0.95rem',
+              minWidth: '70px',
+              boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
+              cursor: 'pointer',
+            }}
+            onClick={() => handleTooltip('totalBalance')}
+          >
+            <BalanceIcon sx={{ color: theme.palette.primary.main, fontSize: '1rem' }} />
+            <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '0.95rem' }}>{totalBalance >= 0 ? '+' : ''}{totalBalance.toFixed(2)}</Typography>
+          </Box>
+        </Tooltip>
+      </Box>
+      <Box sx={{ display: 'flex', gap: 1, width: '100%' }}>
+        {/* Research Points */}
+        <Tooltip
+          title="Research Points"
+          open={openTooltip === 'researchPoints'}
+          onClose={() => setOpenTooltip(null)}
+          disableHoverListener
+          disableFocusListener
+          placement="top"
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.5,
+              px: 1,
+              py: 0.25,
+              bgcolor: '#fff',
+              color: theme.palette.primary.main,
+              borderRadius: '16px',
+              border: `1.5px solid ${theme.palette.primary.main}`,
+              fontWeight: 600,
+              fontSize: '0.95rem',
+              minWidth: '70px',
+              boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
+              cursor: 'pointer',
+            }}
+            onClick={() => handleTooltip('researchPoints')}
+          >
+            <img src="/images/icons/Research.png" alt="Research" style={{ width: 22, height: 22, objectFit: 'contain', verticalAlign: 'middle' }} />
+            <Typography sx={{ color: theme.palette.primary.main, fontWeight: 600, fontSize: '0.95rem' }}>{researchPoints.toLocaleString()}</Typography>
+          </Box>
+        </Tooltip>
+      </Box>
+      <Button
+        sx={{
+          color: theme.palette.primary.main,
+          bgcolor: '#fff',
+          border: `2px solid ${theme.palette.primary.main}`,
+          borderRadius: '16px',
+          fontWeight: 700,
+          fontSize: '1rem',
+          px: 3,
+          py: 1,
+          boxShadow: '0 2px 8px 0 rgba(255, 122, 0, 0.08)',
+          '&:hover': {
+            bgcolor: '#FFE3C2',
+            borderColor: theme.palette.primary.light,
+          },
+          width: '100%',
+        }}
+        startIcon={<GitHubIcon sx={{ color: theme.palette.primary.main }} />}
+        onClick={() => window.open('https://github.com/SebastianChristoph/industrygame', '_blank')}
+      >
+        GitHub
+      </Button>
+    </Box>
+  );
+};
 
 const Layout = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -303,7 +353,7 @@ const Layout = () => {
               whiteSpace: 'nowrap',
             }}
           >
-            Industry Game
+            Industile 
           </Typography>
 
           <Box

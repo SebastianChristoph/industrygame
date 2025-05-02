@@ -489,17 +489,42 @@ const ProductionLine = () => {
         >
           Back
         </Button>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, mb: 8 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3, justifyContent: 'space-between', flexWrap: { xs: 'wrap', sm: 'nowrap' } }}>
+          <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: 1, mb: 0, minWidth: 0 }}>
             <ResourceIcon
               iconUrls={getResourceImageWithFallback(selectedRecipe.output.resourceId, 'icon')}
               alt={RESOURCES[selectedRecipe.output.resourceId]?.name + ' icon'}
               resourceId={selectedRecipe.output.resourceId}
               style={{ width: 40, height: 40, objectFit: 'contain', marginRight: 8 }}
             />
-            <Typography variant="h1" sx={{ fontWeight: 800, letterSpacing: 1 }}>
+            <Typography
+              variant="h1"
+              sx={{
+                fontWeight: 800,
+                letterSpacing: 1,
+                minWidth: 0,
+                overflow: 'visible',
+                textOverflow: 'unset',
+                whiteSpace: 'normal',
+                wordBreak: 'break-word',
+                fontSize: { xs: '1.5rem', sm: '2.2rem' },
+                lineHeight: 1.2,
+                maxWidth: '100%',
+                flex: 1
+              }}
+            >
               {productionLine.name}
             </Typography>
+          </Box>
+          {/* Edit/Delete-Icons: auf Mobile unter dem Titel, auf Desktop wie gehabt rechts daneben */}
+          <Box sx={{
+            display: 'flex',
+            gap: 1,
+            alignItems: 'center',
+            mt: { xs: 1, sm: 0 },
+            width: { xs: '100%', sm: 'auto' },
+            justifyContent: { xs: 'center', sm: 'flex-start' }
+          }}>
             <Tooltip title="Rename">
               <IconButton onClick={handleRenameClick}>
                 <EditIcon />
@@ -511,7 +536,7 @@ const ProductionLine = () => {
               </IconButton>
             </Tooltip>
           </Box>
-          {/* Play/Stop Button rechts oben als Kreis-Button */}
+          {/* Play/Stop Button oben rechts, dezent und overflow-sicher */}
           <Tooltip title={
             productionStatus?.error ? productionStatus.error :
             !canStartProduction() ?
@@ -527,11 +552,14 @@ const ProductionLine = () => {
                 sx={{
                   bgcolor: productionStatus?.isActive ? "#f5f5f5" : "#f5f5f5",
                   color: productionStatus?.isActive ? "#b71c1c" : "#222",
-                  width: 80,
-                  height: 80,
+                  width: 48,
+                  height: 48,
                   borderRadius: "50%",
-                  boxShadow: 2,
-                  ml: 2,
+                  boxShadow: 1,
+                  ml: 1,
+                  mr: { xs: 0, sm: 1 },
+                  mt: { xs: 0, sm: 0 },
+                  alignSelf: 'flex-start',
                   transition: 'background 0.2s, color 0.2s',
                   '&:hover': {
                     bgcolor: '#e0e0e0',
@@ -539,16 +567,30 @@ const ProductionLine = () => {
                   }
                 }}
               >
-                {productionStatus?.isActive ? <Stop sx={{ fontSize: 48 }} /> : <PlayArrow sx={{ fontSize: 48 }} />}
+                {productionStatus?.isActive ? <Stop sx={{ fontSize: 32 }} /> : <PlayArrow sx={{ fontSize: 32 }} />}
               </IconButton>
             </span>
           </Tooltip>
         </Box>
 
         {/* Neues Produktions-Layout */}
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'flex-start', gap: 6, mt: 10 }}>
+        <Box sx={{ 
+          display: 'flex', 
+          flexDirection: { xs: 'column', md: 'row' },
+          justifyContent: 'center', 
+          alignItems: { xs: 'center', md: 'flex-start' }, 
+          gap: { xs: 4, md: 6 }, 
+          mt: { xs: 4, md: 10 }
+        }}>
           {/* Input-Bilder und Umschalter */}
-          <Box sx={{ display: 'flex', flexDirection: 'row', gap: 4, alignItems: 'flex-end', mt:8 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: { xs: 'column', md: 'row' }, 
+            gap: { xs: 2, md: 4 }, 
+            alignItems: 'center',
+            width: '100%',
+            maxWidth: { xs: '100%', md: 'auto' }
+          }}>
             {selectedRecipe.inputs.map((input, idx) => {
               const resource = RESOURCES[input.resourceId];
               const inputConfig = productionConfig.inputs[idx];
@@ -560,20 +602,47 @@ const ProductionLine = () => {
               return (
                 <React.Fragment key={input.resourceId}>
                   {idx > 0 && (
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'flex-end', height: 260, mx: 1 }}>
-                      <Box sx={{ flex: 1 }} />
-                      <Typography variant="h3" sx={{ color: 'text.secondary', fontWeight: 700, fontSize: '2.5rem', lineHeight: 1, mb: 9 }}>{'+'}</Typography>
+                    <Box sx={{ 
+                      display: 'flex', 
+                      flexDirection: { xs: 'row', md: 'column' }, 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      width: { xs: '100%', md: 'auto' },
+                      height: { xs: 'auto', md: 260 },
+                      mx: { xs: 0, md: 1 }
+                    }}>
+                      <Typography variant="h3" sx={{ 
+                        color: 'text.secondary', 
+                        fontWeight: 700, 
+                        fontSize: { xs: '2rem', md: '2.5rem' }, 
+                        lineHeight: 1,
+                        my: { xs: 1, md: 0 }
+                      }}>{'+'}</Typography>
                     </Box>
                   )}
-                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 220, justifyContent: 'flex-end', height: 260 }}>
+                  <Box sx={{ 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    alignItems: 'center', 
+                    minWidth: { xs: '100%', md: 220 },
+                    maxWidth: { xs: '100%', md: 220 },
+                    justifyContent: 'flex-end',
+                    height: { xs: 'auto', md: 260 }
+                  }}>
                     <img
                       src={getResourceProductionImage(input.resourceId)}
                       alt={resource?.name + ' production'}
-                      style={{ maxHeight: '220px', maxWidth: '220px', objectFit: 'contain', display: 'block' }}
+                      style={{
+                        maxWidth: '100%',
+                        width: '100%',
+                        height: 'auto',
+                        maxHeight: 160,
+                        objectFit: 'contain',
+                        display: 'block'
+                      }}
                       onError={e => { e.target.onerror = null; e.target.src = '/images/production/Placeholder.png'; }}
                     />
                     {renderResourceIcons(input.resourceId, input.amount)}
-                    {/* Anzeige unter den Input-Icons: */}
                     {isGlobalStorage ? (
                       <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5, mb: 0.5, fontSize: '0.98rem', fontWeight: 400, textAlign: 'center' }}>
                         In stock: {stock}/{resources[input.resourceId]?.capacity ?? '-'}
@@ -583,7 +652,7 @@ const ProductionLine = () => {
                         {resource.name}: {singlePrice}$ · Total: {totalPrice}$
                       </Typography>
                     )}
-                    <Box sx={{ display: 'flex', alignItems: 'flex-end', height: 48, mt: 2 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', height: 48, mt: 2, width: '100%' }}>
                       <ToggleButtonGroup
                         value={inputConfig?.source || INPUT_SOURCES.PURCHASE_MODULE}
                         exclusive
@@ -598,17 +667,59 @@ const ProductionLine = () => {
                           }
                         }}
                         size="small"
-                        sx={{ minHeight: 40 }}
+                        sx={{ minHeight: 40, width: '100%' }}
                       >
                         <MuiTooltip title="From stock" arrow>
-                          <ToggleButton value={INPUT_SOURCES.GLOBAL_STORAGE} sx={{ flexDirection: 'column', p: 0.5, minWidth: 40, minHeight: 40, borderRadius: 0 }}>
-                            <Storage sx={{ fontSize: 22, mb: 0.5 }} />
+                          <ToggleButton 
+                            value={INPUT_SOURCES.GLOBAL_STORAGE}
+                            sx={{
+                              flex: 1,
+                              py: 1.5,
+                              px: 2,
+                              borderRadius: 2,
+                              fontWeight: 600,
+                              fontSize: { xs: '1rem', md: '0.9rem' },
+                              display: 'flex',
+                              flexDirection: { xs: 'row', md: 'column' },
+                              alignItems: 'center',
+                              gap: 1,
+                              color: (inputConfig?.source || INPUT_SOURCES.PURCHASE_MODULE) === INPUT_SOURCES.GLOBAL_STORAGE ? 'primary.main' : 'text.secondary',
+                              bgcolor: (inputConfig?.source || INPUT_SOURCES.PURCHASE_MODULE) === INPUT_SOURCES.GLOBAL_STORAGE ? 'primary.50' : 'grey.100',
+                              border: '2px solid',
+                              borderColor: (inputConfig?.source || INPUT_SOURCES.PURCHASE_MODULE) === INPUT_SOURCES.GLOBAL_STORAGE ? 'primary.main' : 'grey.300',
+                              transition: 'all 0.2s',
+                              width: { xs: '100%', md: 'auto' },
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <Box sx={{ display: { xs: 'none', md: 'block' }, mr: 1 }}><Storage sx={{ fontSize: 24 }} /></Box>
+                            From stock
                           </ToggleButton>
                         </MuiTooltip>
                         {resource.purchasable && (
                           <MuiTooltip title="Auto purchase" arrow>
-                            <ToggleButton value={INPUT_SOURCES.PURCHASE_MODULE} sx={{ flexDirection: 'column', p: 0.5, minWidth: 40, minHeight: 40, borderRadius: 0 }}>
-                              <ShoppingCart sx={{ fontSize: 22, mb: 0.5, color: 'action.active' }} />
+                            <ToggleButton 
+                              value={INPUT_SOURCES.PURCHASE_MODULE}
+                              sx={{
+                                flex: 1,
+                                py: 1.5,
+                                px: 2,
+                                borderRadius: 2,
+                                fontWeight: 600,
+                                fontSize: { xs: '1rem', md: '0.9rem' },
+                                display: 'flex',
+                                flexDirection: { xs: 'row', md: 'column' },
+                                alignItems: 'center',
+                                gap: 1,
+                                color: (inputConfig?.source || INPUT_SOURCES.PURCHASE_MODULE) === INPUT_SOURCES.PURCHASE_MODULE ? 'success.dark' : 'text.secondary',
+                                bgcolor: (inputConfig?.source || INPUT_SOURCES.PURCHASE_MODULE) === INPUT_SOURCES.PURCHASE_MODULE ? 'success.50' : 'grey.100',
+                                border: '2px solid',
+                                borderColor: (inputConfig?.source || INPUT_SOURCES.PURCHASE_MODULE) === INPUT_SOURCES.PURCHASE_MODULE ? 'success.main' : 'grey.300',
+                                transition: 'all 0.2s',
+                              }}
+                            >
+                              <Box sx={{ display: { xs: 'none', md: 'block' }, mr: 1 }}><ShoppingCart sx={{ fontSize: 24 }} /></Box>
+                              Auto purchase
                             </ToggleButton>
                           </MuiTooltip>
                         )}
@@ -621,7 +732,17 @@ const ProductionLine = () => {
           </Box>
 
           {/* Circular Progress in the center with percent and pings inside */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', mx: 4, position: 'relative', minWidth: 220, minHeight: 220, justifyContent: 'center', height: 260 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            mx: { xs: 0, md: 4 }, 
+            position: 'relative', 
+            minWidth: { xs: '100%', md: 220 }, 
+            minHeight: { xs: 'auto', md: 220 }, 
+            justifyContent: 'center', 
+            height: { xs: 'auto', md: 260 }
+          }}>
             <Box sx={{ position: 'relative', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', height: 220, mt: 0 }}>
               <CircularProgress
                 variant="determinate"
@@ -650,8 +771,23 @@ const ProductionLine = () => {
               </Box>
             </Box>
             {/* Arrow below spinner */}
-            <Box sx={{ mt: 10, display: 'flex', flexDirection: 'column', justifyContent: 'center', width: '100%', alignItems: 'flex-end', height: 60 }}>
-              <Typography variant="h2" sx={{ color: 'text.secondary', fontWeight: 700, fontSize: '3rem', lineHeight: 1, mb: 2 }}>
+            <Box sx={{ 
+              mt: { xs: 2, md: 10 }, 
+              display: 'flex', 
+              flexDirection: 'column', 
+              justifyContent: 'center', 
+              width: '100%', 
+              alignItems: 'center',
+              height: { xs: 'auto', md: 60 }
+            }}>
+              <Typography variant="h2" sx={{ 
+                color: 'text.secondary', 
+                fontWeight: 700, 
+                fontSize: { xs: '2.5rem', md: '3rem' }, 
+                lineHeight: 1, 
+                mb: 2,
+                transform: { xs: 'rotate(90deg)', md: 'none' }
+              }}>
                 &#8594;
               </Typography>
               {/* Bilanz unter dem Pfeil anzeigen */}
@@ -689,7 +825,7 @@ const ProductionLine = () => {
                     sx={{
                       color,
                       fontWeight: 800,
-                      fontSize: '2.2rem',
+                      fontSize: { xs: '1.8rem', md: '2.2rem' },
                       mt: 1,
                       textAlign: 'center',
                       width: '100%',
@@ -704,11 +840,27 @@ const ProductionLine = () => {
           </Box>
 
           {/* Output-Bild und Umschalter */}
-          <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', minWidth: 220, justifyContent: 'flex-end', height: 260, mt:8 }}>
+          <Box sx={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            minWidth: { xs: '100%', md: 220 },
+            maxWidth: { xs: '100%', md: 220 },
+            justifyContent: 'flex-end',
+            height: { xs: 'auto', md: 260 },
+            mt: { xs: 2, md: 8 }
+          }}>
             <img
               src={getResourceProductionImage(selectedRecipe.output.resourceId)}
               alt={RESOURCES[selectedRecipe.output.resourceId]?.name + ' production'}
-              style={{ maxHeight: '220px', maxWidth: '220px', objectFit: 'contain', display: 'block' }}
+              style={{
+                maxWidth: '100%',
+                width: '100%',
+                height: 'auto',
+                maxHeight: 160,
+                objectFit: 'contain',
+                display: 'block'
+              }}
               onError={e => { e.target.onerror = null; e.target.src = '/images/production/Placeholder.png'; }}
             />
             {renderResourceIcons(selectedRecipe.output.resourceId, selectedRecipe.output.amount)}
@@ -725,8 +877,8 @@ const ProductionLine = () => {
                 boxShadow: 1,
                 border: '1px solid',
                 borderColor: 'grey.200',
-                minWidth: 180,
                 width: '100%',
+                maxWidth: { xs: '100%', md: 180 },
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -769,8 +921,8 @@ const ProductionLine = () => {
                 boxShadow: 1,
                 border: '1px solid',
                 borderColor: 'grey.200',
-                minWidth: 180,
                 width: '100%',
+                maxWidth: { xs: '100%', md: 180 },
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -812,7 +964,7 @@ const ProductionLine = () => {
                         transition: 'all 0.2s',
                       }}
                     >
-                      <Storage sx={{ fontSize: 24, mr: 1 }} />
+                      <Box sx={{ display: { xs: 'none', md: 'block' }, mr: 1 }}><Storage sx={{ fontSize: 24 }} /></Box>
                       Store in stock
                     </ToggleButton>
                   </MuiTooltip>
@@ -842,6 +994,14 @@ const ProductionLine = () => {
                     </ToggleButton>
                   </MuiTooltip>
                 </ToggleButtonGroup>
+                {/* Show stock info if 'Store in stock' is selected */}
+                {(productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.GLOBAL_STORAGE && (
+                  <Box sx={{ mt: 1, width: '100%', textAlign: 'center' }}>
+                    <Typography variant="body2" color="text.secondary">
+                      In stock: {resources[selectedRecipe.output.resourceId]?.amount ?? 0}/{resources[selectedRecipe.output.resourceId]?.capacity ?? '-'}
+                    </Typography>
+                  </Box>
+                )}
               </Box>
             )}
           </Box>

@@ -63,6 +63,8 @@ import {
   ResponsiveContainer
 } from 'recharts';
 import StorageInfoDialog from '../components/StorageInfoDialog';
+import useMediaQuery from '@mui/material/useMediaQuery';
+import { useTheme } from '@mui/material/styles';
 
 // @import url('https://fonts.googleapis.com/css2?family=Cal+Sans:wght@400;600;700&display=swap');
 
@@ -251,7 +253,22 @@ const ModuleSelectionPlaceholder = ({ onModuleClick }) => {
   };
   return (
     <Box sx={{ width: '100%' }}>
-      <Box sx={{ width: '100%', display: 'flex', flexDirection: 'row', p: 0, m: 0, alignItems: 'center', justifyContent: 'center' }}>
+      {/* Hinweistext auf Mobile ganz oben, auf Desktop unten */}
+      <Box sx={{ width: '100%', textAlign: 'center', mb: { xs: 3, sm: 2 }, mt: { xs: 2, sm: 6 }, display: { xs: 'block', sm: 'none' } }}>
+        <Typography variant="body1" color="text.secondary">
+          Before you can create a production line, you need to unlock a production module in the research area.
+        </Typography>
+      </Box>
+      <Box sx={{
+        width: '100%',
+        display: 'flex',
+        flexDirection: { xs: 'column', sm: 'row' },
+        p: 0,
+        m: 0,
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: { xs: 3, sm: 0 }
+      }}>
         {MODULES_INFO.map((mod, idx) => (
           <Box
             key={idx}
@@ -259,7 +276,7 @@ const ModuleSelectionPlaceholder = ({ onModuleClick }) => {
             onMouseEnter={() => setHoveredIdx(idx)}
             onMouseLeave={() => setHoveredIdx(null)}
             sx={{
-              flex: 1,
+              flex: { xs: 'unset', sm: 1 },
               cursor: 'pointer',
               p: 0,
               m: 0,
@@ -270,6 +287,9 @@ const ModuleSelectionPlaceholder = ({ onModuleClick }) => {
               justifyContent: 'center',
               height: '100%',
               position: 'relative',
+              width: { xs: '100%', sm: 'auto' },
+              maxWidth: { xs: 320, sm: 'none' },
+              mx: { xs: 'auto', sm: 0 },
             }}
           >
             <Box
@@ -277,19 +297,31 @@ const ModuleSelectionPlaceholder = ({ onModuleClick }) => {
               src={mod.img}
               alt={mod.name}
               sx={{
-                width: '90%',
-                height: '90%',
+                width: { xs: '90%', sm: '90%' },
+                maxWidth: { xs: 220, sm: 180 },
+                height: { xs: 'auto', sm: '90%' },
                 borderRadius: 0,
                 display: 'block',
                 objectFit: 'contain',
                 transition: 'filter 0.3s',
                 filter: hoveredIdx === idx ? 'brightness(0.5)' : 'none',
+                mx: 'auto',
               }}
             />
             <Typography
               variant="h2"
               align="center"
-              sx={{ mt: 1, fontWeight: 600, color: 'text.primary', textShadow: '0 2px 8px #fff', width: '100%', fontFamily: 'Cal Sans, sans-serif' }}
+              sx={{
+                mt: 1,
+                fontWeight: 600,
+                color: 'text.primary',
+                textShadow: '0 2px 8px #fff',
+                width: '100%',
+                fontFamily: 'Cal Sans, sans-serif',
+                fontSize: { xs: '1.25rem', sm: '2rem' },
+                lineHeight: 1.2,
+                wordBreak: 'break-word',
+              }}
             >
               {mod.name}
             </Typography>
@@ -318,11 +350,12 @@ const ModuleSelectionPlaceholder = ({ onModuleClick }) => {
           </Box>
         ))}
       </Box>
-      <Box sx={{ width: '100%', textAlign: 'center', mb: 2, mt: 6 }}>
+      {/* Hinweistext auf Desktop wie gehabt unten */}
+      <Box sx={{ width: '100%', textAlign: 'center', mb: 2, mt: 6, display: { xs: 'none', sm: 'block' } }}>
         <Typography variant="body1" color="text.secondary">
           Before you can create a production line, you need to unlock a production module in the research area.
         </Typography>
-      </Box>  
+      </Box>
     </Box>
   );
 };
@@ -338,6 +371,8 @@ const ProductionLines = () => {
   const unlockedModules = useSelector(state => state.game.unlockedModules);
   const unlockedRecipes = useSelector(state => state.game.unlockedRecipes);
   const statistics = useSelector(state => state.game.statistics);
+  const theme = useTheme ? useTheme() : undefined;
+  const isMobile = theme ? useMediaQuery(theme.breakpoints.down('sm')) : false;
   
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -970,44 +1005,160 @@ const ProductionLines = () => {
           </Box>
         </Box>
 
-        <Paper sx={{ 
-          height: { xs: 400, sm: 500, md: 600 }, 
-          width: '100%',
-          '& .MuiDataGrid-root': {
-            fontSize: { xs: '0.875rem', sm: '1rem' }
-          }
-        }}>
-          <DataGrid
-            rows={productionLines}
-            columns={columns}
-            pageSize={10}
-            rowsPerPageOptions={[10, 25, 50]}
-            disableSelectionOnClick
-            density="comfortable"
-            sx={{
-              '& .MuiDataGrid-cell:focus': {
-                outline: 'none'
-              },
-              '& .MuiDataGrid-columnHeaders': {
-                backgroundColor: 'background.paper',
-                borderBottom: '2px solid',
-                borderColor: 'divider'
-              }
-            }}
-            onRowClick={(params, event) => {
-              if (params.field === 'status' || params.field === 'actions') {
-                event.stopPropagation();
-                return;
-              }
-              navigate(`/production/${params.row.id}`);
-            }}
-            onCellClick={(params, event) => {
-              if (params.field === 'status' || params.field === 'actions') {
-                event.stopPropagation();
-              }
-            }}
-          />
-        </Paper>
+        {isMobile ? (
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, mb: 2 }}>
+            {productionLines.map(line => {
+              const config = productionConfigs[line.id];
+              const status = productionStatus[line.id];
+              const recipe = config?.recipe ? PRODUCTION_RECIPES[config.recipe] : null;
+              const outputResource = recipe ? RESOURCES[recipe.output.resourceId] : null;
+              const { balance, balancePerPing } = calculateLineBalanceLogic(config, status);
+              const { canProduce, missingResources } = checkResourceAvailability(line.id);
+              const hasWarning = missingResources && missingResources.length > 0;
+              return (
+                <Paper 
+                  key={line.id} 
+                  sx={{ 
+                    p: 2, 
+                    borderRadius: 3, 
+                    boxShadow: 2, 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    gap: 1,
+                    cursor: 'pointer',
+                    '&:hover': {
+                      bgcolor: 'action.hover'
+                    }
+                  }}
+                  onClick={(e) => {
+                    // Don't navigate if clicking on action buttons
+                    if (e.target.closest('button')) return;
+                    navigate(`/production/${line.id}`);
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1.1rem', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{line.name}</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Box sx={{ width: 12, height: 12, borderRadius: '50%', bgcolor: status?.isActive ? (canProduce ? 'success.main' : 'warning.main') : 'text.disabled', mr: 0.5 }} />
+                      {hasWarning && (
+                        <Tooltip title={missingResources.map(r => `${r.name}: ${r.reason}`).join('\n')}>
+                          <WarningAmberIcon color="warning" fontSize="small" />
+                        </Tooltip>
+                      )}
+                      <IconButton 
+                        size="small" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          dispatch(toggleProduction(line.id));
+                        }} 
+                        disabled={!recipe || (!canProduce && !status?.isActive)}
+                      >
+                        {status?.isActive ? <Stop fontSize="small" /> : <PlayArrow fontSize="small" />}
+                      </IconButton>
+                      <IconButton 
+                        size="small" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleRenameClick(line.id, line.name);
+                        }}
+                      >
+                        <EditIcon fontSize="small" />
+                      </IconButton>
+                      <IconButton 
+                        size="small" 
+                        color="error" 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteClick(line.id);
+                        }}
+                      >
+                        <DeleteIcon fontSize="small" />
+                      </IconButton>
+                    </Box>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+                    {outputResource && (
+                      <ResourceIcon
+                        iconUrls={getResourceImageWithFallback(outputResource.id, 'icon')}
+                        alt={outputResource.name}
+                        resourceId={outputResource.id}
+                        style={{ width: 24, height: 24, objectFit: 'contain' }}
+                      />
+                    )}
+                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{outputResource?.name || '-'}</Typography>
+                    <Box sx={{ flex: 1 }} />
+                    <Typography variant="body2" color={balance > 0 ? 'success.main' : balance < 0 ? 'error.main' : 'warning.main'} sx={{ fontWeight: 700 }}>{balance >= 0 ? '+' : ''}{formatMoney(balance)}$</Typography>
+                    <Typography variant="body2" color={balancePerPing > 0 ? 'success.main' : balancePerPing < 0 ? 'error.main' : 'warning.main'} sx={{ fontWeight: 700, ml: 1 }}>{balancePerPing >= 0 ? '+' : ''}{formatMoney(balancePerPing)}$/ping</Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
+                      ({config?.outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE ? 'Storage' : 'Sell'})
+                    </Typography>
+                  </Box>
+                  <Box sx={{ width: '100%', mb: 1 }}>
+                    {/* Progressbar */}
+                    {status?.isActive && recipe && (
+                      <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Box sx={{ position: 'relative', width: '100%', height: 14, bgcolor: 'action.disabledBackground', borderRadius: 7, overflow: 'hidden' }}>
+                          <Box sx={{
+                            width: `${status.currentPings && recipe.productionTime ? Math.min(100, Math.round((status.currentPings / recipe.productionTime) * 100)) : 0}%`,
+                            height: 14,
+                            bgcolor: status.currentPings === recipe.productionTime ? 'success.main' : 'primary.main',
+                            borderRadius: 7,
+                            position: 'absolute',
+                            top: 0,
+                            left: 0,
+                            transition: 'width 0.3s linear'
+                          }} />
+                        </Box>
+                        <Typography variant="caption" sx={{ fontWeight: 700, minWidth: 32, textAlign: 'right' }}>
+                          {status.currentPings && recipe.productionTime ? Math.min(100, Math.round((status.currentPings / recipe.productionTime) * 100)) : 0}%
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                </Paper>
+              );
+            })}
+          </Box>
+        ) : (
+          <Paper sx={{ 
+            height: { xs: 400, sm: 500, md: 600 }, 
+            width: '100%',
+            '& .MuiDataGrid-root': {
+              fontSize: { xs: '0.875rem', sm: '1rem' }
+            }
+          }}>
+            <DataGrid
+              rows={productionLines}
+              columns={columns}
+              pageSize={10}
+              rowsPerPageOptions={[10, 25, 50]}
+              disableSelectionOnClick
+              density="comfortable"
+              sx={{
+                '& .MuiDataGrid-cell:focus': {
+                  outline: 'none'
+                },
+                '& .MuiDataGrid-columnHeaders': {
+                  backgroundColor: 'background.paper',
+                  borderBottom: '2px solid',
+                  borderColor: 'divider'
+                }
+              }}
+              onRowClick={(params, event) => {
+                if (params.field === 'status' || params.field === 'actions') {
+                  event.stopPropagation();
+                  return;
+                }
+                navigate(`/production/${params.row.id}`);
+              }}
+              onCellClick={(params, event) => {
+                if (params.field === 'status' || params.field === 'actions') {
+                  event.stopPropagation();
+                }
+              }}
+            />
+          </Paper>
+        )}
 
         <Box sx={{ 
           mt: { xs: 3, md: 6 }, 
@@ -1106,20 +1257,30 @@ const ProductionLines = () => {
           </Grid>
         </Box>
 
-        <Dialog open={isCreateDialogOpen} onClose={() => setIsCreateDialogOpen(false)}>
-          <DialogTitle>Create New Production Line</DialogTitle>
-          <DialogContent sx={{ minWidth: 400 }}>
-            <Box sx={{ mb: 2, p: 2, bgcolor: 'warning.light', borderRadius: 1 }}>
-              <Typography variant="body1" color="warning.contrastText">
-                Cost to create new production line: {formatMoney(newLineCost)}$
+        <Dialog open={isCreateDialogOpen} onClose={() => setIsCreateDialogOpen(false)}
+          PaperProps={{
+            sx: {
+              width: { xs: '98vw', sm: 400 },
+              maxWidth: { xs: '100vw', sm: 500 },
+              m: { xs: 0, sm: 'auto' },
+              borderRadius: { xs: 0, sm: 3 },
+              p: 0
+            }
+          }}
+        >
+          <DialogTitle sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' }, px: { xs: 2, sm: 3 }, pt: { xs: 2, sm: 3 }, pb: 1 }}>Create New Production Line</DialogTitle>
+          <DialogContent sx={{ minWidth: { xs: 'auto', sm: 400 }, px: { xs: 1, sm: 3 }, pt: { xs: 1, sm: 2 }, pb: 1 }}>
+            <Box sx={{ mb: 2, p: 2, bgcolor: 'warning.light', borderRadius: 1, width: '100%', fontSize: { xs: '1.05rem', sm: '1.1rem' }, textAlign: 'center', lineHeight: 1.4 }}>
+              <Typography variant="body1" color="warning.contrastText" sx={{ fontWeight: 600, fontSize: { xs: '1.05rem', sm: '1.1rem' } }}>
+                Cost to create new production line:<br />{formatMoney(newLineCost)}$
               </Typography>
-              <Typography variant="body2" color="warning.contrastText">
+              <Typography variant="body2" color="warning.contrastText" sx={{ fontSize: { xs: '1rem', sm: '1.05rem' } }}>
                 Your current balance: {formatMoney(credits)}$
               </Typography>
             </Box>
 
             {/* Modul-Auswahl vor Rezept-Auswahl */}
-            <FormControl fullWidth sx={{ mt: 2, mb: 2 }}>
+            <FormControl fullWidth sx={{ mt: { xs: 1, sm: 2 }, mb: { xs: 1.5, sm: 2 } }}>
               <InputLabel>Choose Module</InputLabel>
               <Select
                 value={selectedModule}
@@ -1128,6 +1289,7 @@ const ProductionLines = () => {
                   setSelectedRecipe('');
                 }}
                 label="Choose Module"
+                sx={{ width: '100%', fontSize: { xs: '1rem', sm: '1.1rem' }, minHeight: 48 }}
               >
                 {Object.entries(MODULES)
                   .filter(([key, mod]) => unlockedModules.includes(mod.id))
@@ -1143,7 +1305,7 @@ const ProductionLines = () => {
 
             {/* Rezept-Auswahl nur wenn Modul gewählt */}
             {selectedModule && (
-              <FormControl fullWidth sx={{ mb: 2 }}>
+              <FormControl fullWidth sx={{ mb: { xs: 1.5, sm: 2 } }}>
                 <InputLabel>Select Recipe</InputLabel>
                 <Select
                   value={selectedRecipe}
@@ -1169,6 +1331,7 @@ const ProductionLines = () => {
                     }
                   }}
                   label="Select Recipe"
+                  sx={{ width: '100%', fontSize: { xs: '1rem', sm: '1.1rem' }, minHeight: 48 }}
                 >
                   {moduleRecipes.map(([id, recipe]) => (
                     <MenuItem key={id} value={id} sx={{ 
@@ -1258,6 +1421,7 @@ const ProductionLines = () => {
               }}
               error={!!nameError}
               helperText={nameError}
+              sx={{ width: '100%', fontSize: { xs: '1rem', sm: '1.1rem' }, minHeight: 48, mb: { xs: 2, sm: 2 } }}
             />
 
             {selectedRecipe && PRODUCTION_RECIPES[selectedRecipe] && (
@@ -1325,14 +1489,15 @@ const ProductionLines = () => {
               </Box>
             )}
           </DialogContent>
-          <DialogActions>
-            <Button onClick={() => setIsCreateDialogOpen(false)}>
+          <DialogActions sx={{ flexDirection: { xs: 'column', sm: 'row' }, gap: { xs: 1, sm: 2 }, px: { xs: 2, sm: 3 }, pb: { xs: 2, sm: 3 } }}>
+            <Button onClick={() => setIsCreateDialogOpen(false)} sx={{ width: { xs: '100%', sm: 'auto' }, fontWeight: 600, fontSize: { xs: '1.05rem', sm: '1rem' }, py: 1 }}>
               Cancel
             </Button>
             <Button 
               onClick={handleCreateLine}
               variant="contained"
               disabled={!selectedRecipe || !newLineName.trim() || !!nameError || !canAffordNewLine}
+              sx={{ width: { xs: '100%', sm: 'auto' }, fontWeight: 700, fontSize: { xs: '1.05rem', sm: '1rem' }, py: 1 }}
             >
               Create ({formatMoney(newLineCost)}$)
             </Button>

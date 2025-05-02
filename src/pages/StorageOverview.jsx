@@ -11,7 +11,6 @@ import {
   Divider,
   Card,
   CardContent,
-  Grid,
   Chip,
   Button,
   Dialog,
@@ -21,7 +20,8 @@ import {
   DialogActions,
   Accordion,
   AccordionSummary,
-  AccordionDetails
+  AccordionDetails,
+  Stack
 } from '@mui/material';
 import {
   Storage as StorageIcon,
@@ -60,7 +60,7 @@ const StorageOverview = () => {
   };
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: { xs: 0, sm: 3 } }}>
       <Typography variant="h4" sx={{ mb: 3 }}>
         Your Browser Data
       </Typography>
@@ -81,7 +81,7 @@ const StorageOverview = () => {
           variant="contained"
           color="error"
           size="large"
-          sx={{ fontWeight: 700, fontSize: '1.2rem', py: 2, px: 4, mb: 2 }}
+          sx={{ fontWeight: 700, fontSize: '1.2rem', py: 2, px: 4, mb: 2, width: { xs: '100%', sm: 'auto' }, maxWidth: '100%' }}
           onClick={() => setClearDialogOpen(true)}
         >
           Clear browser data
@@ -103,149 +103,137 @@ const StorageOverview = () => {
           </DialogActions>
         </Dialog>
       </Box>
-      <Grid container spacing={3}>
+      <Stack spacing={3} sx={{ width: '100%' }}>
         {/* Storage Size Card */}
-        <Grid item xs={12}>
-          <Card>
-            <CardContent>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                <MemoryIcon color="primary" sx={{ fontSize: 40 }} />
-                <Box>
-                  <Typography variant="h6">Storage Usage</Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    Total size: {calculateStorageSize(gameState)}
-                  </Typography>
-                </Box>
+        <Card sx={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box', borderRadius: { xs: 0, sm: 2 } }}>
+          <CardContent>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
+              <MemoryIcon color="primary" sx={{ fontSize: 40 }} />
+              <Box>
+                <Typography variant="h6">Storage Usage</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Total size: {calculateStorageSize(gameState)}
+                </Typography>
               </Box>
-            </CardContent>
-          </Card>
-        </Grid>
+            </Box>
+          </CardContent>
+        </Card>
 
         {/* Resources */}
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2, maxHeight: 300, overflowY: 'auto' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <StorageIcon color="primary" />
-              <Typography variant="h6">Resources</Typography>
-            </Box>
-            <List>
-              {Object.entries(gameState.resources).map(([id, resource]) => (
-                <ListItem key={id}>
-                  <ListItemText
-                    primary={id}
-                    secondary={`Amount: ${resource.amount} / Capacity: ${resource.capacity}`}
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </Paper>
-        </Grid>
+        <Paper sx={{ p: 2, maxHeight: 300, overflowY: 'auto', width: '100%', maxWidth: '100%', boxSizing: 'border-box', borderRadius: { xs: 0, sm: 2 } }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+            <StorageIcon color="primary" />
+            <Typography variant="h6">Resources</Typography>
+          </Box>
+          <List>
+            {Object.entries(gameState.resources).map(([id, resource]) => (
+              <ListItem key={id}>
+                <ListItemText
+                  primary={id}
+                  secondary={`Amount: ${resource.amount} / Capacity: ${resource.capacity}`}
+                />
+              </ListItem>
+            ))}
+          </List>
+        </Paper>
 
         {/* Production Lines */}
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2, maxHeight: 300, overflowY: 'auto' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <FactoryIcon color="primary" />
-              <Typography variant="h6">Production Lines</Typography>
-            </Box>
-            <List>
-              {gameState.productionLines.map(line => (
-                <ListItem key={line.id}>
-                  <ListItemText
-                    primary={line.name}
-                    secondary={`ID: ${line.id}`}
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </Paper>
-        </Grid>
+        <Paper sx={{ p: 2, maxHeight: 300, overflowY: 'auto', width: '100%', maxWidth: '100%', boxSizing: 'border-box', borderRadius: { xs: 0, sm: 2 } }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+            <FactoryIcon color="primary" />
+            <Typography variant="h6">Production Lines</Typography>
+          </Box>
+          <List>
+            {gameState.productionLines.map(line => (
+              <ListItem key={line.id}>
+                <ListItemText
+                  primary={line.name}
+                  secondary={`ID: ${line.id}`}
+                />
+              </ListItem>
+            ))}
+          </List>
+        </Paper>
 
         {/* Research Progress */}
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2, maxHeight: 300, overflowY: 'auto' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <ScienceIcon color="primary" />
-              <Typography variant="h6">Research Progress</Typography>
+        <Paper sx={{ p: 2, maxHeight: 300, overflowY: 'auto', width: '100%', maxWidth: '100%', boxSizing: 'border-box', borderRadius: { xs: 0, sm: 2 } }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+            <ScienceIcon color="primary" />
+            <Typography variant="h6">Research Progress</Typography>
+          </Box>
+          <Box sx={{ mb: 2 }}>
+            <Typography variant="subtitle2">Unlocked Modules:</Typography>
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1 }}>
+              {gameState.unlockedModules.map(module => (
+                <Chip key={module} label={module} size="small" />
+              ))}
             </Box>
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2">Unlocked Modules:</Typography>
-              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1 }}>
-                {gameState.unlockedModules.map(module => (
-                  <Chip key={module} label={module} size="small" />
-                ))}
-              </Box>
+          </Box>
+          <Box>
+            <Typography variant="subtitle2">Researched Technologies:</Typography>
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1 }}>
+              {gameState.researchedTechnologies.map(tech => (
+                <Chip key={tech} label={tech} size="small" />
+              ))}
             </Box>
-            <Box>
-              <Typography variant="subtitle2">Researched Technologies:</Typography>
-              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1 }}>
-                {gameState.researchedTechnologies.map(tech => (
-                  <Chip key={tech} label={tech} size="small" />
-                ))}
-              </Box>
-            </Box>
-          </Paper>
-        </Grid>
+          </Box>
+        </Paper>
 
         {/* Statistics */}
-        <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2, maxHeight: 300, overflowY: 'auto' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <TrendingUpIcon color="primary" />
-              <Typography variant="h6">Statistics</Typography>
-            </Box>
-            <List>
-              <ListItem>
-                <ListItemText
-                  primary="Credits"
-                  secondary={gameState.credits}
-                />
-              </ListItem>
-              <ListItem>
-                <ListItemText
-                  primary="Research Points"
-                  secondary={gameState.researchPoints}
-                />
-              </ListItem>
-              <ListItem>
-                <ListItemText
-                  primary="Warehouses"
-                  secondary={gameState.warehouses}
-                />
-              </ListItem>
-            </List>
-          </Paper>
-        </Grid>
+        <Paper sx={{ p: 2, maxHeight: 300, overflowY: 'auto', width: '100%', maxWidth: '100%', boxSizing: 'border-box', borderRadius: { xs: 0, sm: 2 } }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+            <TrendingUpIcon color="primary" />
+            <Typography variant="h6">Statistics</Typography>
+          </Box>
+          <List>
+            <ListItem>
+              <ListItemText
+                primary="Credits"
+                secondary={gameState.credits}
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText
+                primary="Research Points"
+                secondary={gameState.researchPoints}
+              />
+            </ListItem>
+            <ListItem>
+              <ListItemText
+                primary="Warehouses"
+                secondary={gameState.warehouses}
+              />
+            </ListItem>
+          </List>
+        </Paper>
 
         {/* Raw Data */}
-        <Grid item xs={12}>
-          <Accordion sx={{ width: '100%' }} defaultExpanded={false}>
-            <AccordionSummary
-              expandIcon={<ExpandMoreIcon />}
-              aria-controls="raw-data-content"
-              id="raw-data-header"
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <MemoryIcon color="primary" />
-                <Typography variant="h6">Raw Data</Typography>
-              </Box>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Box sx={{ 
-                bgcolor: 'grey.100', 
-                p: 2, 
-                borderRadius: 1,
-                maxHeight: 400,
-                overflow: 'auto',
-                fontFamily: 'monospace',
-                fontSize: '0.9rem'
-              }}>
-                <pre>{formatData(gameState)}</pre>
-              </Box>
-            </AccordionDetails>
-          </Accordion>
-        </Grid>
-      </Grid>
+        <Accordion sx={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box', borderRadius: { xs: 0, sm: 2 } }} defaultExpanded={false}>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            aria-controls="raw-data-content"
+            id="raw-data-header"
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <MemoryIcon color="primary" />
+              <Typography variant="h6">Raw Data</Typography>
+            </Box>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Box sx={{ 
+              bgcolor: 'grey.100', 
+              p: 2, 
+              borderRadius: 1,
+              maxHeight: 400,
+              overflow: 'auto',
+              fontFamily: 'monospace',
+              fontSize: '0.9rem'
+            }}>
+              <pre>{formatData(gameState)}</pre>
+            </Box>
+          </AccordionDetails>
+        </Accordion>
+      </Stack>
     </Box>
   );
 };
