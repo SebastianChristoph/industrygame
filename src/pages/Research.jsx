@@ -137,27 +137,9 @@ const Research = () => {
       resourceId => RESOURCES[resourceId]?.purchasable
     );
     const producedGoods = (unlocks?.recipes || []).map(recipeId => PRODUCTION_RECIPES[recipeId]).filter(Boolean);
-    const passiveEffects = unlocks?.passiveEffects || {};
 
     return (
       <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-        {Object.entries(passiveEffects).length > 0 && (
-          <Box>
-            <Typography variant="caption" color="text.secondary">Passive Effects:</Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 0.5 }}>
-              {Object.entries(passiveEffects).map(([effect, value]) => (
-                <Box key={effect} sx={{ display: 'flex', alignItems: 'center', gap: 0.5, bgcolor: 'action.hover', px: 1, py: 0.2, borderRadius: 1, fontSize: '0.85rem' }}>
-                  {effect === 'productionEfficiency' && (
-                    <>
-                      <span style={{ color: '#2e7d32', fontWeight: 600 }}>+{(value * 100).toFixed(0)}%</span>
-                      <span>Production Efficiency</span>
-                    </>
-                  )}
-                </Box>
-              ))}
-            </Box>
-          </Box>
-        )}
         {purchasableResources.length > 0 && (
           <Box>
             <Typography variant="caption" color="text.secondary">Resource for purchase:</Typography>
@@ -175,7 +157,7 @@ const Research = () => {
         )}
         {producedGoods.length > 0 && (
           <Box>
-            <Typography variant="caption" color="text.secondary">Good for production:</Typography>
+            <Typography variant="caption" color="text.secondary" sx={{ color: '#fff' }}>Good for production:</Typography>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 0.5 }}>
               {producedGoods.map(recipe => {
                 const outputRes = RESOURCES[recipe.output.resourceId];
@@ -186,7 +168,7 @@ const Research = () => {
                         <ResourceIcon iconUrls={getResourceImageWithFallback(recipe.output.resourceId, 'icon')} alt={RESOURCES[recipe.output.resourceId]?.name || recipe.output.resourceId} style={{ width: 22, height: 22, objectFit: 'contain', marginRight: 4, verticalAlign: 'middle' }} resourceId={recipe.output.resourceId} />
                         {RESOURCES[recipe.output.resourceId]?.name || recipe.output.resourceId} {getSellValueSpan(recipe.output.resourceId)}
                       </Box>
-                      <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+                      <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, color: '#fff' }}>
                         (Recipe: {recipe.inputs.map((input, idx) => `${input.amount}x ${RESOURCES[input.resourceId]?.name || input.resourceId}`).join(' + ')} = {recipe.output.amount}x {RESOURCES[recipe.output.resourceId]?.name || recipe.output.resourceId})
                       </Typography>
                     </Box>
@@ -205,13 +187,13 @@ const Research = () => {
     <Box sx={{ mb: 2 }}>
       {module.resources && module.resources.length > 0 && (
         <Box sx={{ mb: 1 }}>
-          <Typography variant="subtitle2" color="text.secondary">Base Resources:</Typography>
+          <Typography variant="subtitle2" sx={{ color: '#fff' }}>Base Resources:</Typography>
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 0.5 }}>
             {module.resources.map(resourceId => (
               <Tooltip key={resourceId} title={RESOURCES[resourceId]?.name || resourceId}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, bgcolor: 'action.hover', px: 1, py: 0.2, borderRadius: 1, fontSize: '0.95rem' }}>
                   <ResourceIcon iconUrls={getResourceImageWithFallback(resourceId, 'icon')} alt={RESOURCES[resourceId]?.name || resourceId} style={{ width: 22, height: 22, objectFit: 'contain', marginRight: 4, verticalAlign: 'middle' }} resourceId={resourceId} />
-                  {RESOURCES[resourceId]?.name || resourceId} {getSellValueSpan(resourceId)}
+                  <span style={{ color: '#fff' }}>{RESOURCES[resourceId]?.name || resourceId} {getSellValueSpan(resourceId)}</span>
                 </Box>
               </Tooltip>
             ))}
@@ -220,7 +202,7 @@ const Research = () => {
       )}
       {module.recipes && module.recipes.length > 0 && (
         <Box>
-          <Typography variant="subtitle2" color="text.secondary">Base Goods:</Typography>
+          <Typography variant="subtitle2" sx={{ color: '#fff' }}>Base Goods:</Typography>
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 0.5 }}>
             {module.recipes.map(recipeId => {
               const recipe = PRODUCTION_RECIPES[recipeId];
@@ -231,9 +213,9 @@ const Research = () => {
                   <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: 0, bgcolor: 'action.hover', px: 1, py: 0.2, borderRadius: 1, fontSize: '0.95rem', minWidth: 160 }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                       <ResourceIcon iconUrls={getResourceImageWithFallback(recipe.output.resourceId, 'icon')} alt={RESOURCES[recipe.output.resourceId]?.name || recipe.output.resourceId} style={{ width: 22, height: 22, objectFit: 'contain', marginRight: 4, verticalAlign: 'middle' }} resourceId={recipe.output.resourceId} />
-                      {RESOURCES[recipe.output.resourceId]?.name || recipe.output.resourceId} {getSellValueSpan(recipe.output.resourceId)}
+                      <span style={{ color: '#fff' }}>{RESOURCES[recipe.output.resourceId]?.name || recipe.output.resourceId} {getSellValueSpan(recipe.output.resourceId)}</span>
                     </Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+                    <Typography variant="caption" sx={{ mt: 0.5, color: '#fff' }}>
                       (Recipe: {recipe.inputs.map((input, idx) => `${input.amount}x ${RESOURCES[input.resourceId]?.name || input.resourceId}`).join(' + ')} = {recipe.output.amount}x {outputRes?.name || recipe.output.resourceId})
                     </Typography>
                   </Box>
@@ -277,12 +259,37 @@ const Research = () => {
   }, [tab, moduleResearch]);
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" sx={{ mb: 3 }}>
-        Research
-      </Typography>
+    <Box sx={{
+      p: 3,
+      minHeight: '100vh',
+      backgroundImage: {
+        xs: 'url(/images/background_dark_mobil.png)',
+        md: 'url(/images/background.png)'
+      },
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      color: '#fff',
+    }}>
+   <Typography
+              variant="h4"
+              sx={{
+                mb: 3,
+                fontWeight: 900,
+                fontSize: "2.5rem",
+                color: "#fff",
+                textShadow: "0 2px 8px #000, 0 1px 1px #000",
+                //   background: 'rgba(30,30,30,0.7)',
+                px: 2,
+                py: 1,
+                borderRadius: 2,
+                width: "fit-content",
+              }}
+            >
+           Research
+            </Typography>
 
-      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2, color: '#fff' }}>
         <Tabs
           value={tab}
           onChange={(_, v) => setTab(v)}
@@ -290,15 +297,15 @@ const Research = () => {
           variant="scrollable"
           scrollButtons="auto"
           centered={false}
-          TabIndicatorProps={{ sx: { height: 3 } }}
+          TabIndicatorProps={{ sx: { height: 3, bgcolor: '#fff' } }}
         >
           {moduleKeys.map((key, idx) => (
             <Tab
               key={key}
               label={
-                <span style={{ fontSize: '1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4 }}>
+                <span style={{ fontSize: '1rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 4, color: '#fff' }}>
                   {MODULES[key].icon}
-                  <span style={{ fontSize: '1rem', fontWeight: 600 }}>{MODULES[key].name}</span>
+                  <span style={{ fontSize: '1rem', fontWeight: 600, color: '#fff' }}>{MODULES[key].name}</span>
                 </span>
               }
               icon={null}
@@ -307,27 +314,29 @@ const Research = () => {
                 minWidth: { xs: 120, sm: 160 },
                 px: { xs: 1, sm: 2 },
                 fontSize: { xs: '1rem', sm: '1.1rem' },
+                color: '#fff',
                 '& .MuiTab-wrapper': {
                   flexDirection: 'row',
                   gap: 1,
                   alignItems: 'center',
+                  color: '#fff',
                 },
               }}
             />
           ))}
         </Tabs>
       </Box>
-      <Card>
-        <CardContent>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-            <Typography variant="h2" sx={{ fontSize: '2.5rem' }}>
+      <Card sx={{ background: 'rgba(30,30,30,0.95)', color: '#fff', boxShadow: 8 }}>
+        <CardContent sx={{ color: '#fff' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2, color: '#fff' }}>
+            <Typography variant="h2" sx={{ fontSize: '2.5rem', color: '#fff' }}>
               {module.icon}
             </Typography>
-            <Box>
-              <Typography variant="h6">
+            <Box sx={{ color: '#fff' }}>
+              <Typography variant="h6" sx={{ color: '#fff' }}>
                 {module.name}
               </Typography>
-              <Typography variant="body2" color="text.secondary">
+              <Typography variant="body2" sx={{ color: '#fff' }}>
                 {module.description}
               </Typography>
             </Box>
@@ -339,20 +348,20 @@ const Research = () => {
                 fullWidth
                 disabled={!hasEnoughPoints}
                 onClick={hasEnoughPoints ? () => handleUnlockModule(module.id) : undefined}
-                sx={{ mb: 2, bgcolor: !hasEnoughPoints ? 'grey.400' : undefined }}
+                sx={{ mb: 2, bgcolor: !hasEnoughPoints ? 'grey.400' : undefined, color: '#fff' }}
               >
                 {hasEnoughPoints ? 'Unlock (500 research points)' : 'Not enough research points (500 needed)'}
               </Button>
-              {renderModuleBaseUnlocks(module)}
+              <Box sx={{ color: '#fff' }}>{renderModuleBaseUnlocks(module)}</Box>
             </>
           )}
           {moduleResearch ? (
             <>
-              <Divider sx={{ my: 2 }} />
-              <Typography variant="h6" gutterBottom>
+              <Divider sx={{ my: 2, bgcolor: '#fff' }} />
+              <Typography variant="h6" gutterBottom sx={{ color: '#fff' }}>
                 Technologies
               </Typography>
-              <Box sx={{ position: 'relative' }}>
+              <Box sx={{ position: 'relative', color: '#fff' }}>
                 {/* SVG-Overlay für Abhängigkeits-Pfeile nur auf Desktop/Tablet */}
                 {!isMobile && (
                   <svg style={{ position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none', zIndex: 2 }}>
@@ -363,12 +372,12 @@ const Research = () => {
                       const gridRect = gridBox.getBoundingClientRect();
                       const from = arrow.fromRect;
                       const to = arrow.toRect;
-                      // Start: unten Mitte der from-Card
-                      const startX = from.left + from.width / 2 - gridRect.left;
-                      const startY = from.bottom - gridRect.top;
-                      // Ende: oben Mitte der to-Card
-                      const endX = to.left + to.width / 2 - gridRect.left;
-                      const endY = to.top - gridRect.top;
+                      // Start: rechts Mitte der from-Card
+                      const startX = from.right - gridRect.left;
+                      const startY = from.top + from.height / 2 - gridRect.top;
+                      // Ende: links Mitte der to-Card
+                      const endX = to.left - gridRect.left;
+                      const endY = to.top + to.height / 2 - gridRect.top;
                       return (
                         <line
                           key={idx}
@@ -376,7 +385,7 @@ const Research = () => {
                           y1={startY}
                           x2={endX}
                           y2={endY}
-                          stroke="#222"
+                          stroke="#bbb"
                           strokeWidth={2}
                           markerEnd="url(#arrowhead)"
                           opacity={0.7}
@@ -385,7 +394,7 @@ const Research = () => {
                     })}
                     <defs>
                       <marker id="arrowhead" markerWidth="8" markerHeight="8" refX="8" refY="4" orient="auto" markerUnits="strokeWidth">
-                        <polygon points="0 0, 8 4, 0 8" fill="#222" />
+                        <polygon points="0 0, 8 4, 0 8" fill="#bbb" />
                       </marker>
                     </defs>
                   </svg>
@@ -401,6 +410,7 @@ const Research = () => {
                     zIndex: 3,
                     justifyItems: 'center',
                     px: { xs: 1, sm: 0 },
+                    color: '#fff',
                   }}
                 >
                   {Object.values(moduleResearch.technologies).map((technology) => {
@@ -417,7 +427,6 @@ const Research = () => {
                         sx={{
                           p: 0,
                           borderRadius: 2,
-                          boxShadow: 0,
                           minHeight: 0,
                           display: 'flex',
                           flexDirection: 'column',
@@ -426,27 +435,37 @@ const Research = () => {
                           maxWidth: 360,
                           mx: { xs: 'auto', sm: 0 },
                           boxSizing: 'border-box',
+                          background: 'rgba(40,50,70,0.97)',
+                          color: '#fff',
+                          boxShadow: '0 0 16px 4px rgba(0,180,255,0.18), 0 4px 32px 0 rgba(0,0,0,0.45)',
+                          border: '2px solid rgba(0,180,255,0.35)',
+                          transition: 'box-shadow 0.2s, border 0.2s, background 0.2s',
+                          '&:hover': {
+                            boxShadow: '0 0 32px 8px rgba(0,180,255,0.35), 0 8px 48px 0 rgba(0,0,0,0.60)',
+                            border: '2.5px solid #00b4ff',
+                            background: 'rgba(50,70,100,0.99)',
+                          }
                         }}
                       >
-                        <CardContent sx={{ p: 0, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
-                          <Box sx={{ p: 1.5, pb: 0, display: 'flex', flexDirection: 'column', height: '100%' }}>
-                            <Box sx={{ minHeight: 110, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start' }}>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                        <CardContent sx={{ p: 0, height: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', color: '#fff' }}>
+                          <Box sx={{ p: 1.5, pb: 0, display: 'flex', flexDirection: 'column', height: '100%', color: '#fff' }}>
+                            <Box sx={{ minHeight: 110, display: 'flex', flexDirection: 'column', justifyContent: 'flex-start', color: '#fff' }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5, color: '#fff' }}>
                                 <ScienceIcon sx={{ color: isResearched ? 'success.main' : 'primary.main', fontSize: 28 }} />
-                                <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '1.1rem' }}>
+                                <Typography variant="subtitle1" sx={{ fontWeight: 600, fontSize: '1.1rem', color: '#fff' }}>
                                   {technology.name}
                                 </Typography>
                               </Box>
-                              <Typography variant="body2" color="text.secondary" gutterBottom sx={{ fontSize: '0.95rem' }}>
+                              <Typography variant="body2" color="text.secondary" gutterBottom sx={{ fontSize: '0.95rem', color: '#fff' }}>
                                 {technology.description}
                               </Typography>
                               {technology.requirements.length > 0 && (
-                                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.95rem' }}>
+                                <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.95rem', color: '#fff' }}>
                                   Requirements: {technology.requirements.map(req => TECHNOLOGY_NAME_MAP[req] || req).join(', ')}
                                 </Typography>
                               )}
                             </Box>
-                            <Box sx={{ minHeight: 70, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', mt: 1 }}>
+                            <Box sx={{ minHeight: 70, display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', mt: 1, color: '#fff' }}>
                               {renderUnlocks(technology.unlocks)}
                             </Box>
                           </Box>
@@ -457,7 +476,23 @@ const Research = () => {
                               size="small"
                               disabled={!canResearch}
                               onClick={() => handleResearchTechnology(technology.id, technology.cost)}
-                              sx={{ fontSize: '1rem', py: 0.5, borderRadius: 2, minHeight: 48, display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                              sx={{
+                                fontSize: '1rem',
+                                py: 0.5,
+                                borderRadius: 2,
+                                minHeight: 48,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                color: '#fff',
+                                ...(canResearch ? {} : {
+                                  backgroundColor: '#333 !important',
+                                  color: '#bbb !important',
+                                  border: '1px solid #444',
+                                  opacity: 1,
+                                  boxShadow: 'none',
+                                })
+                              }}
                             >
                               {buttonLabel}
                             </Button>

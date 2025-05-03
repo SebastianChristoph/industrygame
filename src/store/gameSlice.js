@@ -11,9 +11,10 @@ import {
 import { INITIAL_UNLOCKED_MODULES } from '../config/modules';
 import { RESEARCH_TREE } from '../config/research';
 import { MODULES } from '../config/modules';
+import { MISSIONS, checkMissionConditions } from '../config/missions';
 
 const initialState = {
-  credits: 2000, // Starting credits
+  credits: 5000, // Starting credits
   researchPoints: 1000,
   resources: Object.keys(INITIAL_RESOURCES).reduce((acc, resource) => ({
     ...acc,
@@ -31,6 +32,12 @@ const initialState = {
   researchedTechnologies: [],
   unlockedRecipes: [],
   unlockedResources: [],
+  // Mission state
+  missions: {
+    data: MISSIONS,
+    activeMissionId: null,
+    completedMissionIds: []
+  },
   // New statistics data
   statistics: {
     resourceHistory: {}, // { [resourceId]: [{ timestamp: number, amount: number }] }
@@ -212,8 +219,6 @@ const gameSlice = createSlice({
             const inputConfig = config.inputs[index];
             if (inputConfig.source === INPUT_SOURCES.GLOBAL_STORAGE) {
               state.resources[input.resourceId].amount -= input.amount;
-            } else {
-              state.credits -= RESOURCES[input.resourceId].basePrice * input.amount;
             }
           });
 
@@ -224,9 +229,36 @@ const gameSlice = createSlice({
             state.researchPoints += recipe.output.amount;
           } else if (config.outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE) {
             state.resources[recipe.output.resourceId].amount += recipe.output.amount;
-          } else if (config.outputTarget === OUTPUT_TARGETS.AUTO_SELL) {
-            // Verkaufe die produzierten Ressourcen zum Basispreis
-            state.credits += outputResource.basePrice * recipe.output.amount;
+          }
+
+          // --- NEU: Bilanz berechnen, Credits addieren, Statistiken aufzeichnen ---
+          // Bilanz-Logik wie in calculateCycleProfit
+          const inputCost = recipe.inputs.reduce((sum, input, idx) => {
+            const inputConfig = config.inputs[idx];
+            if (inputConfig && (inputConfig.source === INPUT_SOURCES.PURCHASE_MODULE || inputConfig.source === INPUT_SOURCES.BLACK_MARKET)) {
+              return sum + RESOURCES[input.resourceId].basePrice * input.amount;
+            }
+            return sum;
+          }, 0);
+          const sellIncome = RESOURCES[recipe.output.resourceId].basePrice * recipe.output.amount;
+          const isBlackMarketSell = config?.outputTarget === OUTPUT_TARGETS.BLACK_MARKET;
+          let profit = 0;
+          if (isBlackMarketSell) {
+            profit = sellIncome - inputCost;
+          } else {
+            profit = -inputCost;
+          }
+          state.credits += profit;
+          // Statistiken aufzeichnen
+          const timestamp = Date.now();
+          state.statistics.productionHistory.push({ timestamp, productionLineId: Number(productionLineId), amount: recipe.output.amount });
+          state.statistics.profitHistory.push({ timestamp, profit, productionLineId: Number(productionLineId) });
+          // Optional: Limitiere die Länge auf 1000 Einträge
+          if (state.statistics.productionHistory.length > 1000) {
+            state.statistics.productionHistory = state.statistics.productionHistory.slice(-1000);
+          }
+          if (state.statistics.profitHistory.length > 1000) {
+            state.statistics.profitHistory = state.statistics.profitHistory.slice(-1000);
           }
         }
       });
@@ -254,7 +286,7 @@ const gameSlice = createSlice({
               return sum;
             }, 0);
             const sellIncome = RESOURCES[recipe.output.resourceId].basePrice * recipe.output.amount;
-            const isSelling = config?.outputTarget === OUTPUT_TARGETS.AUTO_SELL;
+            const isSelling = config?.outputTarget === OUTPUT_TARGETS.AUTO_SELL || config?.outputTarget === OUTPUT_TARGETS.BLACK_MARKET;
             const isStoring = config?.outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE;
             let balance = 0;
             if (allInputsFromStock && isStoring) {
@@ -270,6 +302,7 @@ const gameSlice = createSlice({
           }
         }
       });
+
       // Schreibe nur, wenn mindestens eine Linie existiert
       if (state.productionLines.length > 0) {
         state.statistics.globalStatsHistory.push({
@@ -281,6 +314,28 @@ const gameSlice = createSlice({
         // Optional: Limitiere die Länge auf 1000 Einträge
         if (state.statistics.globalStatsHistory.length > 1000) {
           state.statistics.globalStatsHistory = state.statistics.globalStatsHistory.slice(-1000);
+        }
+      }
+
+      // Prüfe aktive Mission
+      if (state.missions?.activeMissionId && state.missions?.data) {
+        const mission = state.missions.data[state.missions.activeMissionId];
+        if (mission && checkMissionConditions(mission, state)) {
+          // Mission ist abgeschlossen
+          mission.isCompleted = true;
+          mission.isActive = false;
+          state.missions.completedMissionIds.push(mission.id);
+          state.missions.activeMissionId = null;
+          
+          // Belohnungen auszahlen
+          if (mission.rewards) {
+            if (mission.rewards.credits) {
+              state.credits += mission.rewards.credits;
+            }
+            if (mission.rewards.researchPoints) {
+              state.researchPoints += mission.rewards.researchPoints;
+            }
+          }
         }
       }
     },
@@ -378,6 +433,71 @@ const gameSlice = createSlice({
         profit,
         productionLineId
       });
+    },
+    // Mission related reducers
+    activateMission: (state, action) => {
+      const missionId = action.payload;
+      const mission = state.missions.data[missionId];
+      if (mission && !mission.isCompleted) {
+        // Deactivate current mission if any
+        if (state.missions.activeMissionId) {
+          state.missions.data[state.missions.activeMissionId].isActive = false;
+        }
+        // Activate new mission
+        mission.isActive = true;
+        state.missions.activeMissionId = missionId;
+      }
+    },
+    completeMission: (state, action) => {
+      const missionId = action.payload;
+      const mission = state.missions.data[missionId];
+      
+      if (mission && !mission.isCompleted) {
+        // Mark mission as completed
+        mission.isCompleted = true;
+        mission.isActive = false;
+        
+        // Add to completed missions
+        state.missions.completedMissionIds.push(missionId);
+        
+        // Remove from active mission
+        if (state.missions.activeMissionId === missionId) {
+          state.missions.activeMissionId = null;
+        }
+        
+        // Apply rewards
+        if (mission.rewards) {
+          if (mission.rewards.credits) {
+            state.credits += mission.rewards.credits;
+          }
+          if (mission.rewards.researchPoints) {
+            state.researchPoints += mission.rewards.researchPoints;
+          }
+        }
+      }
+    },
+    checkMissions: (state) => {
+      // Check active mission
+      if (state.missions.activeMissionId) {
+        const mission = state.missions.data[state.missions.activeMissionId];
+        if (checkMissionConditions(mission, state)) {
+          // Mission is completed
+          mission.isCompleted = true;
+          mission.isActive = false;
+          state.missions.completedMissionIds.push(mission.id);
+          state.missions.activeMissionId = null;
+          
+          // Apply rewards
+          if (mission.rewards) {
+            if (mission.rewards.credits) {
+              state.credits += mission.rewards.credits;
+            }
+            if (mission.rewards.researchPoints) {
+              state.researchPoints += mission.rewards.researchPoints;
+            }
+          }
+        }
+      }
     }
   },
 });
@@ -403,7 +523,11 @@ export const {
   recordSale,
   recordPurchase,
   recordProduction,
-  recordProfit
+  recordProfit,
+  // Mission actions
+  activateMission,
+  completeMission,
+  checkMissions
 } = gameSlice.actions;
 
 export default gameSlice.reducer; 

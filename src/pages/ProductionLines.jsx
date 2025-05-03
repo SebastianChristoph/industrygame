@@ -31,7 +31,7 @@ import {
   Settings as SettingsIcon,
   Edit as EditIcon,
   Storage as StorageIcon,
-  Sell as SellIcon,
+  LocalShipping as LocalShippingIcon,
   TrendingUp as IncomeIcon,
   TrendingDown as ExpenseIcon,
   AccountBalance as BalanceIcon,
@@ -66,7 +66,14 @@ import StorageInfoDialog from '../components/StorageInfoDialog';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 
-// @import url('https://fonts.googleapis.com/css2?family=Cal+Sans:wght@400;600;700&display=swap');
+// Inject Orbitron font into the document head if not already present
+if (typeof document !== 'undefined' && !document.getElementById('orbitron-font')) {
+  const link = document.createElement('link');
+  link.id = 'orbitron-font';
+  link.rel = 'stylesheet';
+  link.href = 'https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap';
+  document.head.appendChild(link);
+}
 
 function formatMoney(value) {
   if (value === undefined || value === null) return '0';
@@ -97,6 +104,23 @@ const ResourceIcon = ({ iconUrls, alt, resourceId, ...props }) => {
     />
   );
 };
+
+const GlobalBackground = () => (
+  <div style={{
+    position: 'fixed',
+    top: 0,
+    left: 0,
+    width: '100vw',
+    height: '100vh',
+    zIndex: -1,
+    pointerEvents: 'none',
+    backgroundImage: 'url(/images/background.png)',
+    backgroundSize: 'cover',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat',
+    opacity: 0.18,
+  }} />
+);
 
 const ProductionLineCard = ({ line, onRenameClick, onDeleteClick }) => {
   const dispatch = useDispatch();
@@ -214,7 +238,7 @@ const ProductionLineCard = ({ line, onRenameClick, onDeleteClick }) => {
           size="small" 
           onClick={handleToggleProduction}
           disabled={!recipe || (!canProduce && !status?.isActive)}
-          sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '32px' }}
+          sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '32px', color: '#fff', bgcolor: 'rgba(255,255,255,0.08)', '&:hover': { bgcolor: 'rgba(255,255,255,0.18)' } }}
         >
           {status?.isActive ? <Stop fontSize="small" /> : <PlayArrow fontSize="small" />}
         </IconButton>
@@ -223,139 +247,113 @@ const ProductionLineCard = ({ line, onRenameClick, onDeleteClick }) => {
   );
 };
 
-// Platzhalter für Modulauswahl mit Bildern
-const MODULES_INFO = [
-  {
-    name: 'Agriculture Module',
-    img: '/images/title_agriculture.png',
-    info: 'Enables the production of agricultural resources such as crops and food. Unlock this module to start building supply chains for the food industry and basic goods.',
-    tabKey: 'agriculture'
-  },
-  {
-    name: 'Technology Module',
-    img: '/images/title_technology.png',
-    info: "Allows the production of advanced technology resources, including electronics and IT components. Unlock this module to develop high-tech products and boost your industry's efficiency.",
-    tabKey: 'technology'
-  },
-  {
-    name: 'Weapons Module',
-    img: '/images/title_weapons.png',
-    info: 'Unlocks the production of weapons and military equipment. Use this module to manufacture arms for defense contracts or to expand into the security sector.',
-    tabKey: 'weapons'
-  },
-];
-
-const ModuleSelectionPlaceholder = ({ onModuleClick }) => {
+const WelcomeScreen = () => {
   const navigate = useNavigate();
-  const [hoveredIdx, setHoveredIdx] = React.useState(null);
-  const handleModuleImageClick = (tabKey) => {
-    onModuleClick(tabKey);
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
+  const [showStorageInfo, setShowStorageInfo] = React.useState(false);
+  const [hasAcceptedStorage, setHasAcceptedStorage] = React.useState(false);
+
+  // Check localStorage on mount and when showStorageInfo changes
+  React.useEffect(() => {
+    const accepted = localStorage.getItem('storageInfoAccepted') === 'true';
+    setHasAcceptedStorage(accepted);
+  }, [showStorageInfo]);
+
+  const handleStartMission = () => {
+    if (hasAcceptedStorage) {
+      navigate('/missions');
+    } else {
+      setShowStorageInfo(true);
+    }
   };
+
+  const handleAccept = () => {
+    localStorage.setItem('storageInfoAccepted', 'true');
+    setHasAcceptedStorage(true);
+    setShowStorageInfo(false);
+    navigate('/missions');
+  };
+
   return (
-    <Box sx={{ width: '100%' }}>
-      {/* Hinweistext auf Mobile ganz oben, auf Desktop unten */}
-      <Box sx={{ width: '100%', textAlign: 'center', mb: { xs: 3, sm: 2 }, mt: { xs: 2, sm: 6 }, display: { xs: 'block', sm: 'none' } }}>
-        <Typography variant="body1" color="text.secondary">
-          Before you can create a production line, you need to unlock a production module in the research area.
-        </Typography>
-      </Box>
-      <Box sx={{
+    <Box
+      sx={{
         width: '100%',
+        color: '#fff',
+        minHeight: '100vh',
+        position: 'relative',
         display: 'flex',
-        flexDirection: { xs: 'column', sm: 'row' },
-        p: 0,
-        m: 0,
+        flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
-        gap: { xs: 3, sm: 0 }
-      }}>
-        {MODULES_INFO.map((mod, idx) => (
-          <Box
-            key={idx}
-            onClick={() => handleModuleImageClick(mod.tabKey)}
-            onMouseEnter={() => setHoveredIdx(idx)}
-            onMouseLeave={() => setHoveredIdx(null)}
-            sx={{
-              flex: { xs: 'unset', sm: 1 },
-              cursor: 'pointer',
-              p: 0,
-              m: 0,
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: '100%',
-              position: 'relative',
-              width: { xs: '100%', sm: 'auto' },
-              maxWidth: { xs: 320, sm: 'none' },
-              mx: { xs: 'auto', sm: 0 },
-            }}
-          >
-            <Box
-              component="img"
-              src={mod.img}
-              alt={mod.name}
-              sx={{
-                width: { xs: '90%', sm: '90%' },
-                maxWidth: { xs: 220, sm: 180 },
-                height: { xs: 'auto', sm: '90%' },
-                borderRadius: 0,
-                display: 'block',
-                objectFit: 'contain',
-                transition: 'filter 0.3s',
-                filter: hoveredIdx === idx ? 'brightness(0.5)' : 'none',
-                mx: 'auto',
-              }}
-            />
-            <Typography
-              variant="h2"
-              align="center"
-              sx={{
-                mt: 1,
-                fontWeight: 600,
-                color: 'text.primary',
-                textShadow: '0 2px 8px #fff',
-                width: '100%',
-                fontFamily: 'Cal Sans, sans-serif',
-                fontSize: { xs: '1.25rem', sm: '2rem' },
-                lineHeight: 1.2,
-                wordBreak: 'break-word',
-              }}
-            >
-              {mod.name}
-            </Typography>
-            {hoveredIdx === idx && (
-              <Box
-                sx={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '50%',
-                  transform: 'translate(-50%, -50%)',
-                  width: '85%',
-                  bgcolor: 'rgba(20,20,20,0.88)',
-                  color: 'white',
-                  borderRadius: 2,
-                  p: 2,
-                  textAlign: 'center',
-                  pointerEvents: 'none',
-                  zIndex: 2,
-                  boxShadow: '0 4px 24px 4px rgba(0,0,0,0.7)',
-                }}
-              >
-                <Typography variant="h6" sx={{ mb: 1, color: 'white', fontWeight: 700, textShadow: '0 2px 8px #000' }}>{mod.name}</Typography>
-                <Typography variant="body1" sx={{ color: 'white', fontWeight: 600, textShadow: '0 2px 8px #000' }}>{mod.info}</Typography>
-              </Box>
-            )}
-          </Box>
-        ))}
-      </Box>
-      {/* Hinweistext auf Desktop wie gehabt unten */}
-      <Box sx={{ width: '100%', textAlign: 'center', mb: 2, mt: 6, display: { xs: 'none', sm: 'block' } }}>
-        <Typography variant="body1" color="text.secondary">
-          Before you can create a production line, you need to unlock a production module in the research area.
+        justifyContent: isMobile ? 'center' : 'flex-start',
+        backgroundImage: isMobile ? 'url(/images/background_teaser_mobile.png)' : 'url(/images/background_teaser.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed',
+        p: 0,
+      }}
+    >
+      <Box
+        sx={{
+          width: '100%',
+          textAlign: 'center',
+          mb: { xs: 3, sm: 2 },
+          mt: isMobile ? 0 : { xs: 2, sm: 6 },
+          color: '#fff',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: isMobile ? 'center' : 'flex-start',
+          minHeight: isMobile ? '100vh' : 'auto',
+        }}
+      >
+        <Typography
+          variant="h4"
+          sx={{
+            mb: 3,
+            fontWeight: 700,
+            fontSize: { xs: '1.5rem', sm: '2rem', md: '2.5rem' },
+            color: '#fff',
+            textShadow: '0 2px 8px #000, 0 1px 1px #000',
+            fontFamily: 'Orbitron, Arial, sans-serif',
+          }}
+        >
+          Welcome to Industile
         </Typography>
+        <Typography
+          variant="body1"
+          sx={{
+            mb: 4,
+            fontSize: { xs: '1rem', sm: '1.1rem' },
+            maxWidth: '600px',
+            mx: 'auto',
+            color: 'rgba(255,255,255,0.85)',
+            textShadow: '0 2px 8px #000, 0 1px 1px #000',
+          }}
+        >
+          In this post-apocalyptic world, you must rebuild your industry and fight against the machines. Your journey begins with your first mission.
+        </Typography>
+        <Button
+          variant="contained"
+          color="primary"
+          size="large"
+          onClick={handleStartMission}
+          sx={{
+            fontSize: { xs: '1.1rem', sm: '1.25rem' },
+            py: 1.5,
+            px: 4,
+            fontWeight: 700,
+            boxShadow: 3,
+            '&:hover': {
+              boxShadow: 6,
+            },
+          }}
+        >
+          Start Your First Mission
+        </Button>
       </Box>
+      <StorageInfoDialog open={showStorageInfo} onClose={() => setShowStorageInfo(false)} onAccept={handleAccept} />
     </Box>
   );
 };
@@ -567,7 +565,7 @@ const ProductionLines = () => {
               size="small" 
               onClick={() => dispatch(toggleProduction(params.row.id))}
               disabled={!recipe || (!canProduce && !status?.isActive)}
-              sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '32px' }}
+              sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '32px', color: '#fff', bgcolor: 'rgba(255,255,255,0.08)', '&:hover': { bgcolor: 'rgba(255,255,255,0.18)' } }}
             >
               {status?.isActive ? <Stop fontSize="small" /> : <PlayArrow fontSize="small" />}
             </IconButton>
@@ -703,17 +701,13 @@ const ProductionLines = () => {
       renderCell: (params) => {
         const config = productionConfigs[params.row.id];
         const outputTarget = config?.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE;
-
         return (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, height: '100%' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
             {outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE ? (
-              <StorageIcon fontSize="small" color="action" />
+              <StorageIcon fontSize="medium" sx={{ color: '#fff' }} />
             ) : (
-              <SellIcon fontSize="small" color="success" />
+              <LocalShippingIcon fontSize="medium" sx={{ color: '#fff' }} />
             )}
-            <Typography variant="body2">
-              {outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE ? 'Storage' : 'Sell'}
-            </Typography>
           </Box>
         );
       }
@@ -725,7 +719,7 @@ const ProductionLines = () => {
       align: 'center',
       renderCell: (params) => (
         <Box sx={{ display: 'flex', gap: 1, justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-          <IconButton size="small" onClick={(event) => { event.stopPropagation(); handleRenameClick(params.row.id, params.row.name); }}>
+          <IconButton size="small" onClick={(event) => { event.stopPropagation(); handleRenameClick(params.row.id, params.row.name); }} sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,0.08)', '&:hover': { bgcolor: 'rgba(255,255,255,0.18)' } }}>
             <EditIcon fontSize="small" />
           </IconButton>
           <IconButton size="small" color="error" onClick={(event) => { event.stopPropagation(); handleDeleteClick(params.row.id); }}>
@@ -838,16 +832,9 @@ const ProductionLines = () => {
     }
   };
 
-  // If no production lines exist and no modules are unlocked, show module selection
+  // If no production lines and no modules unlocked, show welcome screen
   if (productionLines.length === 0 && unlockedModules.length === 0) {
-    return <>
-      <ModuleSelectionPlaceholder onModuleClick={handleModuleClick} />
-      <StorageInfoDialog 
-        open={showStorageInfo} 
-        onClose={() => setShowStorageInfo(false)}
-        onAccept={handleStorageAccept}
-      />
-    </>;
+    return <WelcomeScreen />;
   }
 
   React.useEffect(() => {
@@ -870,9 +857,19 @@ const ProductionLines = () => {
   return (
     <>
       <ProductionBackground />
-      <Box sx={{ p: { xs: 1, sm: 2, md: 3 }, overflowX: 'hidden', maxWidth: '100vw' }}>
+      <Box sx={{
+        p: { xs: 1, sm: 2, md: 3 },
+        overflowX: 'hidden',
+        maxWidth: '100vw',
+        minHeight: '95vh',
+        backgroundImage: 'url(/images/background.png)',
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        color: 'rgba(255,255,255,0.92)',
+      }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-          <Typography variant="h4" sx={{ flex: 1, fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' } }}>
+          <Typography variant="h4" sx={{ flex: 1, fontSize: { xs: '1.5rem', sm: '2rem', md: '2.125rem' }, fontFamily: 'Orbitron, Arial, sans-serif', color: '#fff', textShadow: '0 2px 8px #000, 0 1px 1px #000' }}>
             Production Lines
           </Typography>
         </Box>
@@ -883,20 +880,36 @@ const ProductionLines = () => {
             startIcon={<AddIcon />}
             onClick={handleAddLine}
             disabled={!canAffordNewLine}
-            fullWidth
             sx={{ 
-              maxWidth: { xs: '100%', sm: '300px' },
-              fontSize: { xs: '0.875rem', sm: '1rem' }
+              maxWidth: 320,
+              fontSize: { xs: '0.875rem', sm: '1rem' },
+              color: '#fff',
+              '&:hover': { /* kein Override, Standard-MUI */ },
+              '&.Mui-disabled': {
+                bgcolor: '#444',
+                color: '#fff',
+                opacity: 1,
+                boxShadow: 'none',
+              },
+              whiteSpace: 'nowrap',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 1,
+              px: 2,
             }}
           >
-            NEW PRODUCTION LINE ({formatMoney(newLineCost)}$)
+            <span style={{ display: 'inline-flex', alignItems: 'center', whiteSpace: 'nowrap', gap: 8 }}>
+              NEW PRODUCTION LINE&nbsp;
+              <span style={{ fontWeight: 400 }}>({formatMoney(newLineCost)}$)</span>
+            </span>
           </Button>
           {!canAffordNewLine && (
             <Chip
               color="error"
               variant="filled"
               label="Not enough credits"
-              sx={{ mt: 1 }}
+              sx={{ mt: 1, bgcolor: '#23272b', color: '#fff', fontWeight: 700 }}
             />
           )}
         </Box>
@@ -912,7 +925,7 @@ const ProductionLines = () => {
             flexDirection: { xs: 'column', md: 'row' },
             alignItems: 'center',
             gap: { xs: 2, md: 8 },
-            bgcolor: 'background.paper',
+            bgcolor: '#23272b',
             borderRadius: 8,
             boxShadow: 2,
             border: '1px solid',
@@ -920,6 +933,7 @@ const ProductionLines = () => {
             width: { xs: '100%', md: 'auto' },
             py: 2,
             px: { xs: 2, md: 10 },
+            color: '#fff',
           }}>
             {(() => {
               let totalBalance = 0;
@@ -1006,8 +1020,10 @@ const ProductionLines = () => {
                     flexDirection: 'column', 
                     gap: 1,
                     cursor: 'pointer',
+                    bgcolor: '#23272b',
+                    color: '#fff',
                     '&:hover': {
-                      bgcolor: 'action.hover'
+                      bgcolor: '#2c3136'
                     }
                   }}
                   onClick={(e) => {
@@ -1103,9 +1119,46 @@ const ProductionLines = () => {
           <Paper sx={{ 
             height: { xs: 400, sm: 500, md: 600 }, 
             width: '100%',
+            bgcolor: '#23272b',
+            color: '#fff',
             '& .MuiDataGrid-root': {
-              fontSize: { xs: '0.875rem', sm: '1rem' }
-            }
+              fontSize: { xs: '0.875rem', sm: '1rem' },
+              bgcolor: '#23272b',
+              color: '#fff',
+            },
+            '& .MuiDataGrid-cell': {
+              bgcolor: '#23272b',
+              color: '#fff',
+            },
+            '& .MuiDataGrid-columnHeaders': {
+              bgcolor: '#23272b !important',
+              color: '#fff !important',
+              borderBottom: '2px solid',
+              borderColor: 'divider',
+              fontWeight: 700,
+              fontSize: '1.05rem',
+            },
+            '& .MuiDataGrid-columnHeader': {
+              bgcolor: '#23272b !important',
+              color: '#fff !important',
+            },
+            '& .MuiDataGrid-columnHeaderTitle': {
+              color: '#fff !important',
+              fontWeight: 700,
+              fontSize: '1.05rem',
+            },
+            '& .MuiDataGrid-row': {
+              bgcolor: '#23272b',
+              color: '#fff',
+            },
+            '& .MuiDataGrid-footerContainer': {
+              bgcolor: '#23272b',
+              color: '#fff',
+            },
+            '& .MuiDataGrid-overlay': {
+              bgcolor: '#000',
+              color: '#fff',
+            },
           }}>
             <DataGrid
               rows={productionLines}
@@ -1118,11 +1171,6 @@ const ProductionLines = () => {
                 '& .MuiDataGrid-cell:focus': {
                   outline: 'none'
                 },
-                '& .MuiDataGrid-columnHeaders': {
-                  backgroundColor: 'background.paper',
-                  borderBottom: '2px solid',
-                  borderColor: 'divider'
-                }
               }}
               onRowClick={(params, event) => {
                 if (params.field === 'status' || params.field === 'actions') {
@@ -1140,22 +1188,102 @@ const ProductionLines = () => {
           </Paper>
         )}
 
+        {/* Resource Production Overview */}
+        <Box sx={{ 
+          mt: 3, 
+          p: 2, 
+          bgcolor: '#23272b',
+          borderRadius: 2,
+          border: '1px solid',
+          borderColor: 'divider'
+        }}>
+          <Typography variant="h6" sx={{ 
+            mb: 2,
+            fontSize: { xs: '1rem', sm: '1.25rem' },
+            color: '#fff'
+          }}>
+            Resource Production per Ping
+          </Typography>
+          <Grid container spacing={2}>
+            {(() => {
+              // Calculate resource production per ping
+              const resourceProduction = {};
+              productionLines.forEach(line => {
+                const config = productionConfigs[line.id];
+                const status = productionStatus[line.id];
+                if (!config?.recipe || !status?.isActive) return;
+
+                const recipe = PRODUCTION_RECIPES[config.recipe];
+                const outputResource = RESOURCES[recipe.output.resourceId];
+                const amountPerPing = recipe.output.amount / recipe.productionTime;
+
+                if (!resourceProduction[outputResource.id]) {
+                  resourceProduction[outputResource.id] = {
+                    name: outputResource.name,
+                    icon: outputResource.id,
+                    amount: 0,
+                    lines: 0
+                  };
+                }
+                resourceProduction[outputResource.id].amount += amountPerPing;
+                resourceProduction[outputResource.id].lines += 1;
+              });
+
+              // Sort by amount (descending)
+              const sortedResources = Object.values(resourceProduction)
+                .sort((a, b) => b.amount - a.amount);
+
+              return sortedResources.map(resource => (
+                <Grid item xs={12} sm={6} md={4} lg={3} key={resource.icon}>
+                  <Paper sx={{ 
+                    p: 2, 
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    gap: 2,
+                    bgcolor: '#2c3136',
+                    color: '#fff'
+                  }}>
+                    <ResourceIcon
+                      iconUrls={getResourceImageWithFallback(resource.icon, 'icon')}
+                      alt={resource.name}
+                      resourceId={resource.icon}
+                      style={{ width: 32, height: 32, objectFit: 'contain' }}
+                    />
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="subtitle1" sx={{ fontWeight: 600, color: '#fff' }}>
+                        {resource.name}
+                      </Typography>
+                      <Typography variant="body2" sx={{ color: '#fff' }}>
+                        {resource.amount.toFixed(2)} per ping
+                        <Typography component="span" variant="body2" sx={{ ml: 1, color: '#fff' }}>
+                          ({resource.lines} {resource.lines === 1 ? 'line' : 'lines'})
+                        </Typography>
+                      </Typography>
+                    </Box>
+                  </Paper>
+                </Grid>
+              ));
+            })()}
+          </Grid>
+        </Box>
+
         <Box sx={{ 
           mt: { xs: 3, md: 6 }, 
           p: { xs: 1, sm: 2, md: 3 }, 
-          bgcolor: 'background.paper', 
+          bgcolor: '#23272b',
           borderRadius: 2 
         }}>
           <Typography variant="h6" sx={{ 
             mb: 2,
-            fontSize: { xs: '1rem', sm: '1.25rem' }
+            fontSize: { xs: '1rem', sm: '1.25rem' },
+            color: '#fff'
           }}>
             Global Production Statistics (last 60 min)
           </Typography>
           <Grid container spacing={{ xs: 1, sm: 2, md: 3 }} sx={{ width: '100%', m: 0 }}>
             {/* Profit/Loss per Ping over Time */}
             <Grid xs={12} md={4} lg={4} sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-              <Paper sx={{ p: { xs: 1, sm: 2 }, height: { xs: 250, sm: 300, md: 320 }, display: 'flex', flexDirection: 'column' }}>
+              <Paper sx={{ p: { xs: 1, sm: 2 }, height: { xs: 250, sm: 300, md: 320 }, display: 'flex', flexDirection: 'column', bgcolor: '#23272b', color: '#fff' }}>
                 <Typography variant="subtitle1" sx={{ mb: 1, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                   Profit/Loss per Ping
                 </Typography>
@@ -1182,9 +1310,9 @@ const ProductionLines = () => {
             </Grid>
             {/* Profit/Loss Total Balance over Time */}
             <Grid xs={12} md={4} lg={4} sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-              <Paper sx={{ p: { xs: 1, sm: 2 }, height: { xs: 250, sm: 300, md: 320 }, display: 'flex', flexDirection: 'column' }}>
+              <Paper sx={{ p: { xs: 1, sm: 2 }, height: { xs: 250, sm: 300, md: 320 }, display: 'flex', flexDirection: 'column', bgcolor: '#23272b', color: '#fff' }}>
                 <Typography variant="subtitle1" sx={{ mb: 1, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
-                  Total Balance
+                  Total Balance per Ping
                 </Typography>
                 <Box sx={{ flex: 1, minHeight: 0 }}>
                   <ResponsiveContainer width="100%" height="100%">
@@ -1209,7 +1337,7 @@ const ProductionLines = () => {
             </Grid>
             {/* Current Balance over Time */}
             <Grid xs={12} md={4} lg={4} sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
-              <Paper sx={{ p: { xs: 1, sm: 2 }, height: { xs: 250, sm: 300, md: 320 }, display: 'flex', flexDirection: 'column' }}>
+              <Paper sx={{ p: { xs: 1, sm: 2 }, height: { xs: 250, sm: 300, md: 320 }, display: 'flex', flexDirection: 'column', bgcolor: '#23272b', color: '#fff' }}>
                 <Typography variant="subtitle1" sx={{ mb: 1, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                   Current Balance (Credits)
                 </Typography>
@@ -1244,12 +1372,14 @@ const ProductionLines = () => {
               maxWidth: { xs: '100vw', sm: 500 },
               m: { xs: 0, sm: 'auto' },
               borderRadius: { xs: 0, sm: 3 },
-              p: 0
+              p: 0,
+              bgcolor: '#23272b',
+              color: '#fff',
             }
           }}
         >
-          <DialogTitle sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' }, px: { xs: 2, sm: 3 }, pt: { xs: 2, sm: 3 }, pb: 1 }}>Create New Production Line</DialogTitle>
-          <DialogContent sx={{ minWidth: { xs: 'auto', sm: 400 }, px: { xs: 1, sm: 3 }, pt: { xs: 1, sm: 2 }, pb: 1 }}>
+          <DialogTitle sx={{ fontSize: { xs: '1.2rem', sm: '1.5rem' }, px: { xs: 2, sm: 3 }, pt: { xs: 2, sm: 3 }, pb: 1, bgcolor: '#23272b', color: '#fff' }}>Create New Production Line</DialogTitle>
+          <DialogContent sx={{ minWidth: { xs: 'auto', sm: 400 }, px: { xs: 1, sm: 3 }, pt: { xs: 1, sm: 2 }, pb: 1, bgcolor: '#23272b', color: '#fff', overflowX: 'hidden' }}>
             <Box sx={{ mb: 2, p: 2, bgcolor: 'warning.light', borderRadius: 1, width: '100%', fontSize: { xs: '1.05rem', sm: '1.1rem' }, textAlign: 'center', lineHeight: 1.4 }}>
               <Typography variant="body1" color="warning.contrastText" sx={{ fontWeight: 600, fontSize: { xs: '1.05rem', sm: '1.1rem' } }}>
                 Cost to create new production line:<br />{formatMoney(newLineCost)}$
@@ -1260,8 +1390,8 @@ const ProductionLines = () => {
             </Box>
 
             {/* Modul-Auswahl vor Rezept-Auswahl */}
-            <FormControl fullWidth sx={{ mt: { xs: 1, sm: 2 }, mb: { xs: 1.5, sm: 2 } }}>
-              <InputLabel>Choose Module</InputLabel>
+            <FormControl fullWidth sx={{ mt: { xs: 1, sm: 2 }, mb: { xs: 1.5, sm: 2 }, bgcolor: '#23272b', color: '#fff' }}>
+              <InputLabel shrink={true} sx={{ color: '#fff' }}>Choose Module</InputLabel>
               <Select
                 value={selectedModule}
                 onChange={e => {
@@ -1269,12 +1399,14 @@ const ProductionLines = () => {
                   setSelectedRecipe('');
                 }}
                 label="Choose Module"
-                sx={{ width: '100%', fontSize: { xs: '1rem', sm: '1.1rem' }, minHeight: 48 }}
+                sx={{ width: '100%', fontSize: { xs: '1rem', sm: '1.1rem' }, minHeight: 48, bgcolor: '#23272b', color: '#fff', '.MuiSelect-icon': { color: '#fff' } }}
+                inputProps={{ sx: { color: '#fff', bgcolor: '#23272b' } }}
+                MenuProps={{ PaperProps: { sx: { bgcolor: '#23272b', color: '#fff' } } }}
               >
                 {Object.entries(MODULES)
                   .filter(([key, mod]) => unlockedModules.includes(mod.id))
                   .map(([key, mod]) => (
-                    <MenuItem value={key} key={key}>
+                    <MenuItem value={key} key={key} sx={{ bgcolor: '#23272b', color: '#fff', '&:hover': { bgcolor: '#333' } }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         {mod.icon} {mod.name}
                       </Box>
@@ -1285,8 +1417,8 @@ const ProductionLines = () => {
 
             {/* Rezept-Auswahl nur wenn Modul gewählt */}
             {selectedModule && (
-              <FormControl fullWidth sx={{ mb: { xs: 1.5, sm: 2 } }}>
-                <InputLabel>Select Recipe</InputLabel>
+              <FormControl fullWidth sx={{ mb: { xs: 1.5, sm: 2 }, bgcolor: '#23272b', color: '#fff' }}>
+                <InputLabel sx={{ color: '#fff' }}>Select Recipe</InputLabel>
                 <Select
                   value={selectedRecipe}
                   onChange={(e) => {
@@ -1311,14 +1443,19 @@ const ProductionLines = () => {
                     }
                   }}
                   label="Select Recipe"
-                  sx={{ width: '100%', fontSize: { xs: '1rem', sm: '1.1rem' }, minHeight: 48 }}
+                  sx={{ width: '100%', fontSize: { xs: '1rem', sm: '1.1rem' }, minHeight: 48, bgcolor: '#23272b', color: '#fff', '.MuiSelect-icon': { color: '#fff' } }}
+                  inputProps={{ sx: { color: '#fff', bgcolor: '#23272b' } }}
+                  MenuProps={{ PaperProps: { sx: { bgcolor: '#23272b', color: '#fff' } } }}
                 >
                   {moduleRecipes.map(([id, recipe]) => (
                     <MenuItem key={id} value={id} sx={{ 
                       display: 'flex', 
                       flexDirection: 'column', 
                       alignItems: 'flex-start',
-                      py: 1
+                      py: 1,
+                      bgcolor: '#23272b',
+                      color: '#fff',
+                      '&:hover': { bgcolor: '#333' }
                     }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <ResourceIcon
@@ -1327,7 +1464,7 @@ const ProductionLines = () => {
                           resourceId={recipe.output.resourceId}
                           style={{ width: 22, height: 22, objectFit: 'contain', marginRight: 4, verticalAlign: 'middle' }}
                         />
-                        <Typography variant="subtitle1">
+                        <Typography variant="subtitle1" sx={{ color: '#fff' }}>
                           {recipe.name}
                           <span style={{ color: '#888', fontWeight: 400, marginLeft: 8 }}>
                             ({recipe.productionTime} Pings)
@@ -1367,7 +1504,8 @@ const ProductionLines = () => {
                               px: 1,
                               py: 0.5,
                               borderRadius: 1,
-                              fontSize: '0.75rem'
+                              fontSize: '0.75rem',
+                              color: '#fff'
                             }}>
                               <ResourceIcon
                                 iconUrls={getResourceImageWithFallback(resource.id, 'icon')}
@@ -1375,7 +1513,7 @@ const ProductionLines = () => {
                                 resourceId={resource.id}
                                 style={{ width: 18, height: 18, objectFit: 'contain', marginRight: 2, verticalAlign: 'middle' }}
                               />
-                              <Typography variant="caption">
+                              <Typography variant="caption" sx={{ color: '#fff' }}>
                                 {input.amount}x {resource.name}
                               </Typography>
                             </Box>
@@ -1401,28 +1539,35 @@ const ProductionLines = () => {
               }}
               error={!!nameError}
               helperText={nameError}
-              sx={{ width: '100%', fontSize: { xs: '1rem', sm: '1.1rem' }, minHeight: 48, mb: { xs: 2, sm: 2 } }}
+              sx={{ width: '100%', fontSize: { xs: '1rem', sm: '1.1rem' }, minHeight: 48, mb: { xs: 2, sm: 2 }, bgcolor: '#23272b', color: '#fff',
+                '& .MuiInputBase-root': { bgcolor: '#23272b', color: '#fff' },
+                '& .MuiInputLabel-root': { color: '#fff' },
+                '& .MuiOutlinedInput-notchedOutline': { borderColor: '#555' },
+                '& .MuiInputBase-input': { color: '#fff' },
+              }}
+              InputLabelProps={{ style: { color: '#fff' } }}
+              InputProps={{ style: { color: '#fff', backgroundColor: '#23272b' } }}
             />
 
             {selectedRecipe && PRODUCTION_RECIPES[selectedRecipe] && (
-              <Box sx={{ mt: 3, p: 2, bgcolor: 'background.paper', borderRadius: 1, border: 1, borderColor: 'divider' }}>
-                <Typography variant="subtitle1" gutterBottom>
+              <Box sx={{ mt: 3, p: 2, bgcolor: '#23272b', borderRadius: 1, border: 1, borderColor: 'divider', color: '#fff', overflowX: 'hidden', wordBreak: 'break-word', whiteSpace: 'normal' }}>
+                <Typography variant="subtitle1" gutterBottom sx={{ color: '#fff' }}>
                   Recipe Details:
                 </Typography>
                 
-                <Typography variant="body2" color="text.secondary" gutterBottom>
+                <Typography variant="body2" gutterBottom sx={{ color: '#fff' }}>
                   Production Time: {PRODUCTION_RECIPES[selectedRecipe].productionTime} Pings
                 </Typography>
 
-                <Typography variant="subtitle2" sx={{ mt: 1, mb: 0.5 }}>
+                <Typography variant="subtitle2" sx={{ mt: 1, mb: 0.5, color: '#fff' }}>
                   Required Resources:
                 </Typography>
                 {PRODUCTION_RECIPES[selectedRecipe].inputs.map((input, index) => {
                   const resource = RESOURCES[input.resourceId];
                   const currentAmount = resources[input.resourceId].amount;
                   return (
-                    <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 2 }}>
-                      <Typography variant="body2">
+                    <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 2, color: '#fff', wordBreak: 'break-word', whiteSpace: 'normal' }}>
+                      <Typography variant="body2" sx={{ color: '#fff', wordBreak: 'break-word', whiteSpace: 'normal' }}>
                         • {input.amount}x {
                           <ResourceIcon
                             iconUrls={getResourceImageWithFallback(resource.id, 'icon')}
@@ -1439,21 +1584,21 @@ const ProductionLines = () => {
                         >
                           ({currentAmount}/{input.amount} available)
                         </Typography>
-                        {resource.purchasable && (
-                          <Typography component="span" variant="body2" color="text.secondary">
-                            {' '}(Purchase Price: {resource.basePrice * input.amount} Credits)
-                          </Typography>
-                        )}
+                        <Typography component="span" variant="body2" sx={{ color: '#fff' }}>
+                          {resource.purchasable && (
+                            <> (Purchase Price: {resource.basePrice * input.amount} Credits)</>
+                          )}
+                        </Typography>
                       </Typography>
                     </Box>
                   );
                 })}
 
-                <Typography variant="subtitle2" sx={{ mt: 2, mb: 0.5 }}>
+                <Typography variant="subtitle2" sx={{ mt: 2, mb: 0.5, color: '#fff' }}>
                   Production:
                 </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 2 }}>
-                  <Typography variant="body2">
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, ml: 2, color: '#fff', wordBreak: 'break-word', whiteSpace: 'normal' }}>
+                  <Typography variant="body2" sx={{ color: '#fff', wordBreak: 'break-word', whiteSpace: 'normal' }}>
                     • {PRODUCTION_RECIPES[selectedRecipe].output.amount}x {
                       <ResourceIcon
                         iconUrls={getResourceImageWithFallback(PRODUCTION_RECIPES[selectedRecipe].output.resourceId, 'icon')}
@@ -1477,7 +1622,17 @@ const ProductionLines = () => {
               onClick={handleCreateLine}
               variant="contained"
               disabled={!selectedRecipe || !newLineName.trim() || !!nameError || !canAffordNewLine}
-              sx={{ width: { xs: '100%', sm: 'auto' }, fontWeight: 700, fontSize: { xs: '1.05rem', sm: '1rem' }, py: 1 }}
+              sx={{ 
+                width: { xs: '100%', sm: 'auto' }, 
+                fontWeight: 700, 
+                fontSize: { xs: '1.05rem', sm: '1rem' }, 
+                py: 1,
+                '&.Mui-disabled': {
+                  opacity: 0.7,
+                  backgroundColor: '#444',
+                  color: '#fff',
+                },
+              }}
             >
               Create ({formatMoney(newLineCost)}$)
             </Button>

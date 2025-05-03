@@ -74,9 +74,29 @@ const Storage = () => {
   };
 
   return (
-    <Box sx={{ p: { xs: 1, sm: 3 } }}>
+    <Box sx={{
+      minHeight: '100vh',
+      backgroundImage: isMobile ? 'url(/images/background_dark_mobil.png)' : 'url(/images/background_light.png)',
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      p: { xs: 1, sm: 3 },
+    }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h4" color="text.primary">
+        <Typography
+          variant="h4"
+          sx={{
+            mb: 3,
+            fontWeight: 900,
+            fontSize: '2.5rem',
+            color: '#fff',
+            textShadow: '0 2px 8px #000, 0 1px 1px #000',
+            px: 2,
+            py: 1,
+            borderRadius: 2,
+            width: 'fit-content',
+          }}
+        >
           Resource Storage
         </Typography>
       </Box>
@@ -90,60 +110,92 @@ const Storage = () => {
               const percentage = (resourceData.amount / resourceData.capacity) * 100;
               const nextUpgradeCost = calculateUpgradeCost(resourceData.storageLevel);
               return (
-                <Box key={id} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 1, bgcolor: 'background.paper', borderRadius: 2, boxShadow: 1 }}>
-                  <ResourceIcon
-                    iconUrls={getResourceImageWithFallback(id, 'icon')}
-                    alt={resource.name}
-                    resourceId={id}
-                    style={{ width: 28, height: 28, objectFit: 'contain', marginRight: 8 }}
-                  />
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: '1rem', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{resource.name}</Typography>
-                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.95rem' }}>{resourceData.amount} / {resourceData.capacity}</Typography>
-                    <Typography variant="caption" color="text.secondary">Utilization: {Math.round(percentage)}%</Typography>
+                <Paper
+                  key={id}
+                  sx={{
+                    p: 2,
+                    background: '#23272a',
+                    color: '#fff',
+                    boxShadow: 6,
+                    '&:hover': {
+                      boxShadow: 10
+                    },
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, p: 1, bgcolor: 'rgba(30,30,30,0.97)', borderRadius: 2, boxShadow: 1 }}>
+                    <ResourceIcon
+                      iconUrls={getResourceImageWithFallback(id, 'icon')}
+                      alt={resource.name}
+                      resourceId={id}
+                      style={{ width: 28, height: 28, objectFit: 'contain', marginRight: 8 }}
+                    />
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography variant="subtitle2" sx={{ fontWeight: 700, fontSize: '1rem', color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{resource.name}</Typography>
+                      <Typography variant="body2" sx={{ color: '#fff', fontSize: '0.95rem' }}>{resourceData.amount} / {resourceData.capacity}</Typography>
+                      <Typography variant="caption" sx={{ color: '#fff' }}>Utilization: {Math.round(percentage)}%</Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5 }}>
+                      <Button
+                        variant="contained"
+                        size="small"
+                        startIcon={<Warehouse sx={{ fontSize: '1rem', color: '#fff' }} />}
+                        onClick={() => handleUpgradeStorage(id)}
+                        disabled={credits < nextUpgradeCost}
+                        sx={{
+                          whiteSpace: 'nowrap',
+                          color: '#fff',
+                          textShadow: '0 2px 8px #000, 0 1px 1px #000',
+                          backgroundColor: credits < nextUpgradeCost ? 'grey.700' : 'primary.main',
+                          border: '1px solid #fff',
+                          padding: '2px 8px',
+                          fontSize: '0.75rem',
+                          boxShadow: 2,
+                          '& .MuiButton-startIcon': {
+                            marginRight: 0.5
+                          },
+                          '&:hover': {
+                            backgroundColor: credits < nextUpgradeCost ? 'grey.700' : 'primary.light',
+                            borderColor: '#fff',
+                            color: '#fff',
+                            textShadow: '0 2px 8px #000, 0 1px 1px #000',
+                          },
+                          '&.Mui-disabled': {
+                            color: '#fff',
+                            textShadow: '0 2px 8px #000, 0 1px 1px #000',
+                          }
+                        }}
+                      >
+                        {nextUpgradeCost} Credits
+                      </Button>
+                      <Typography variant="caption" sx={{ color: '#fff', mt: 0.2 }}>
+                        +{STORAGE_CONFIG.UPGRADE_CAPACITY} Capacity
+                      </Typography>
+                    </Box>
                   </Box>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5 }}>
-                    <Button
-                      variant="outlined"
-                      size="small"
-                      startIcon={<Warehouse sx={{ fontSize: '1rem' }} />}
-                      onClick={() => handleUpgradeStorage(id)}
-                      disabled={credits < nextUpgradeCost}
-                      sx={{ 
-                        whiteSpace: 'nowrap',
-                        color: theme.palette.primary.main,
-                        borderColor: theme.palette.primary.main,
-                        padding: '2px 8px',
-                        fontSize: '0.75rem',
-                        '& .MuiButton-startIcon': {
-                          marginRight: 0.5
-                        },
-                        '&:hover': {
-                          borderColor: theme.palette.primary.dark,
-                          bgcolor: theme.palette.action.hover
-                        }
-                      }}
-                    >
-                      {nextUpgradeCost} Credits
-                    </Button>
-                    <Typography variant="caption" color="text.secondary" sx={{ mt: 0.2 }}>
-                      +{STORAGE_CONFIG.UPGRADE_CAPACITY} Capacity
-                    </Typography>
-                  </Box>
-                </Box>
+                </Paper>
               );
             })}
         </Box>
       ) : (
-        <TableContainer component={Paper}>
+        <TableContainer 
+          component={Paper} 
+          sx={{ 
+            background: 'rgba(30,30,30,0.85)',
+            color: '#fff',
+            boxShadow: 6,
+            '&:hover': {
+              boxShadow: 10
+            }
+          }}
+        >
           <Table size="small">
             <TableHead>
               <TableRow>
-                <TableCell>Resource</TableCell>
-                <TableCell align="right">Stock</TableCell>
-                <TableCell>Utilization</TableCell>
-                <TableCell align="right">Level</TableCell>
-                <TableCell align="right">Action</TableCell>
+                <TableCell sx={{ color: '#fff' }}>Resource</TableCell>
+                <TableCell align="right" sx={{ color: '#fff' }}>Stock</TableCell>
+                <TableCell sx={{ color: '#fff' }}>Utilization</TableCell>
+                <TableCell align="right" sx={{ color: '#fff' }}>Level</TableCell>
+                <TableCell align="right" sx={{ color: '#fff' }}>Action</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -160,12 +212,11 @@ const Storage = () => {
                       sx={{
                         '&:nth-of-type(odd)': { bgcolor: theme.palette.action.hover },
                         '& > *': { 
-                          borderBottom: `1px solid ${theme.palette.divider}`,
-                          padding: '8px'
+                          borderBottom: '1px solid ' + theme.palette.divider,
                         }
                       }}
                     >
-                      <TableCell>
+                      <TableCell sx={{ color: '#fff' }}>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 120, maxWidth: 320, whiteSpace: 'nowrap', overflow: 'hidden' }}>
                           <ResourceIcon
                             iconUrls={getResourceImageWithFallback(id, 'icon')}
@@ -173,13 +224,13 @@ const Storage = () => {
                             resourceId={id}
                             style={{ width: 28, height: 28, objectFit: 'contain', marginRight: 8 }}
                           />
-                          <Typography variant="body2" color="text.primary" sx={{ fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{resource.name}</Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 500, color: '#fff', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{resource.name}</Typography>
                         </Box>
                       </TableCell>
-                      <TableCell align="right">
-                        <Typography variant="body2">{resourceData.amount} / {resourceData.capacity}</Typography>
+                      <TableCell align="right" sx={{ color: '#fff' }}>
+                        <Typography variant="body2" sx={{ color: '#fff' }}>{resourceData.amount} / {resourceData.capacity}</Typography>
                       </TableCell>
-                      <TableCell sx={{ width: '150px' }}>
+                      <TableCell sx={{ width: '150px', color: '#fff' }}>
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                           <Box sx={{ width: '100%', mr: 1 }}>
                             <LinearProgress 
@@ -197,40 +248,49 @@ const Storage = () => {
                               }}
                             />
                           </Box>
-                          <Typography variant="body2" color="text.secondary" sx={{ minWidth: 35 }}>
+                          <Typography variant="body2" sx={{ color: '#fff', minWidth: 35 }}>
                             {Math.round(percentage)}%
                           </Typography>
                         </Box>
                       </TableCell>
-                      <TableCell align="right">
-                        <Typography variant="body2">{resourceData.storageLevel}</Typography>
+                      <TableCell align="right" sx={{ color: '#fff' }}>
+                        <Typography variant="body2" sx={{ color: '#fff' }}>{resourceData.storageLevel}</Typography>
                       </TableCell>
-                      <TableCell align="right">
+                      <TableCell align="right" sx={{ color: '#fff' }}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 0.5 }}>
                           <Button
-                            variant="outlined"
+                            variant="contained"
                             size="small"
-                            startIcon={<Warehouse sx={{ fontSize: '1rem' }} />}
+                            startIcon={<Warehouse sx={{ fontSize: '1rem', color: '#fff' }} />}
                             onClick={() => handleUpgradeStorage(id)}
                             disabled={credits < nextUpgradeCost}
-                            sx={{ 
+                            sx={{
                               whiteSpace: 'nowrap',
-                              color: theme.palette.primary.main,
-                              borderColor: theme.palette.primary.main,
+                              color: '#fff',
+                              textShadow: '0 2px 8px #000, 0 1px 1px #000',
+                              backgroundColor: credits < nextUpgradeCost ? 'grey.700' : 'primary.main',
+                              border: '1px solid #fff',
                               padding: '2px 8px',
                               fontSize: '0.75rem',
+                              boxShadow: 2,
                               '& .MuiButton-startIcon': {
                                 marginRight: 0.5
                               },
                               '&:hover': {
-                                borderColor: theme.palette.primary.dark,
-                                bgcolor: theme.palette.action.hover
+                                backgroundColor: credits < nextUpgradeCost ? 'grey.700' : 'primary.light',
+                                borderColor: '#fff',
+                                color: '#fff',
+                                textShadow: '0 2px 8px #000, 0 1px 1px #000',
+                              },
+                              '&.Mui-disabled': {
+                                color: '#fff',
+                                textShadow: '0 2px 8px #000, 0 1px 1px #000',
                               }
                             }}
                           >
                             {nextUpgradeCost} Credits
                           </Button>
-                          <Typography variant="caption" color="text.secondary" sx={{ mt: 0.2 }}>
+                          <Typography variant="caption" sx={{ color: '#fff', mt: 0.2 }}>
                             +{STORAGE_CONFIG.UPGRADE_CAPACITY} Capacity
                           </Typography>
                         </Box>
@@ -246,4 +306,4 @@ const Storage = () => {
   );
 };
 
-export default Storage; 
+export default Storage;

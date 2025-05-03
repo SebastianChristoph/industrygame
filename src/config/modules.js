@@ -22,14 +22,6 @@ export const MODULES = {
     icon: '⚔️',
     recipes: ['research_points_weapon', 'metal_plate'], // <-- Jetzt auch Metal Plate
     resources: ['coal', 'oil']
-  },
-  BUSINESS: {
-    id: 'business',
-    name: 'Business',
-    description: 'Optimize your production efficiency',
-    icon: '📈',
-    recipes: ['research_points_business'],
-    resources: []
   }
 };
 

@@ -27,7 +27,8 @@ import {
   DialogContentText,
   ToggleButton,
   ToggleButtonGroup,
-  FormHelperText
+  FormHelperText,
+  Chip
 } from '@mui/material';
 import {
   ArrowBack,
@@ -62,7 +63,8 @@ import {
   recordProfit,
   recordResourceChange,
   recordSale,
-  recordPurchase
+  recordPurchase,
+  addCredits
 } from '../store/gameSlice';
 import { keyframes } from '@mui/system';
 import { styled } from '@mui/material/styles';
@@ -92,6 +94,12 @@ const styles = `
     0% { transform: scale(1); }
     50% { transform: scale(1.18); }
     100% { transform: scale(1); }
+  }
+
+  @keyframes pulsePlay {
+    0% { box-shadow: 0 0 0 0 rgba(255,255,255,0.5); }
+    70% { box-shadow: 0 0 0 10px rgba(255,255,255,0); }
+    100% { box-shadow: 0 0 0 0 rgba(255,255,255,0); }
   }
 `;
 
@@ -252,6 +260,8 @@ const ProductionLine = () => {
         INPUT_SOURCES
       );
       dispatch(recordProfit({ profit, productionLineId }));
+      // Bilanz auf globale Credits anwenden
+      dispatch(addCredits(profit));
 
       // Record resource changes
       selectedRecipe.inputs.forEach(input => {
@@ -388,10 +398,22 @@ const ProductionLine = () => {
   );
 
   // Bilanzwerte direkt im Render ermitteln, damit sie immer aktuell sind
-  const inputCost = selectedRecipe.inputs.reduce((sum, input) => sum + RESOURCES[input.resourceId].basePrice * input.amount, 0);
+  const inputCost = selectedRecipe.inputs.reduce((sum, input, idx) => {
+    const inputConfig = productionConfig.inputs[idx];
+    if (inputConfig && (inputConfig.source === INPUT_SOURCES.PURCHASE_MODULE || inputConfig.source === INPUT_SOURCES.BLACK_MARKET)) {
+      return sum + RESOURCES[input.resourceId].basePrice * input.amount;
+    }
+    return sum;
+  }, 0);
   const sellIncome = RESOURCES[selectedRecipe.output.resourceId].basePrice * selectedRecipe.output.amount;
   const isBlackMarketSell = productionConfig?.outputTarget === OUTPUT_TARGETS.BLACK_MARKET;
-  let balance = isBlackMarketSell ? (sellIncome - inputCost) : -inputCost;
+  const isStoring = productionConfig?.outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE;
+  let balance = 0;
+  if (isBlackMarketSell) {
+    balance = sellIncome - inputCost;
+  } else if (isStoring) {
+    balance = -inputCost;
+  }
   if (totalBonus > 0) {
     balance = Math.round(balance * (1 + totalBonus));
   }
@@ -490,7 +512,21 @@ const ProductionLine = () => {
   }
 
   return (
-    <Box sx={{ position: 'relative', minHeight: '100vh', width: '100%' }}>
+    <Box
+      sx={{
+        position: 'relative',
+        minHeight: '100vh',
+        width: '100%',
+        backgroundImage: {
+          xs: 'url(/images/background_dark_mobil.png)',
+          md: 'url(/images/background.png)'
+        },
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        backgroundAttachment: 'fixed',
+      }}
+    >
       <style>{styles}</style>
       <Box sx={{ p: 3, position: 'relative', zIndex: 1, width: '100%' }}>
         {/* Back-Button oben links über dem Titel */}
@@ -512,6 +548,7 @@ const ProductionLine = () => {
             <Typography
               variant="h1"
               sx={{
+                color: '#fff',
                 fontWeight: 800,
                 letterSpacing: 1,
                 minWidth: 0,
@@ -538,7 +575,7 @@ const ProductionLine = () => {
             justifyContent: { xs: 'center', sm: 'flex-start' }
           }}>
             <Tooltip title="Rename">
-              <IconButton onClick={handleRenameClick}>
+              <IconButton onClick={handleRenameClick} sx={{ color: '#fff', bgcolor: 'rgba(44,49,54,0.8)', '&:hover': { bgcolor: 'rgba(44,49,54,1)' } }}>
                 <EditIcon />
               </IconButton>
             </Tooltip>
@@ -576,7 +613,10 @@ const ProductionLine = () => {
                   '&:hover': {
                     bgcolor: '#e0e0e0',
                     color: productionStatus?.isActive ? "#b71c1c" : "#111"
-                  }
+                  },
+                  ...(productionStatus?.isActive
+                    ? {}
+                    : { animation: 'pulsePlay 1.2s infinite' }),
                 }}
               >
                 {productionStatus?.isActive ? <Stop sx={{ fontSize: 32 }} /> : <PlayArrow sx={{ fontSize: 32 }} />}
@@ -625,10 +665,11 @@ const ProductionLine = () => {
                       justifyContent: 'center',
                       width: { xs: '100%', md: 'auto' },
                       height: { xs: 'auto', md: 260 },
-                      mx: { xs: 0, md: 1 }
+                      mx: { xs: 0, md: 1 },
+                      mt: { xs: 2, md: 0 },
                     }}>
                       <Typography variant="h3" sx={{ 
-                        color: 'text.secondary', 
+                        color: '#fff', 
                         fontWeight: 700, 
                         fontSize: { xs: '2rem', md: '2.5rem' }, 
                         lineHeight: 1,
@@ -660,15 +701,44 @@ const ProductionLine = () => {
                     />
                     {renderResourceIcons(input.resourceId, input.amount)}
                     {isGlobalStorage ? (
-                      <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.5, mb: 0.5, fontSize: '0.98rem', fontWeight: 400, textAlign: 'center' }}>
-                        In stock: {stock}/{resources[input.resourceId]?.capacity ?? '-'}
-                      </Typography>
+                      <>
+                        <Chip
+                          label={`In stock: ${stock}/${resources[input.resourceId]?.capacity ?? '-'}`}
+                          sx={{
+                            bgcolor: '#23272b',
+                            color: '#fff',
+                            fontWeight: 600,
+                            fontSize: '0.98rem',
+                            borderRadius: 2,
+                            px: 1.5,
+                            py: 0.5,
+                            textAlign: 'center',
+                            maxWidth: '100%',
+                            mt: 0.5
+                          }}
+                          size="small"
+                        />
+                      </>
                     ) : (
-                      <Typography variant="caption" sx={{ color: 'error.main', mt: 0.5, mb: 0.5, fontSize: '0.98rem', fontWeight: 400, textAlign: 'center' }}>
-                        {resource.name}: {singlePrice}$ · Total: {totalPrice}$
-                      </Typography>
+                      <Chip
+                        label={`${resource.name}: ${singlePrice}$ · Total: ${totalPrice}$`}
+                        sx={{
+                          mt: 0.5,
+                          mb: { xs: 2, md: 0.5 },
+                          bgcolor: 'error.main',
+                          color: '#fff',
+                          fontWeight: 600,
+                          fontSize: '0.98rem',
+                          borderRadius: 2,
+                          px: 1.5,
+                          py: 0.5,
+                          textAlign: 'center',
+                          maxWidth: '100%',
+                        }}
+                        size="small"
+                      />
                     )}
-                    <Box sx={{ display: 'flex', alignItems: 'center', height: 48, mt: { xs: 2, md: 2.5 }, width: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', height: 48, mt: { xs: 2, md: 2.5 }, width: '100%', mb: { xs: 1, md: 0 } }}>
                       <ToggleButtonGroup
                         value={inputConfig?.source || INPUT_SOURCES.BLACK_MARKET}
                         exclusive
@@ -683,7 +753,7 @@ const ProductionLine = () => {
                           }
                         }}
                         size="small"
-                        sx={{ minHeight: 36, width: '100%' }}
+                        sx={{ minHeight: 36, width: '100%', bgcolor: '#23272b', borderRadius: 2, p: 0.5 }}
                       >
                         <MuiTooltip title="From stock" arrow>
                           <ToggleButton 
@@ -699,18 +769,22 @@ const ProductionLine = () => {
                               flexDirection: 'column',
                               alignItems: 'center',
                               gap: 1,
-                              color: (inputConfig?.source || INPUT_SOURCES.BLACK_MARKET) === INPUT_SOURCES.GLOBAL_STORAGE ? 'primary.main' : 'text.secondary',
-                              bgcolor: (inputConfig?.source || INPUT_SOURCES.BLACK_MARKET) === INPUT_SOURCES.GLOBAL_STORAGE ? 'primary.50' : 'grey.100',
+                              color: '#fff',
+                              bgcolor: (inputConfig?.source || INPUT_SOURCES.BLACK_MARKET) === INPUT_SOURCES.GLOBAL_STORAGE ? '#2c3136' : '#23272b',
                               border: '2px solid',
-                              borderColor: (inputConfig?.source || INPUT_SOURCES.BLACK_MARKET) === INPUT_SOURCES.GLOBAL_STORAGE ? 'primary.main' : 'grey.300',
+                              borderColor: (inputConfig?.source || INPUT_SOURCES.BLACK_MARKET) === INPUT_SOURCES.GLOBAL_STORAGE ? '#fff' : '#444',
                               transition: 'all 0.2s',
                               width: { xs: '100%', md: 'auto' },
                               justifyContent: 'center',
                               minHeight: { xs: 40, md: 32 },
+                              '&.Mui-selected, &.Mui-selected:hover': {
+                                color: '#fff',
+                              },
                             }}
                           >
-                            <Storage sx={{ fontSize: 20 }} />
-                            <Box sx={{ display: { xs: 'block', md: 'none' } }}>From stock</Box>
+                            <Storage sx={{ fontSize: 20, color: (inputConfig?.source || INPUT_SOURCES.BLACK_MARKET) === INPUT_SOURCES.GLOBAL_STORAGE ? '#fff' : '#bbb' }} />
+                            <Box sx={{ display: { xs: 'block', md: 'none' }, color: '#fff', fontWeight: 700 }}>FROM STOCK</Box>
+                            <Box sx={{ display: { xs: 'none', md: 'block' } }}>From stock</Box>
                           </ToggleButton>
                         </MuiTooltip>
                         {resource.purchasable && (
@@ -728,16 +802,20 @@ const ProductionLine = () => {
                                 flexDirection: 'column',
                                 alignItems: 'center',
                                 gap: 1,
-                                color: (inputConfig?.source || INPUT_SOURCES.BLACK_MARKET) === INPUT_SOURCES.BLACK_MARKET ? 'warning.dark' : 'text.secondary',
-                                bgcolor: (inputConfig?.source || INPUT_SOURCES.BLACK_MARKET) === INPUT_SOURCES.BLACK_MARKET ? 'warning.50' : 'grey.100',
+                                color: '#fff',
+                                bgcolor: (inputConfig?.source || INPUT_SOURCES.BLACK_MARKET) === INPUT_SOURCES.BLACK_MARKET ? '#2c3136' : '#23272b',
                                 border: '2px solid',
-                                borderColor: (inputConfig?.source || INPUT_SOURCES.BLACK_MARKET) === INPUT_SOURCES.BLACK_MARKET ? 'warning.main' : 'grey.300',
+                                borderColor: (inputConfig?.source || INPUT_SOURCES.BLACK_MARKET) === INPUT_SOURCES.BLACK_MARKET ? '#fff' : '#444',
                                 transition: 'all 0.2s',
                                 minHeight: { xs: 40, md: 32 },
+                                '&.Mui-selected, &.Mui-selected:hover': {
+                                  color: '#fff',
+                                },
                               }}
                             >
-                              <BlackMarketIcon sx={{ fontSize: 20 }} />
-                              <Box sx={{ display: { xs: 'block', md: 'none' } }}>Black Market</Box>
+                              <BlackMarketIcon sx={{ fontSize: 20, color: (inputConfig?.source || INPUT_SOURCES.BLACK_MARKET) === INPUT_SOURCES.BLACK_MARKET ? '#fff' : '#bbb' }} />
+                              <Box sx={{ display: { xs: 'block', md: 'none' }, color: '#fff', fontWeight: 700 }}>BLACK MARKET</Box>
+                              <Box sx={{ display: { xs: 'none', md: 'block' } }}>Black Market</Box>
                             </ToggleButton>
                           </MuiTooltip>
                         )}
@@ -785,8 +863,8 @@ const ProductionLine = () => {
                   height: '100%'
                 }}
               >
-                <Typography variant="h6" sx={{ fontWeight: 700, color: 'text.primary', fontSize: '1.5rem', lineHeight: 1 }}>{Math.round(displayProgressPercent)}%</Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary', fontSize: '1.1rem', fontWeight: 500 }}>{selectedRecipe.productionTime} Pings</Typography>
+                <Typography variant="h6" sx={{ fontWeight: 700, color: '#fff', fontSize: '1.5rem', lineHeight: 1 }}>{Math.round(displayProgressPercent)}%</Typography>
+                <Typography variant="body2" sx={{ color: '#fff', fontSize: '1.1rem', fontWeight: 500 }}>{selectedRecipe.productionTime} Pings</Typography>
               </Box>
             </Box>
             {/* Arrow below spinner */}
@@ -800,7 +878,7 @@ const ProductionLine = () => {
               height: { xs: 'auto', md: 60 }
             }}>
               <Typography variant="h2" sx={{ 
-                color: 'text.secondary', 
+                color: '#fff', 
                 fontWeight: 700, 
                 fontSize: { xs: '2.5rem', md: '3rem' }, 
                 lineHeight: 1, 
@@ -810,22 +888,21 @@ const ProductionLine = () => {
                 &#8594;
               </Typography>
               {(() => {
-                // Prüfe Inputquellen
-                const allInputsFromStock = selectedRecipe.inputs.every((input, idx) => {
-                  const inputConfig = productionConfig.inputs[idx];
-                  return inputConfig && inputConfig.source === INPUT_SOURCES.GLOBAL_STORAGE;
-                });
                 // Einkaufskosten nur für eingekaufte Inputs
-                const inputCost = selectedRecipe.inputs.reduce((sum, input) => sum + RESOURCES[input.resourceId].basePrice * input.amount, 0);
+                const inputCost = selectedRecipe.inputs.reduce((sum, input, idx) => {
+                  const inputConfig = productionConfig.inputs[idx];
+                  if (inputConfig && (inputConfig.source === INPUT_SOURCES.PURCHASE_MODULE || inputConfig.source === INPUT_SOURCES.BLACK_MARKET)) {
+                    return sum + RESOURCES[input.resourceId].basePrice * input.amount;
+                  }
+                  return sum;
+                }, 0);
                 const sellIncome = RESOURCES[selectedRecipe.output.resourceId].basePrice * selectedRecipe.output.amount;
                 const isBlackMarketSell = productionConfig?.outputTarget === OUTPUT_TARGETS.BLACK_MARKET;
                 const isStoring = productionConfig?.outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE;
                 let balance = 0;
-                if (allInputsFromStock && isStoring) {
-                  balance = 0;
-                } else if (isBlackMarketSell) {
+                if (isBlackMarketSell) {
                   balance = sellIncome - inputCost;
-                } else {
+                } else if (isStoring) {
                   balance = -inputCost;
                 }
                 const color = balance >= 0 ? 'success.main' : 'error.main';
@@ -847,9 +924,23 @@ const ProductionLine = () => {
                       {sign}{balance} $
                     </Typography>
                     {/* Debug-Ausgabe */}
-                    <Typography variant="caption" sx={{ color: '#888', fontSize: '0.95rem', textAlign: 'center', width: '100%' }}>
-                      [Debug] inputCost: {inputCost} | sellIncome: {sellIncome} | balance: {balance}
-                    </Typography>
+                    <Box sx={{ color: '#888', fontSize: '0.95rem', textAlign: 'center', width: '100%' }}>
+                      <div>[Debug]</div>
+                      {selectedRecipe.inputs.map((input, idx) => {
+                        const inputConfig = productionConfig.inputs[idx];
+                        const cost = (inputConfig && (inputConfig.source === INPUT_SOURCES.PURCHASE_MODULE || inputConfig.source === INPUT_SOURCES.BLACK_MARKET))
+                          ? -RESOURCES[input.resourceId].basePrice * input.amount
+                          : 0;
+                        return (
+                          <div key={input.resourceId}>
+                            inputCost {RESOURCES[input.resourceId].name}: {cost}
+                          </div>
+                        );
+                      })}
+                      <div>inputCost sum: {inputCost}</div>
+                      <div>sellIncome: {sellIncome}</div>
+                      <div>balance: {balance}</div>
+                    </Box>
                   </>
                 );
               })()}
@@ -897,15 +988,31 @@ const ProductionLine = () => {
             />
             {renderResourceIcons(selectedRecipe.output.resourceId, selectedRecipe.output.amount)}
             {productionConfig.outputTarget === OUTPUT_TARGETS.BLACK_MARKET && (
-              <Typography variant="caption" sx={{ color: 'success.main', mt: 0.5, mb: 0.5, fontSize: '0.98rem', fontWeight: 400, textAlign: 'center' }}>
-                {RESOURCES[selectedRecipe.output.resourceId]?.name}: {RESOURCES[selectedRecipe.output.resourceId]?.basePrice}$ · Total: {RESOURCES[selectedRecipe.output.resourceId]?.basePrice * selectedRecipe.output.amount}$
-              </Typography>
+              <Box sx={{ width: '100%', display: 'flex', justifyContent: 'center', mb: 0, mt: 0, p: 0 }}>
+                <Chip
+                  label={`${RESOURCES[selectedRecipe.output.resourceId]?.name}: ${RESOURCES[selectedRecipe.output.resourceId]?.basePrice}$ · Total: ${RESOURCES[selectedRecipe.output.resourceId]?.basePrice * selectedRecipe.output.amount}$`}
+                  sx={{
+                    bgcolor: 'success.main',
+                    color: '#fff',
+                    fontWeight: 600,
+                    fontSize: '0.98rem',
+                    borderRadius: 2,
+                    px: 1.5,
+                    py: 0.5,
+                    textAlign: 'center',
+                    maxWidth: '100%',
+                    mb: 0,
+                    mt: 0,
+                  }}
+                  size="small"
+                />
+              </Box>
             )}
 
             {/* Output handling for research points: only store, no sell */}
             {selectedRecipe.output.resourceId === 'research_points' ? (
               <Box sx={{
-                mt: 3,
+                mt: 0,
                 mb: 1,
                 px: 2,
                 py: 2,
@@ -956,23 +1063,24 @@ const ProductionLine = () => {
               </Box>
             ) : (
               <Box sx={{
-                mt: 3,
+                mt: 0,
                 mb: 1,
                 px: 2,
                 py: 2,
-                bgcolor: 'grey.50',
+                bgcolor: '#23272b',
                 borderRadius: 2,
                 boxShadow: 1,
                 border: '1px solid',
-                borderColor: 'grey.200',
+                borderColor: '#444',
                 width: '100%',
                 maxWidth: { xs: '100%', md: 180 },
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
+                color: '#fff',
               }}>
                 <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1, fontWeight: 600, letterSpacing: 0.2 }}>
-                  Output handling:
+                  <span style={{ color: '#fff' }}>Output handling:</span>
                 </Typography>
                 <ToggleButtonGroup
                   value={productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE}
@@ -985,7 +1093,7 @@ const ProductionLine = () => {
                       }));
                     }
                   }}
-                  sx={{ minHeight: 48, width: '100%' }}
+                  sx={{ minHeight: 48, width: '100%', bgcolor: '#23272b', borderRadius: 2, p: 0.5, boxShadow: 1, border: '2px solid #fff' }}
                 >
                   <MuiTooltip title="Store the produced resources in your stock." arrow>
                     <ToggleButton
@@ -1001,14 +1109,17 @@ const ProductionLine = () => {
                         flexDirection: 'column',
                         alignItems: 'center',
                         gap: 1,
-                        color: (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.GLOBAL_STORAGE ? 'primary.main' : 'text.secondary',
-                        bgcolor: (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.GLOBAL_STORAGE ? 'primary.50' : 'grey.100',
+                        color: '#fff',
+                        bgcolor: (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.GLOBAL_STORAGE ? '#2c3136' : '#23272b',
                         border: '2px solid',
-                        borderColor: (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.GLOBAL_STORAGE ? 'primary.main' : 'grey.300',
+                        borderColor: (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.GLOBAL_STORAGE ? '#fff' : '#444',
                         transition: 'all 0.2s',
+                        '&.Mui-selected, &.Mui-selected:hover': {
+                          color: '#fff',
+                        },
                       }}
                     >
-                      <Storage sx={{ fontSize: 20 }} />
+                      <Storage sx={{ fontSize: 20, color: (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.GLOBAL_STORAGE ? '#fff' : '#bbb' }} />
                       <Box sx={{ display: { xs: 'block', md: 'none' } }}>Store in stock</Box>
                     </ToggleButton>
                   </MuiTooltip>
@@ -1026,14 +1137,17 @@ const ProductionLine = () => {
                         flexDirection: 'column',
                         alignItems: 'center',
                         gap: 1,
-                        color: (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.BLACK_MARKET ? 'warning.dark' : 'text.secondary',
-                        bgcolor: (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.BLACK_MARKET ? 'warning.50' : 'grey.100',
+                        color: '#fff',
+                        bgcolor: (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.BLACK_MARKET ? '#2c3136' : '#23272b',
                         border: '2px solid',
-                        borderColor: (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.BLACK_MARKET ? 'warning.main' : 'grey.300',
+                        borderColor: (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.BLACK_MARKET ? '#fff' : '#444',
                         transition: 'all 0.2s',
+                        '&.Mui-selected, &.Mui-selected:hover': {
+                          color: '#fff',
+                        },
                       }}
                     >
-                      <BlackMarketSellIcon sx={{ fontSize: 20 }} />
+                      <BlackMarketSellIcon sx={{ fontSize: 20, color: (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.BLACK_MARKET ? '#fff' : '#bbb' }} />
                       <Box sx={{ display: { xs: 'block', md: 'none' } }}>Sell to Black Market</Box>
                     </ToggleButton>
                   </MuiTooltip>
@@ -1041,9 +1155,22 @@ const ProductionLine = () => {
                 {/* Show stock info if 'Store in stock' is selected */}
                 {(productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.GLOBAL_STORAGE && (
                   <Box sx={{ mt: 1, width: '100%', textAlign: 'center' }}>
-                    <Typography variant="body2" color="text.secondary">
-                      In stock: {resources[selectedRecipe.output.resourceId]?.amount ?? 0}/{resources[selectedRecipe.output.resourceId]?.capacity ?? '-'}
-                    </Typography>
+                    <Chip
+                      label={`In stock: ${resources[selectedRecipe.output.resourceId]?.amount ?? 0}/${resources[selectedRecipe.output.resourceId]?.capacity ?? '-'}`}
+                      sx={{
+                        bgcolor: '#23272b',
+                        color: '#fff',
+                        fontWeight: 600,
+                        fontSize: '0.85rem',
+                        borderRadius: 2,
+                        px: 1.5,
+                        py: 0.5,
+                        textAlign: 'center',
+                        maxWidth: '100%',
+                        mt: 0.5
+                      }}
+                      size="small"
+                    />
                   </Box>
                 )}
               </Box>
@@ -1139,13 +1266,13 @@ const ProductionLine = () => {
       </Box>
 
       {/* Add charts section */}
-      <Box sx={{ mt: 4, p: 3, bgcolor: 'background.paper', borderRadius: 2 }}>
-        <Typography variant="h6" sx={{ mb: 2 }}>Production Statistics</Typography>
+      <Box sx={{ mt: 4, p: 3, bgcolor: '#23272b', borderRadius: 2, width: '80%', mx: 'auto' }}>
+        <Typography variant="h6" sx={{ mb: 2, color: '#fff' }}>Production Statistics</Typography>
         <Grid container spacing={3}>
           {/* Profit Chart */}
           <Grid item xs={12} sx={{ minWidth: 0, flex: 1 }}>
-            <Paper sx={{ p: 2 }}>
-              <Typography variant="subtitle1" sx={{ mb: 1 }}>Cumulative Win/Loss since production line start</Typography>
+            <Paper sx={{ p: 2, bgcolor: '#23272b', color: '#fff', width: '100%' }}>
+              <Typography variant="subtitle1" sx={{ mb: 1, color: '#fff' }}>Cumulative Win/Loss since production line start</Typography>
               {chartData.length === 0 && (
                 <Paper elevation={0} sx={{ display: 'flex', alignItems: 'center', gap: 1, bgcolor: 'info.light', color: 'info.dark', p: 2, mb: 2, borderRadius: 2 }}>
                   <InfoOutlined sx={{ color: 'info.main', fontSize: 28 }} />
@@ -1156,11 +1283,11 @@ const ProductionLine = () => {
               )}
               <ResponsiveContainer width="100%" height={420}>
                 <LineChart data={chartData} margin={{ top: 20, right: 40, left: 0, bottom: 20 }}>
-                  <CartesianGrid strokeDasharray="3 3" />
-                  <XAxis dataKey="time" minTickGap={30} />
-                  <YAxis />
-                  <RechartsTooltip />
-                  <Legend />
+                  <CartesianGrid strokeDasharray="3 3" stroke="#444" />
+                  <XAxis dataKey="time" minTickGap={30} stroke="#bbb" tick={{ fill: '#fff' }} />
+                  <YAxis stroke="#bbb" tick={{ fill: '#fff' }} />
+                  <RechartsTooltip contentStyle={{ background: '#23272b', color: '#fff', border: '1px solid #444' }} labelStyle={{ color: '#fff' }} itemStyle={{ color: '#fff' }} />
+                  <Legend wrapperStyle={{ color: '#fff' }} />
                   <Line
                     type="monotone"
                     dataKey="profit"

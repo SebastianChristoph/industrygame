@@ -67,15 +67,28 @@ const Resources = () => {
   const findRecipe = (resourceId) => PRODUCTION_RECIPES[resourceId];
 
   return (
-    <Box sx={{ p: 3 }}>
-      <Typography variant="h4" gutterBottom>
+    <Box
+      sx={{
+        p: 3,
+        color: isMobile ? '#fff' : undefined,
+        backgroundImage: {
+          xs: 'url(/images/background_dark_mobil.png)',
+          md: 'url(/images/background.png)'
+        },
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        backgroundRepeat: 'no-repeat',
+        minHeight: '100vh',
+      }}
+    >
+      <Typography variant="h4" gutterBottom sx={{ color: isMobile ? '#fff' : undefined }}>
         Resources
       </Typography>
-      <Typography variant="body1" sx={{ mb: 3 }}>
+      <Typography variant="body1" sx={{ mb: 3, color: isMobile ? '#fff' : undefined }}>
         Here you can find an overview of all available resources in the game, including their recipes, selling values, and required research cards.
       </Typography>
       {isMobile ? (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, color: isMobile ? '#fff' : undefined }}>
           {sortedResources.map((resource) => {
             const recipe = findRecipe(resource.id);
             const { researchCard, module, moduleIcon } = recipe ? findResearchCardAndModuleForRecipe(recipe.id) : { researchCard: null, module: null, moduleIcon: null };
@@ -89,23 +102,23 @@ const Resources = () => {
               }
             }
             return (
-              <Card key={resource.id} variant="outlined">
-                <CardContent>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+              <Card key={resource.id} variant="outlined" sx={{ background: 'rgba(30,30,30,0.85)', color: isMobile ? '#fff' : '#fff', boxShadow: 6, '&:hover': { boxShadow: 10 } }}>
+                <CardContent sx={{ color: isMobile ? '#fff' : undefined }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 1, color: isMobile ? '#fff' : undefined }}>
                     <ResourceIcon
                       iconUrls={getResourceImageWithFallback(resource.id, 'icon')}
                       alt={resource.name + ' icon'}
                       resourceId={resource.id}
                       style={{ width: 32, height: 32, objectFit: 'contain', marginRight: 8 }}
                     />
-                    <Typography variant="h6">{resource.name}</Typography>
+                    <Typography variant="h6" sx={{ color: isMobile ? '#fff' : undefined }}>{resource.name}</Typography>
                   </Box>
-                  <Typography color="textSecondary" gutterBottom>
+                  <Typography sx={{ color: isMobile ? '#fff' : 'textSecondary' }} gutterBottom>
                     {resource.description}
                   </Typography>
-                  <Typography variant="body2" sx={{ color: 'success.main' }}>Sell Value: {resource.basePrice}$</Typography>
-                  <Typography variant="body2">Module: {displayModule ? (<span>{displayModuleIcon} {displayModule}</span>) : '-'}</Typography>
-                  <Typography variant="body2" sx={{ mt: 1 }}>
+                  <Typography variant="body2" sx={{ color: isMobile ? '#fff' : 'success.main' }}>Sell Value: {resource.basePrice}$</Typography>
+                  <Typography variant="body2" sx={{ color: isMobile ? '#fff' : undefined }}>Module: {displayModule ? (<span>{displayModuleIcon} {displayModule}</span>) : '-'}</Typography>
+                  <Typography variant="body2" sx={{ mt: 1, color: isMobile ? '#fff' : undefined }}>
                     Recipe: {recipe ? (
                       <span>
                         {recipe.inputs.map(input => (
@@ -132,7 +145,7 @@ const Resources = () => {
                       </span>
                     ) : '-'}
                   </Typography>
-                  <Typography variant="body2" sx={{ mt: 1 }}>
+                  <Typography variant="body2" sx={{ mt: 1, color: isMobile ? '#fff' : undefined }}>
                     Research Card: {researchCard ? researchCard : '-'}
                   </Typography>
                 </CardContent>
@@ -141,16 +154,16 @@ const Resources = () => {
           })}
         </Box>
       ) : (
-        <TableContainer component={Paper}>
-          <Table size="small">
+        <TableContainer component={Paper} sx={{ background: 'rgba(30,30,30,0.85)', color: '#fff', boxShadow: 6 }}>
+          <Table size="small" sx={{ color: '#fff' }}>
             <TableHead>
               <TableRow>
-                <TableCell>Icon</TableCell>
-                <TableCell>Name</TableCell>
-                <TableCell>Sell Value</TableCell>
-                <TableCell>Module</TableCell>
-                <TableCell>Recipe (Pings)</TableCell>
-                <TableCell>Research Card</TableCell>
+                <TableCell sx={{ color: '#fff' }}>Icon</TableCell>
+                <TableCell sx={{ color: '#fff' }}>Name</TableCell>
+                <TableCell sx={{ color: '#fff' }}>Sell Value</TableCell>
+                <TableCell sx={{ color: '#fff' }}>Module</TableCell>
+                <TableCell sx={{ color: '#fff' }}>Recipe (Pings)</TableCell>
+                <TableCell sx={{ color: '#fff' }}>Research Card</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -169,9 +182,9 @@ const Resources = () => {
                 return (
                   <TableRow
                     key={resource.id}
-                    sx={{ backgroundColor: index % 2 === 0 ? 'background.paper' : 'action.hover' }}
+                    sx={{ backgroundColor: index % 2 === 0 ? 'rgba(40,40,40,0.95)' : 'rgba(30,30,30,0.85)' }}
                   >
-                    <TableCell>
+                    <TableCell sx={{ color: '#fff' }}>
                       <ResourceIcon
                         iconUrls={getResourceImageWithFallback(resource.id, 'icon')}
                         alt={resource.name + ' icon'}
@@ -179,14 +192,14 @@ const Resources = () => {
                         style={{ width: 28, height: 28, objectFit: 'contain' }}
                       />
                     </TableCell>
-                    <TableCell>
+                    <TableCell sx={{ color: '#fff' }}>
                       <Tooltip title={resource.description} arrow>
                         <span>{resource.name}</span>
                       </Tooltip>
                     </TableCell>
-                    <TableCell>{resource.basePrice}$</TableCell>
-                    <TableCell>{displayModule ? (<span>{displayModuleIcon} {displayModule}</span>) : '-'}</TableCell>
-                    <TableCell>
+                    <TableCell sx={{ color: '#fff' }}>{resource.basePrice}$</TableCell>
+                    <TableCell sx={{ color: '#fff' }}>{displayModule ? (<span>{displayModuleIcon} {displayModule}</span>) : '-'}</TableCell>
+                    <TableCell sx={{ color: '#fff' }}>
                       {recipe ? (
                         <span>
                           {recipe.inputs.map(input => (
@@ -213,7 +226,7 @@ const Resources = () => {
                         </span>
                       ) : '-'}
                     </TableCell>
-                    <TableCell>
+                    <TableCell sx={{ color: '#fff' }}>
                       {researchCard ? researchCard : '-'}
                     </TableCell>
                   </TableRow>

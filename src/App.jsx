@@ -13,6 +13,7 @@ import Resources from './pages/Resources';
 import { useState, useEffect } from 'react';
 import StorageInfoDialog from './components/StorageInfoDialog';
 import { theme } from './theme/theme';
+import Missions from './pages/Missions';
 
 function App() {
   const [showStorageInfo, setShowStorageInfo] = useState(false);
@@ -54,6 +55,7 @@ function App() {
                 <Route path="/tutorial" element={<Tutorial />} />
                 <Route path="/storage-overview" element={<StorageOverview />} />
                 <Route path="/resources" element={<Resources />} />
+                <Route path="/missions" element={<Missions />} />
               </Route>
             </Routes>
           </Router>

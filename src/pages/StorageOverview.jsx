@@ -32,10 +32,12 @@ import {
   Memory as MemoryIcon
 } from '@mui/icons-material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { useNavigate } from 'react-router-dom';
 
 const StorageOverview = () => {
   const gameState = useSelector(state => state.game);
   const [clearDialogOpen, setClearDialogOpen] = useState(false);
+  const navigate = useNavigate();
   
   // Calculate storage size
   const calculateStorageSize = (data) => {
@@ -54,27 +56,53 @@ const StorageOverview = () => {
   };
 
   const handleClearData = () => {
-    // Lösche alle Daten, die von redux-persist gespeichert wurden
-    localStorage.clear();
-    window.location.reload();
+    localStorage.removeItem('persist:root');
+    setTimeout(() => {
+      window.location.reload();
+    }, 100);
   };
 
   return (
-    <Box sx={{ p: { xs: 0, sm: 3 } }}>
-      <Typography variant="h4" sx={{ mb: 3 }}>
-        Your Browser Data
-      </Typography>
-      <Box sx={{ mb: 3 }}>
+    <Box sx={{
+      p: { xs: 0, sm: 3 },
+      backgroundImage: {
+        xs: 'url(/images/background_dark_mobil.png)',
+        md: 'url(/images/background.png)'
+      },
+      backgroundSize: 'cover',
+      backgroundPosition: 'center',
+      backgroundRepeat: 'no-repeat',
+      minHeight: '100vh',
+    }}>
+       <Typography
+              variant="h4"
+              sx={{
+                mb: 3,
+                fontWeight: 900,
+                fontSize: "2.5rem",
+                color: "#fff",
+                textShadow: "0 2px 8px #000, 0 1px 1px #000",
+                //   background: 'rgba(30,30,30,0.7)',
+                px: 2,
+                py: 1,
+                borderRadius: 2,
+                width: "fit-content",
+              }}
+            >
+           Your Browser Data
+            </Typography>
+
+      <Box sx={{ mb: 3, px: { xs: 2, sm: 0 }, py: { xs: 2, sm: 0 } }}>
         <Typography variant="h6" sx={{ mb: 1, color: 'primary.main', fontWeight: 700 }}>
           Data Transparency
         </Typography>
-        <Typography variant="body1" sx={{ mb: 1 }}>
+        <Typography variant="body1" sx={{ mb: 1, color: '#fff' }}>
           All your game data is stored <b>locally</b> in your browser's storage (localStorage/cookie). No data is sent to any server or third party.
         </Typography>
-        <Typography variant="body1" sx={{ mb: 1 }}>
+        <Typography variant="body1" sx={{ mb: 1, color: '#fff' }}>
           You can view, inspect, and delete your entire game progress at any time on this page. Data is stored under the key <b>persist:root</b> in your browser's localStorage. You can also clear it here with one click.
         </Typography>
-        <Typography variant="body1" sx={{ mb: 2 }}>
+        <Typography variant="body1" sx={{ mb: 2, color: '#fff' }}>
           Data transparency is very important to me. If you have questions, feel free to contact the developer.
         </Typography>
         <Button
@@ -105,13 +133,13 @@ const StorageOverview = () => {
       </Box>
       <Stack spacing={3} sx={{ width: '100%' }}>
         {/* Storage Size Card */}
-        <Card sx={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box', borderRadius: { xs: 0, sm: 2 } }}>
-          <CardContent>
+        <Card sx={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box', borderRadius: { xs: 0, sm: 2 }, background: 'rgba(30,30,30,0.85)', color: '#fff', boxShadow: 6 }}>
+          <CardContent sx={{ color: '#fff' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
               <MemoryIcon color="primary" sx={{ fontSize: 40 }} />
               <Box>
-                <Typography variant="h6">Storage Usage</Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="h6" sx={{ color: '#fff' }}>Storage Usage</Typography>
+                <Typography variant="body2" sx={{ color: '#fff' }}>
                   Total size: {calculateStorageSize(gameState)}
                 </Typography>
               </Box>
@@ -120,10 +148,10 @@ const StorageOverview = () => {
         </Card>
 
         {/* Resources */}
-        <Paper sx={{ p: 2, maxHeight: 300, overflowY: 'auto', width: '100%', maxWidth: '100%', boxSizing: 'border-box', borderRadius: { xs: 0, sm: 2 } }}>
+        <Paper sx={{ p: 2, maxHeight: 300, overflowY: 'auto', width: '100%', maxWidth: '100%', boxSizing: 'border-box', borderRadius: { xs: 0, sm: 2 }, background: 'rgba(30,30,30,0.85)', color: '#fff', boxShadow: 6 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
             <StorageIcon color="primary" />
-            <Typography variant="h6">Resources</Typography>
+            <Typography variant="h6" sx={{ color: '#fff' }}>Resources</Typography>
           </Box>
           <List>
             {Object.entries(gameState.resources).map(([id, resource]) => (
@@ -131,6 +159,8 @@ const StorageOverview = () => {
                 <ListItemText
                   primary={id}
                   secondary={`Amount: ${resource.amount} / Capacity: ${resource.capacity}`}
+                  primaryTypographyProps={{ sx: { color: '#fff' } }}
+                  secondaryTypographyProps={{ sx: { color: '#fff', opacity: 0.8 } }}
                 />
               </ListItem>
             ))}
@@ -138,10 +168,10 @@ const StorageOverview = () => {
         </Paper>
 
         {/* Production Lines */}
-        <Paper sx={{ p: 2, maxHeight: 300, overflowY: 'auto', width: '100%', maxWidth: '100%', boxSizing: 'border-box', borderRadius: { xs: 0, sm: 2 } }}>
+        <Paper sx={{ p: 2, maxHeight: 300, overflowY: 'auto', width: '100%', maxWidth: '100%', boxSizing: 'border-box', borderRadius: { xs: 0, sm: 2 }, background: 'rgba(30,30,30,0.85)', color: '#fff', boxShadow: 6 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
             <FactoryIcon color="primary" />
-            <Typography variant="h6">Production Lines</Typography>
+            <Typography variant="h6" sx={{ color: '#fff' }}>Production Lines</Typography>
           </Box>
           <List>
             {gameState.productionLines.map(line => (
@@ -149,6 +179,8 @@ const StorageOverview = () => {
                 <ListItemText
                   primary={line.name}
                   secondary={`ID: ${line.id}`}
+                  primaryTypographyProps={{ sx: { color: '#fff' } }}
+                  secondaryTypographyProps={{ sx: { color: '#fff', opacity: 0.8 } }}
                 />
               </ListItem>
             ))}
@@ -156,13 +188,13 @@ const StorageOverview = () => {
         </Paper>
 
         {/* Research Progress */}
-        <Paper sx={{ p: 2, maxHeight: 300, overflowY: 'auto', width: '100%', maxWidth: '100%', boxSizing: 'border-box', borderRadius: { xs: 0, sm: 2 } }}>
+        <Paper sx={{ p: 2, maxHeight: 300, overflowY: 'auto', width: '100%', maxWidth: '100%', boxSizing: 'border-box', borderRadius: { xs: 0, sm: 2 }, background: 'rgba(30,30,30,0.85)', color: '#fff', boxShadow: 6 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
             <ScienceIcon color="primary" />
-            <Typography variant="h6">Research Progress</Typography>
+            <Typography variant="h6" sx={{ color: '#fff' }}>Research Progress</Typography>
           </Box>
           <Box sx={{ mb: 2 }}>
-            <Typography variant="subtitle2">Unlocked Modules:</Typography>
+            <Typography variant="subtitle2" sx={{ color: '#fff' }}>Unlocked Modules:</Typography>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1 }}>
               {gameState.unlockedModules.map(module => (
                 <Chip key={module} label={module} size="small" />
@@ -170,7 +202,7 @@ const StorageOverview = () => {
             </Box>
           </Box>
           <Box>
-            <Typography variant="subtitle2">Researched Technologies:</Typography>
+            <Typography variant="subtitle2" sx={{ color: '#fff' }}>Researched Technologies:</Typography>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mt: 1 }}>
               {gameState.researchedTechnologies.map(tech => (
                 <Chip key={tech} label={tech} size="small" />
@@ -180,35 +212,41 @@ const StorageOverview = () => {
         </Paper>
 
         {/* Statistics */}
-        <Paper sx={{ p: 2, maxHeight: 300, overflowY: 'auto', width: '100%', maxWidth: '100%', boxSizing: 'border-box', borderRadius: { xs: 0, sm: 2 } }}>
+        <Paper sx={{ p: 2, maxHeight: 300, overflowY: 'auto', width: '100%', maxWidth: '100%', boxSizing: 'border-box', borderRadius: { xs: 0, sm: 2 }, background: 'rgba(30,30,30,0.85)', color: '#fff', boxShadow: 6 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
             <TrendingUpIcon color="primary" />
-            <Typography variant="h6">Statistics</Typography>
+            <Typography variant="h6" sx={{ color: '#fff' }}>Statistics</Typography>
           </Box>
           <List>
             <ListItem>
               <ListItemText
                 primary="Credits"
                 secondary={gameState.credits}
+                primaryTypographyProps={{ sx: { color: '#fff' } }}
+                secondaryTypographyProps={{ sx: { color: '#fff', opacity: 0.8 } }}
               />
             </ListItem>
             <ListItem>
               <ListItemText
                 primary="Research Points"
                 secondary={gameState.researchPoints}
+                primaryTypographyProps={{ sx: { color: '#fff' } }}
+                secondaryTypographyProps={{ sx: { color: '#fff', opacity: 0.8 } }}
               />
             </ListItem>
             <ListItem>
               <ListItemText
                 primary="Warehouses"
                 secondary={gameState.warehouses}
+                primaryTypographyProps={{ sx: { color: '#fff' } }}
+                secondaryTypographyProps={{ sx: { color: '#fff', opacity: 0.8 } }}
               />
             </ListItem>
           </List>
         </Paper>
 
         {/* Raw Data */}
-        <Accordion sx={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box', borderRadius: { xs: 0, sm: 2 } }} defaultExpanded={false}>
+        <Accordion sx={{ width: '100%', maxWidth: '100%', boxSizing: 'border-box', borderRadius: { xs: 0, sm: 2 }, background: 'rgba(30,30,30,0.85)', color: '#fff', boxShadow: 6 }} defaultExpanded={false}>
           <AccordionSummary
             expandIcon={<ExpandMoreIcon />}
             aria-controls="raw-data-content"
@@ -216,18 +254,19 @@ const StorageOverview = () => {
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
               <MemoryIcon color="primary" />
-              <Typography variant="h6">Raw Data</Typography>
+              <Typography variant="h6" sx={{ color: '#fff' }}>Raw Data</Typography>
             </Box>
           </AccordionSummary>
           <AccordionDetails>
             <Box sx={{ 
-              bgcolor: 'grey.100', 
+              bgcolor: 'grey.900', 
               p: 2, 
               borderRadius: 1,
               maxHeight: 400,
               overflow: 'auto',
               fontFamily: 'monospace',
-              fontSize: '0.9rem'
+              fontSize: '0.9rem',
+              color: '#fff'
             }}>
               <pre>{formatData(gameState)}</pre>
             </Box>
