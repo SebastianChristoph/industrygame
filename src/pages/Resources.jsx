@@ -81,10 +81,10 @@ const Resources = () => {
         minHeight: '100vh',
       }}
     >
-      <Typography variant="h4" gutterBottom sx={{ color: isMobile ? '#fff' : undefined }}>
+      <Typography variant="h4" gutterBottom sx={{ color: isMobile ? '#fff' : '#fff' }}>
         Resources
       </Typography>
-      <Typography variant="body1" sx={{ mb: 3, color: isMobile ? '#fff' : undefined }}>
+      <Typography variant="body1" sx={{ mb: 3, color: isMobile ? '#fff' : '#fff' }}>
         Here you can find an overview of all available resources in the game, including their recipes, selling values, and required research cards.
       </Typography>
       {isMobile ? (

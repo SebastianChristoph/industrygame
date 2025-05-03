@@ -236,9 +236,7 @@ const StorageDrawer = ({ open, onClose }) => {
             </TableBody>
           </Table>
         </TableContainer>
-        <Typography variant="body2" color="text.secondary" sx={{ color: '#fff' }}>
-          Total size: {calculateStorageSize(gameState)}
-        </Typography>
+       
       </Box>
     </Drawer>
   );
