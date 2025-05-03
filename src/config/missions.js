@@ -26,14 +26,14 @@ export const MISSIONS = {
       {
         type: 'PRODUCE_RESOURCE',
         resourceId: 'corn',
-        amount: 300,
-        description: 'Produce at least 300x Corn'
+        amount: 100,
+        description: 'Produce at least 100x Corn'
       },
       {
         type: 'PRODUCE_RESOURCE',
         resourceId: 'wheat',
-        amount: 100,
-        description: 'Produce at least 100x Wheat'
+        amount: 50,
+        description: 'Produce at least 50x Wheat'
       },
       {
         type: 'PRODUCTION_RATE',
@@ -49,6 +49,46 @@ export const MISSIONS = {
     isActive: false,
     isCompleted: false
   },
+
+  // Chapter 1: Basic Survival
+mission2: {
+  id: 'mission2',
+  chapter: 1,
+  title: 'Mission 2: First Line of Defense',
+  image: '/images/missions/mission2.png',
+  description: `"Food alone won't save you. Patrols report sightings of armed machines sweeping through nearby ruins. It's only a matter of time before they find you. You must build your first weapons and unlock the means to fight back. This is no longer just survival — it's resistance."`,
+  conditions: [
+    {
+      type: 'UNLOCK_MODULE',
+      moduleId: 'weapons',
+      description: 'Unlock the Weapons Module'
+    },
+    {
+      type: 'PRODUCE_RESOURCE',
+      resourceId: 'gunpowder',
+      amount: 50,
+      description: 'Produce at least 50x Gunpowder'
+    },
+    {
+      type: 'PRODUCE_RESOURCE',
+      resourceId: 'bullet',
+      amount: 200,
+      description: 'Produce at least 200x Bullet'
+    },
+    {
+      type: 'RESEARCH_TECH',
+      researchId: 'explosives_engineering',
+      description: 'Research Explosives Engineering'
+    }
+  ],
+  rewards: {
+    credits: 7500,
+  },
+  completionText: `"The smell of gunpowder fills the air. You've crafted your first line of defense — crude, but effective. Your scouts have spotted machine patrols hesitating at the edge of your territory. They know you're armed. Now, you must prepare for escalation."`,
+  isActive: false,
+  isCompleted: false
+},
+
 
 };
 

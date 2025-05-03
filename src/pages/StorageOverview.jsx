@@ -56,7 +56,7 @@ const StorageOverview = () => {
   };
 
   const handleClearData = () => {
-    localStorage.removeItem('persist:root');
+    localStorage.clear();
     setTimeout(() => {
       window.location.reload();
     }, 100);

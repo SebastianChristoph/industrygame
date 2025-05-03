@@ -14,7 +14,7 @@ import { MODULES } from '../config/modules';
 import { MISSIONS, checkMissionConditions } from '../config/missions';
 
 const initialState = {
-  credits: 5000, // Starting credits
+  credits: 10000, // Starting credits
   researchPoints: 1000,
   resources: Object.keys(INITIAL_RESOURCES).reduce((acc, resource) => ({
     ...acc,

@@ -47,6 +47,11 @@ import { ThemeProvider, createTheme } from '@mui/material/styles';
 const drawerWidth = 240;
 
 const menuItems = [
+  {
+    text: 'Missions',
+    icon: <AssignmentIcon />,
+    path: '/missions'
+  },
   { text: "Production", icon: <Factory />, path: "/production" },
   { text: "Storage", icon: <StorageIcon />, path: "/storage" },
   {
@@ -59,11 +64,7 @@ const menuItems = [
     icon: <CategoryIcon />,
     path: '/resources'
   },
-  {
-    text: 'Missions',
-    icon: <AssignmentIcon />,
-    path: '/missions'
-  },
+ 
   {
     text: 'Tutorial',
     icon: <HelpIcon />,

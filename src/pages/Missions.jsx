@@ -1,6 +1,7 @@
 import CheckCircleIcon from "@mui/icons-material/CheckCircle";
 import HourglassEmptyIcon from "@mui/icons-material/HourglassEmpty";
 import { PRODUCTION_RECIPES } from "../config/resources";
+import { getResourceImageWithFallback } from "../config/resourceImages";
 import {
   Box,
   Button,
@@ -19,6 +20,8 @@ import {
 import React from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { activateMission, completeMission } from "../store/gameSlice";
+import MonetizationOnIcon from '@mui/icons-material/MonetizationOn';
+import ScienceIcon from '@mui/icons-material/Science';
 
 // Hilfsfunktion: Produktion pro Ping für eine Ressource berechnen
 function getResourceProductionPerPing(gameState, resourceId) {
@@ -40,6 +43,8 @@ const MissionCard = ({
   onComplete,
   isActive,
   isCompleted,
+  onCompleteMission,
+  allConditionsMet
 }) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
@@ -173,6 +178,32 @@ const MissionCard = ({
               {mission.conditions &&
                 mission.conditions.map((cond, idx) => {
                   const done = getConditionStatus(cond);
+
+                  // Resource-Icon nur für PRODUCE_RESOURCE und PRODUCTION_RATE
+                  let resourceIcon = null;
+                  if (
+                    (cond.type === "PRODUCE_RESOURCE" || cond.type === "PRODUCTION_RATE") &&
+                    cond.resourceId
+                  ) {
+                    const iconCandidates = getResourceImageWithFallback(cond.resourceId, "icon");
+                    // Wir nehmen das erste Bild, das existiert (vereinfachte Annahme, dass das erste passt)
+                    resourceIcon = (
+                      <img
+                        src={iconCandidates[0]}
+                        alt={cond.resourceId}
+                        style={{
+                          width: 22,
+                          height: 22,
+                          marginRight: 6,
+                          verticalAlign: "middle",
+                          filter: done ? "grayscale(0)" : "grayscale(0.7)",
+                          opacity: done ? 1 : 0.7,
+                        }}
+                        onError={e => { e.target.onerror = null; e.target.src = "/images/icons/placeholder.png"; }}
+                      />
+                    );
+                  }
+
                   return (
                     <li
                       key={idx}
@@ -195,6 +226,7 @@ const MissionCard = ({
                           sx={{ mr: 1, color: "#fff" }}
                         />
                       )}
+                      {resourceIcon}
                       <span
                         style={{
                           color: done ? theme.palette.success.main : undefined,
@@ -208,6 +240,37 @@ const MissionCard = ({
                   );
                 })}
             </ul>
+            {/* Rewards unterhalb der Bedingungen anzeigen */}
+            {mission.rewards && (
+              <Box sx={{ mt: 2, p: 1, bgcolor: 'rgba(20,40,20,0.18)', borderRadius: 1, display: 'inline-block' }}>
+                <Typography variant="subtitle2" sx={{ color: '#fff', fontWeight: 700, mb: 0.5 }}>
+                  Reward{Object.keys(mission.rewards).length > 1 ? 's' : ''}:
+                </Typography>
+                {mission.rewards.credits && (
+                  <Typography variant="body2" sx={{ color: '#fff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <MonetizationOnIcon sx={{ color: '#ffd600', fontSize: 20, mr: 1 }} />
+                    {mission.rewards.credits} Credits
+                  </Typography>
+                )}
+                {mission.rewards.researchPoints && (
+                  <Typography variant="body2" sx={{ color: '#fff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <ScienceIcon sx={{ color: '#90caf9', fontSize: 20, mr: 1 }} />
+                    {mission.rewards.researchPoints} Research Points
+                  </Typography>
+                )}
+              </Box>
+            )}
+            {/* Button zum Abschließen der Mission, wenn alle Bedingungen erfüllt */}
+            {allConditionsMet && !isCompleted && (
+              <Button
+                variant="contained"
+                color="success"
+                sx={{ mt: 2, fontWeight: 700, fontSize: '1.1rem', px: 4, py: 1.2 }}
+                onClick={onCompleteMission}
+              >
+                Complete Mission
+              </Button>
+            )}
           </CardContent>
         </Box>
       </Box>
@@ -222,6 +285,8 @@ const Missions = () => {
   const missions = useSelector((state) => state.game.missions);
   const [selectedMission, setSelectedMission] = React.useState(null);
   const [showCompletionDialog, setShowCompletionDialog] = React.useState(false);
+  const gameState = useSelector(state => state.game);
+  const [pendingCompletion, setPendingCompletion] = React.useState(false);
 
   // Ermittle die aktive oder nächste verfügbare Mission
   let currentMission = null;
@@ -242,9 +307,58 @@ const Missions = () => {
     dispatch(activateMission(missionId));
   };
 
-  const handleCompleteMission = (missionId) => {
-    dispatch(completeMission(missionId));
-    setShowCompletionDialog(false);
+  // Hilfsfunktion: Sind alle Bedingungen erfüllt?
+  const allConditionsMet = currentMission && currentMission.conditions && currentMission.conditions.every(cond => {
+    switch (cond.type) {
+      case "PRODUCE_RESOURCE": {
+        const resource = gameState.resources[cond.resourceId];
+        return resource && resource.amount >= cond.amount;
+      }
+      case "PRODUCTION_RATE": {
+        const totalPerPing = getResourceProductionPerPing(gameState, cond.resourceId);
+        return totalPerPing >= cond.rate;
+      }
+      case "RESEARCH_TECH":
+        return gameState.researchedTechnologies.includes(cond.technologyId);
+      case "UNLOCK_MODULE":
+        return gameState.unlockedModules.includes(cond.moduleId);
+      case "TOTAL_BALANCE":
+      case "CREDITS":
+        return gameState.credits >= cond.amount;
+      default:
+        return false;
+    }
+  });
+
+  // Mission abschließen: Zeige Modal, Rewards erst nach Bestätigung auszahlen
+  const handleCompleteMission = () => {
+    setPendingCompletion(true);
+  };
+
+  // Rewards wirklich auszahlen und nächste Mission aktivieren
+  const handleClaimRewards = () => {
+    if (!currentMission) return;
+    // Rewards vergeben
+    if (currentMission.rewards) {
+      if (currentMission.rewards.credits) {
+        dispatch({ type: 'game/spendCredits', payload: -currentMission.rewards.credits });
+      }
+      if (currentMission.rewards.researchPoints) {
+        dispatch({ type: 'game/addResearchPoints', payload: currentMission.rewards.researchPoints });
+      }
+      // Weitere Rewards hier ergänzen
+    }
+    // Mission abschließen
+    dispatch(completeMission(currentMission.id));
+    // Nächste Mission aktivieren (falls vorhanden)
+    const allMissions = Object.values(missions.data || {});
+    const nextMission = allMissions
+      .filter(m => typeof m === 'object' && m.id && !missions.completedMissionIds.includes(m.id) && m.id !== currentMission.id)
+      .sort((a, b) => (a.chapter || 0) - (b.chapter || 0))[0];
+    if (nextMission) {
+      dispatch(activateMission(nextMission.id));
+    }
+    setPendingCompletion(false);
   };
 
   const handleMissionClick = (mission) => {
@@ -296,6 +410,8 @@ const Missions = () => {
             isCompleted={missions.completedMissionIds.includes(
               currentMission.id
             )}
+            onCompleteMission={handleCompleteMission}
+            allConditionsMet={allConditionsMet}
             onClick={() => handleMissionClick(currentMission)}
           />
         </Box>
@@ -303,44 +419,38 @@ const Missions = () => {
         <Typography variant="body1">All missions completed!</Typography>
       )}
 
-      <Dialog
-        open={showCompletionDialog}
-        onClose={() => setShowCompletionDialog(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        {selectedMission && (
-          <>
-            <DialogTitle>
-              Mission completed: {selectedMission.title}
-            </DialogTitle>
-            <DialogContent>
-              <DialogContentText>
-                {selectedMission.completionText}
-              </DialogContentText>
-              <Box sx={{ mt: 2 }}>
-                <Typography variant="subtitle1" gutterBottom>
-                  Rewards:
+      {/* Completion Modal: Zeige completionText und Rewards, Auszahlung erst beim Schließen */}
+      <Dialog open={pendingCompletion} onClose={() => setPendingCompletion(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Mission Complete</DialogTitle>
+        <DialogContent>
+          <DialogContentText sx={{ whiteSpace: 'pre-line', color: '#fff', mb: 2 }}>
+            {currentMission?.completionText?.replace(/^"|"$/g, '')}
+          </DialogContentText>
+          {currentMission?.rewards && (
+            <Box sx={{ mt: 2, p: 1, bgcolor: 'rgba(20,40,20,0.18)', borderRadius: 1, display: 'inline-block' }}>
+              <Typography variant="subtitle2" sx={{ color: '#fff', fontWeight: 700, mb: 0.5 }}>
+                Rewards:
+              </Typography>
+              {currentMission.rewards.credits && (
+                <Typography variant="body2" sx={{ color: '#fff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <MonetizationOnIcon sx={{ color: '#ffd600', fontSize: 20, mr: 1 }} />
+                  {currentMission.rewards.credits} Credits
                 </Typography>
-                {selectedMission.rewards?.credits && (
-                  <Typography variant="body2">
-                    • {selectedMission.rewards.credits} Credits
-                  </Typography>
-                )}
-                {selectedMission.rewards?.researchPoints && (
-                  <Typography variant="body2">
-                    • {selectedMission.rewards.researchPoints} Research Points
-                  </Typography>
-                )}
-              </Box>
-            </DialogContent>
-            <DialogActions>
-              <Button onClick={() => setShowCompletionDialog(false)}>
-                Close
-              </Button>
-            </DialogActions>
-          </>
-        )}
+              )}
+              {currentMission.rewards.researchPoints && (
+                <Typography variant="body2" sx={{ color: '#fff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <ScienceIcon sx={{ color: '#90caf9', fontSize: 20, mr: 1 }} />
+                  {currentMission.rewards.researchPoints} Research Points
+                </Typography>
+              )}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClaimRewards} variant="contained" color="success" sx={{ fontWeight: 700, fontSize: '1.1rem' }}>
+            Claim Rewards
+          </Button>
+        </DialogActions>
       </Dialog>
     </Box>
   );

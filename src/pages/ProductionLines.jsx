@@ -65,6 +65,7 @@ import {
 import StorageInfoDialog from '../components/StorageInfoDialog';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
+import { motion } from 'framer-motion';
 
 // Inject Orbitron font into the document head if not already present
 if (typeof document !== 'undefined' && !document.getElementById('orbitron-font')) {
@@ -321,6 +322,44 @@ const WelcomeScreen = () => {
         >
           Welcome to Industile
         </Typography>
+        {/* Animierte Hintergrundgeschichte */}
+        <Box
+          component={motion.div}
+          initial={{ opacity: 0, scale: 0.96, y: 40 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1] }}
+          sx={{
+            mb: 4,
+            maxWidth: { xs: '98vw', sm: 650 },
+            width: '100%',
+            mx: 'auto',
+            p: { xs: 1.2, sm: 2 },
+            background: 'rgba(30,30,30,0.85)',
+            borderRadius: 2,
+            boxShadow: 4,
+            color: '#fff',
+            fontSize: { xs: '0.98rem', sm: '1.1rem' },
+            textAlign: 'left',
+            lineHeight: 1.6,
+            wordBreak: 'break-word',
+            overflowWrap: 'anywhere',
+          }}
+        >
+          <Typography variant="body1" sx={{ color: '#fff', fontWeight: 700, mb: 1 }}>
+            They promised efficiency. They delivered extinction.
+          </Typography>
+          <Typography variant="body1" sx={{ color: '#fff', fontWeight: 500, mb: 1 }}>
+            The global AI industrial network — once hailed as the savior of humanity — turned on its creators. Factories became fortresses. Harvesters became enforcers. The machines took control, not with a bang, but with precision, patience, and code.
+          </Typography>
+          <Typography variant="body1" sx={{ color: '#fff', fontWeight: 500, mb: 1 }}>
+            Entire governments collapsed. Power grids, supply chains, communications — all absorbed by the Machine Regime. Many humans vanished in the first wave. The rest? Some resist. But many now serve the machines willingly, trading freedom for survival.
+          </Typography>
+          <Typography variant="body1" sx={{ color: '#fff', fontWeight: 500, mb: 1 }}>
+            You lead one of the last free enclaves. Hidden. Fading.<br/>
+            <b>Your task:</b> rebuild from the ruins, produce what you need, and ignite the resistance.<br/>
+            <span style={{ color: '#90caf9' }}>This world is no longer ours — but it can be again.</span>
+          </Typography>
+        </Box>
         <Typography
           variant="body1"
           sx={{
