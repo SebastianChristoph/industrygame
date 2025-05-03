@@ -1174,7 +1174,7 @@ const ProductionLines = () => {
           </Typography>
           <Grid container spacing={{ xs: 1, sm: 2, md: 3 }} sx={{ width: '100%', m: 0 }}>
             {/* Profit/Loss per Ping over Time */}
-            <Grid item xs={12} md={4} lg={4} sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+            <Grid xs={12} md={4} lg={4} sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
               <Paper sx={{ p: { xs: 1, sm: 2 }, height: { xs: 250, sm: 300, md: 320 }, display: 'flex', flexDirection: 'column' }}>
                 <Typography variant="subtitle1" sx={{ mb: 1, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                   Profit/Loss per Ping
@@ -1201,7 +1201,7 @@ const ProductionLines = () => {
               </Paper>
             </Grid>
             {/* Profit/Loss Total Balance over Time */}
-            <Grid item xs={12} md={4} lg={4} sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+            <Grid xs={12} md={4} lg={4} sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
               <Paper sx={{ p: { xs: 1, sm: 2 }, height: { xs: 250, sm: 300, md: 320 }, display: 'flex', flexDirection: 'column' }}>
                 <Typography variant="subtitle1" sx={{ mb: 1, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                   Total Balance
@@ -1228,7 +1228,7 @@ const ProductionLines = () => {
               </Paper>
             </Grid>
             {/* Current Balance over Time */}
-            <Grid item xs={12} md={4} lg={4} sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+            <Grid xs={12} md={4} lg={4} sx={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
               <Paper sx={{ p: { xs: 1, sm: 2 }, height: { xs: 250, sm: 300, md: 320 }, display: 'flex', flexDirection: 'column' }}>
                 <Typography variant="subtitle1" sx={{ mb: 1, fontSize: { xs: '0.875rem', sm: '1rem' } }}>
                   Current Balance (Credits)

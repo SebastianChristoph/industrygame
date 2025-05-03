@@ -93,6 +93,15 @@ export const PRODUCTION_RECIPES = {
     ],
     output: { resourceId: 'research_points', amount: 1 }
   },
+  research_points_business: {
+    id: 'research_points_business',
+    name: 'Business Research',
+    productionTime: 10,
+    inputs: [
+      { resourceId: 'research_points', amount: 1 }
+    ],
+    output: { resourceId: 'research_points', amount: 2 }
+  },
   corn: {
     id: 'corn',
     name: 'Corn',

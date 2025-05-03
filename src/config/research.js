@@ -216,5 +216,83 @@ export const RESEARCH_TREE = {
         unlocks: { recipes: ['mech_suit'] }
       }
     }
+  },
+  business: {
+    id: 'business',
+    name: 'Business',
+    technologies: {
+      MARKETING: {
+        id: 'MARKETING',
+        name: 'Marketing',
+        description: 'Improve production efficiency through better marketing strategies.',
+        cost: 300,
+        requirements: [],
+        unlocks: { 
+          passiveEffects: {
+            productionEfficiency: 0.02 // 2% bonus
+          }
+        }
+      },
+      SEO: {
+        id: 'SEO',
+        name: 'Search Engine Optimization',
+        description: 'Enhance online presence and production efficiency.',
+        cost: 500,
+        requirements: ['MARKETING'],
+        unlocks: { 
+          passiveEffects: {
+            productionEfficiency: 0.03 // 3% bonus
+          }
+        }
+      },
+      SUPPLY_CHAIN: {
+        id: 'SUPPLY_CHAIN',
+        name: 'Supply Chain Optimization',
+        description: 'Streamline production processes for better efficiency.',
+        cost: 800,
+        requirements: ['SEO'],
+        unlocks: { 
+          passiveEffects: {
+            productionEfficiency: 0.04 // 4% bonus
+          }
+        }
+      },
+      AUTOMATION: {
+        id: 'AUTOMATION',
+        name: 'Process Automation',
+        description: 'Implement automated systems for increased efficiency.',
+        cost: 1200,
+        requirements: ['SUPPLY_CHAIN'],
+        unlocks: { 
+          passiveEffects: {
+            productionEfficiency: 0.05 // 5% bonus
+          }
+        }
+      },
+      LEAN_MANUFACTURING: {
+        id: 'LEAN_MANUFACTURING',
+        name: 'Lean Manufacturing',
+        description: 'Eliminate waste and optimize production flow.',
+        cost: 1600,
+        requirements: ['AUTOMATION'],
+        unlocks: { 
+          passiveEffects: {
+            productionEfficiency: 0.06 // 6% bonus
+          }
+        }
+      },
+      INDUSTRY_4_0: {
+        id: 'INDUSTRY_4_0',
+        name: 'Industry 4.0',
+        description: 'Implement smart factory technologies for maximum efficiency.',
+        cost: 2000,
+        requirements: ['LEAN_MANUFACTURING'],
+        unlocks: { 
+          passiveEffects: {
+            productionEfficiency: 0.08 // 8% bonus
+          }
+        }
+      }
+    }
   }
 };

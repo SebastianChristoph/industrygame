@@ -66,6 +66,7 @@ const Research = () => {
     agriculture: moduleKeys.findIndex(key => MODULES[key].id === 'agriculture'),
     technology: moduleKeys.findIndex(key => MODULES[key].id === 'technology'),
     weapons: moduleKeys.findIndex(key => MODULES[key].id === 'weapons'),
+    business: moduleKeys.findIndex(key => MODULES[key].id === 'business'),
   };
 
   const [tab, setTab] = useState(
@@ -136,8 +137,27 @@ const Research = () => {
       resourceId => RESOURCES[resourceId]?.purchasable
     );
     const producedGoods = (unlocks?.recipes || []).map(recipeId => PRODUCTION_RECIPES[recipeId]).filter(Boolean);
+    const passiveEffects = unlocks?.passiveEffects || {};
+
     return (
       <Box sx={{ mt: 1, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+        {Object.entries(passiveEffects).length > 0 && (
+          <Box>
+            <Typography variant="caption" color="text.secondary">Passive Effects:</Typography>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, mt: 0.5 }}>
+              {Object.entries(passiveEffects).map(([effect, value]) => (
+                <Box key={effect} sx={{ display: 'flex', alignItems: 'center', gap: 0.5, bgcolor: 'action.hover', px: 1, py: 0.2, borderRadius: 1, fontSize: '0.85rem' }}>
+                  {effect === 'productionEfficiency' && (
+                    <>
+                      <span style={{ color: '#2e7d32', fontWeight: 600 }}>+{(value * 100).toFixed(0)}%</span>
+                      <span>Production Efficiency</span>
+                    </>
+                  )}
+                </Box>
+              ))}
+            </Box>
+          </Box>
+        )}
         {purchasableResources.length > 0 && (
           <Box>
             <Typography variant="caption" color="text.secondary">Resource for purchase:</Typography>

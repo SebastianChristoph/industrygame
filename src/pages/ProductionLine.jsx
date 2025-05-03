@@ -82,6 +82,8 @@ import Accordion from '@mui/material/Accordion';
 import AccordionSummary from '@mui/material/AccordionSummary';
 import AccordionDetails from '@mui/material/AccordionDetails';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import { RESEARCH_TREE } from '../config/research';
+import useMediaQuery from '@mui/material/useMediaQuery';
 
 const styles = `
   @keyframes pulseFast {
@@ -179,9 +181,12 @@ const ProductionLine = () => {
   const productionLines = useSelector(state => state.game.productionLines);
 
   const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
 
   // Hole Statistikdaten aus dem Redux-Store
   const statistics = useSelector(state => state.game.statistics);
+
+  const researchedTechnologies = useSelector(state => state.game.researchedTechnologies);
 
   // Berechne den Fortschritt in Prozent
   const progressPercent = productionStatus?.currentPings 
@@ -189,6 +194,23 @@ const ProductionLine = () => {
         ? 100 
         : (productionStatus.currentPings / selectedRecipe?.productionTime) * 100)
     : 0;
+
+  // Hilfsfunktion: Summiere alle productionEfficiency-Boni aus erforschten Business-Technologien
+  function getTotalProductionBonus() {
+    let bonus = 0;
+    if (RESEARCH_TREE.business && RESEARCH_TREE.business.technologies) {
+      Object.values(RESEARCH_TREE.business.technologies).forEach(tech => {
+        if (
+          researchedTechnologies.includes(tech.id) &&
+          tech.unlocks?.passiveEffects?.productionEfficiency
+        ) {
+          bonus += tech.unlocks.passiveEffects.productionEfficiency;
+        }
+      });
+    }
+    return bonus;
+  }
+  const totalBonus = getTotalProductionBonus();
 
   // Setze automatisch die Einkaufsmodule für die Inputs, wenn noch nicht konfiguriert
   useEffect(() => {
@@ -382,7 +404,11 @@ const ProductionLine = () => {
   const inputCost = selectedRecipe.inputs.reduce((sum, input) => sum + RESOURCES[input.resourceId].basePrice * input.amount, 0);
   const sellIncome = RESOURCES[selectedRecipe.output.resourceId].basePrice * selectedRecipe.output.amount;
   const isSelling = productionConfig?.outputTarget === OUTPUT_TARGETS.AUTO_SELL;
-  const balance = isSelling ? (sellIncome - inputCost) : -inputCost;
+  // Bonus auf den Gewinn anwenden
+  let balance = isSelling ? (sellIncome - inputCost) : -inputCost;
+  if (totalBonus > 0) {
+    balance = Math.round(balance * (1 + totalBonus));
+  }
 
   const getModuleTypeForRecipe = (recipeId) => {
     if (!recipeId) return null;
@@ -478,9 +504,9 @@ const ProductionLine = () => {
   }
 
   return (
-    <Box sx={{ position: 'relative', minHeight: '100vh' }}>
+    <Box sx={{ position: 'relative', minHeight: '100vh', width: '100%' }}>
       <style>{styles}</style>
-      <Box sx={{ p: 3, position: 'relative', zIndex: 1 }}>
+      <Box sx={{ p: 3, position: 'relative', zIndex: 1, width: '100%' }}>
         {/* Back-Button oben links über dem Titel */}
         <Button
           startIcon={<ArrowBack />}
@@ -578,9 +604,13 @@ const ProductionLine = () => {
           display: 'flex', 
           flexDirection: { xs: 'column', md: 'row' },
           justifyContent: 'center', 
-          alignItems: { xs: 'center', md: 'flex-start' }, 
-          gap: { xs: 4, md: 6 }, 
-          mt: { xs: 4, md: 10 }
+          alignItems: { xs: 'center', md: 'flex-start' },
+          gap: { xs: 4, md: 2.5 },
+          maxWidth: 1100,
+          margin: '0 auto',
+          mt: { xs: 4, md: 10 },
+          width: '100%',
+          boxSizing: 'border-box'
         }}>
           {/* Input-Bilder und Umschalter */}
           <Box sx={{ 
@@ -652,7 +682,7 @@ const ProductionLine = () => {
                         {resource.name}: {singlePrice}$ · Total: {totalPrice}$
                       </Typography>
                     )}
-                    <Box sx={{ display: 'flex', alignItems: 'center', height: 48, mt: 2, width: '100%' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', height: 48, mt: { xs: 2, md: 2.5 }, width: '100%' }}>
                       <ToggleButtonGroup
                         value={inputConfig?.source || INPUT_SOURCES.PURCHASE_MODULE}
                         exclusive
@@ -667,20 +697,20 @@ const ProductionLine = () => {
                           }
                         }}
                         size="small"
-                        sx={{ minHeight: 40, width: '100%' }}
+                        sx={{ minHeight: 36, width: '100%' }}
                       >
                         <MuiTooltip title="From stock" arrow>
                           <ToggleButton 
                             value={INPUT_SOURCES.GLOBAL_STORAGE}
                             sx={{
                               flex: 1,
-                              py: 1.5,
-                              px: 2,
+                              py: { xs: 1.5, md: 0.5 },
+                              px: { xs: 2, md: 0.5 },
                               borderRadius: 2,
                               fontWeight: 600,
-                              fontSize: { xs: '1rem', md: '0.9rem' },
+                              fontSize: { xs: '1rem', md: '0.92rem' },
                               display: 'flex',
-                              flexDirection: { xs: 'row', md: 'column' },
+                              flexDirection: 'column',
                               alignItems: 'center',
                               gap: 1,
                               color: (inputConfig?.source || INPUT_SOURCES.PURCHASE_MODULE) === INPUT_SOURCES.GLOBAL_STORAGE ? 'primary.main' : 'text.secondary',
@@ -690,10 +720,11 @@ const ProductionLine = () => {
                               transition: 'all 0.2s',
                               width: { xs: '100%', md: 'auto' },
                               justifyContent: 'center',
+                              minHeight: { xs: 40, md: 32 },
                             }}
                           >
-                            <Box sx={{ display: { xs: 'none', md: 'block' }, mr: 1 }}><Storage sx={{ fontSize: 24 }} /></Box>
-                            From stock
+                            <Storage sx={{ fontSize: 20 }} />
+                            <Box sx={{ display: { xs: 'block', md: 'none' } }}>From stock</Box>
                           </ToggleButton>
                         </MuiTooltip>
                         {resource.purchasable && (
@@ -702,13 +733,13 @@ const ProductionLine = () => {
                               value={INPUT_SOURCES.PURCHASE_MODULE}
                               sx={{
                                 flex: 1,
-                                py: 1.5,
-                                px: 2,
+                                py: { xs: 1.5, md: 0.5 },
+                                px: { xs: 2, md: 0.5 },
                                 borderRadius: 2,
                                 fontWeight: 600,
-                                fontSize: { xs: '1rem', md: '0.9rem' },
+                                fontSize: { xs: '1rem', md: '0.92rem' },
                                 display: 'flex',
-                                flexDirection: { xs: 'row', md: 'column' },
+                                flexDirection: 'column',
                                 alignItems: 'center',
                                 gap: 1,
                                 color: (inputConfig?.source || INPUT_SOURCES.PURCHASE_MODULE) === INPUT_SOURCES.PURCHASE_MODULE ? 'success.dark' : 'text.secondary',
@@ -716,10 +747,11 @@ const ProductionLine = () => {
                                 border: '2px solid',
                                 borderColor: (inputConfig?.source || INPUT_SOURCES.PURCHASE_MODULE) === INPUT_SOURCES.PURCHASE_MODULE ? 'success.main' : 'grey.300',
                                 transition: 'all 0.2s',
+                                minHeight: { xs: 40, md: 32 },
                               }}
                             >
-                              <Box sx={{ display: { xs: 'none', md: 'block' }, mr: 1 }}><ShoppingCart sx={{ fontSize: 24 }} /></Box>
-                              Auto purchase
+                              <ShoppingCart sx={{ fontSize: 20 }} />
+                              <Box sx={{ display: { xs: 'block', md: 'none' } }}>Auto purchase</Box>
                             </ToggleButton>
                           </MuiTooltip>
                         )}
@@ -736,10 +768,11 @@ const ProductionLine = () => {
             display: 'flex', 
             flexDirection: 'column', 
             alignItems: 'center', 
-            mx: { xs: 0, md: 4 }, 
+            mx: { xs: 0, md: 2 }, 
             position: 'relative', 
-            minWidth: { xs: '100%', md: 220 }, 
-            minHeight: { xs: 'auto', md: 220 }, 
+            minWidth: { xs: '100%', md: 160 }, 
+            maxWidth: { xs: '100%', md: 160 }, 
+            minHeight: { xs: 'auto', md: 160 }, 
             justifyContent: 'center', 
             height: { xs: 'auto', md: 260 }
           }}>
@@ -836,6 +869,21 @@ const ProductionLine = () => {
                   </Typography>
                 );
               })()}
+              {totalBonus > 0 && (
+                <Typography
+                  variant="subtitle2"
+                  sx={{
+                    color: 'success.main',
+                    fontWeight: 700,
+                    fontSize: '1.1rem',
+                    textAlign: 'center',
+                    width: '100%',
+                    mt: 0.5,
+                  }}
+                >
+                  ({(100 + totalBonus * 100).toFixed(0)}% Productivity)
+                </Typography>
+              )}
             </Box>
           </Box>
 
@@ -905,10 +953,17 @@ const ProductionLine = () => {
                 }}>
                   <Storage sx={{ fontSize: 24, mr: 1 }} />
                   Store in stock
+                  {!isMobile && (
+                    <MuiTooltip title={"Research points cannot be sold. They are automatically stored and used for unlocking technologies."} arrow>
+                      <InfoOutlined sx={{ fontSize: 20, ml: 1, color: 'primary.main', cursor: 'pointer' }} />
+                    </MuiTooltip>
+                  )}
                 </Box>
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 1, textAlign: 'center' }}>
-                  Research points cannot be sold. They are automatically stored and used for unlocking technologies.
-                </Typography>
+                {isMobile && (
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1, textAlign: 'center' }}>
+                    Research points cannot be sold. They are automatically stored and used for unlocking technologies.
+                  </Typography>
+                )}
               </Box>
             ) : (
               <Box sx={{
@@ -948,13 +1003,13 @@ const ProductionLine = () => {
                       value={OUTPUT_TARGETS.GLOBAL_STORAGE}
                       sx={{
                         flex: 1,
-                        py: 1.5,
-                        px: 2,
+                        py: { xs: 1.5, md: 0.5 },
+                        px: { xs: 2, md: 0.5 },
                         borderRadius: 2,
                         fontWeight: 600,
-                        fontSize: '1rem',
+                        fontSize: { xs: '1rem', md: '0.92rem' },
                         display: 'flex',
-                        flexDirection: 'row',
+                        flexDirection: 'column',
                         alignItems: 'center',
                         gap: 1,
                         color: (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.GLOBAL_STORAGE ? 'primary.main' : 'text.secondary',
@@ -964,8 +1019,8 @@ const ProductionLine = () => {
                         transition: 'all 0.2s',
                       }}
                     >
-                      <Box sx={{ display: { xs: 'none', md: 'block' }, mr: 1 }}><Storage sx={{ fontSize: 24 }} /></Box>
-                      Store in stock
+                      <Storage sx={{ fontSize: 20 }} />
+                      <Box sx={{ display: { xs: 'block', md: 'none' } }}>Store in stock</Box>
                     </ToggleButton>
                   </MuiTooltip>
                   <MuiTooltip title="Sell the produced resources automatically for credits." arrow>
@@ -973,13 +1028,13 @@ const ProductionLine = () => {
                       value={OUTPUT_TARGETS.AUTO_SELL}
                       sx={{
                         flex: 1,
-                        py: 1.5,
-                        px: 2,
+                        py: { xs: 1.5, md: 0.5 },
+                        px: { xs: 2, md: 0.5 },
                         borderRadius: 2,
                         fontWeight: 600,
-                        fontSize: '1rem',
+                        fontSize: { xs: '1rem', md: '0.92rem' },
                         display: 'flex',
-                        flexDirection: 'row',
+                        flexDirection: 'column',
                         alignItems: 'center',
                         gap: 1,
                         color: (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.AUTO_SELL ? 'success.dark' : 'text.secondary',
@@ -989,8 +1044,8 @@ const ProductionLine = () => {
                         transition: 'all 0.2s',
                       }}
                     >
-                      <SellIcon sx={{ fontSize: 24, mr: 1 }} />
-                      Sell automatically
+                      <SellIcon sx={{ fontSize: 20 }} />
+                      <Box sx={{ display: { xs: 'block', md: 'none' } }}>Sell automatically</Box>
                     </ToggleButton>
                   </MuiTooltip>
                 </ToggleButtonGroup>
