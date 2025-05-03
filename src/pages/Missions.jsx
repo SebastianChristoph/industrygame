@@ -282,7 +282,7 @@ const Missions = () => {
   const dispatch = useDispatch();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("sm"));
-  const missions = useSelector((state) => state.game.missions);
+  const missions = useSelector((state) => state.game.missions) || { data: {}, completedMissionIds: [] };
   const [selectedMission, setSelectedMission] = React.useState(null);
   const [showCompletionDialog, setShowCompletionDialog] = React.useState(false);
   const gameState = useSelector(state => state.game);
@@ -290,15 +290,15 @@ const Missions = () => {
 
   // Ermittle die aktive oder nächste verfügbare Mission
   let currentMission = null;
-  if (missions.activeMissionId) {
-    currentMission = missions.data[missions.activeMissionId];
+  if (missions?.activeMissionId) {
+    currentMission = missions.data?.[missions.activeMissionId];
   } else {
     currentMission = Object.values(missions.data || {})
       .filter(
         (m) =>
           typeof m === "object" &&
           m.id &&
-          !missions.completedMissionIds.includes(m.id)
+          !missions.completedMissionIds?.includes(m.id)
       )
       .sort((a, b) => (a.chapter || 0) - (b.chapter || 0))[0];
   }
