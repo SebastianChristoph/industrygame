@@ -46,7 +46,7 @@ export const MISSIONS = {
       credits: 5000
     },
     completionText: `"The first meals are distributed. Your storage begins to fill. Thanks to your network, water and coal now flow steadily into the camp. But radio chatter reveals something worse: enemy machines are approaching in large numbers — it's time to arm yourself."`,
-    isActive: false,
+    isActive: true,
     isCompleted: false
   },
 
