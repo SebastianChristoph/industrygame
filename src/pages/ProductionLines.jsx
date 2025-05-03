@@ -520,31 +520,11 @@ const ProductionLines = () => {
     if (!config?.recipe) return { balance: 0, balancePerPing: 0, totalBalance: 0 };
     const recipe = PRODUCTION_RECIPES[config.recipe];
     if (!recipe) return { balance: 0, balancePerPing: 0, totalBalance: 0 };
-    // Prüfe Inputquellen
-    const allInputsFromStock = recipe.inputs.every((input, idx) => {
-      const inputConfig = config.inputs[idx];
-      return inputConfig && inputConfig.source === INPUT_SOURCES.GLOBAL_STORAGE;
-    });
-    // Einkaufskosten nur für eingekaufte Inputs
-    const purchaseCost = recipe.inputs.reduce((sum, input, idx) => {
-      const inputConfig = config.inputs[idx];
-      if (inputConfig && inputConfig.source === INPUT_SOURCES.PURCHASE_MODULE) {
-        return sum + RESOURCES[input.resourceId].basePrice * input.amount;
-      }
-      return sum;
-    }, 0);
-    // Verkaufserlös
+    // Neue Logik: Immer Inputkosten abziehen, Output nur bei Verkauf
+    const inputCost = recipe.inputs.reduce((sum, input) => sum + RESOURCES[input.resourceId].basePrice * input.amount, 0);
     const sellIncome = RESOURCES[recipe.output.resourceId].basePrice * recipe.output.amount;
-    const isSelling = config?.outputTarget === OUTPUT_TARGETS.AUTO_SELL;
-    const isStoring = config?.outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE;
-    let balance = 0;
-    if (allInputsFromStock && isStoring) {
-      balance = 0;
-    } else if (isSelling) {
-      balance = sellIncome - purchaseCost;
-    } else {
-      balance = -purchaseCost;
-    }
+    const isBlackMarketSell = config?.outputTarget === OUTPUT_TARGETS.BLACK_MARKET;
+    let balance = isBlackMarketSell ? (sellIncome - inputCost) : -inputCost;
     // Per Ping
     const balancePerPing = recipe.productionTime > 0 ? Math.round((balance / recipe.productionTime) * 100) / 100 : 0;
     // Total (für die Summen-Box: nimm status?.totalPings, sonst 0)

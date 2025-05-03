@@ -42,7 +42,9 @@ import {
   Sell as SellIcon,
   KeyboardArrowDown as ArrowDownIcon,
   MonetizationOn,
-  InfoOutlined
+  InfoOutlined,
+  LocalShipping as BlackMarketIcon,
+  MonetizationOn as BlackMarketSellIcon
 } from '@mui/icons-material';
 import {
   PRODUCTION_RECIPES,
@@ -122,29 +124,14 @@ const ResourceIcon = ({ iconUrls, alt, resourceId, ...props }) => {
 
 // Hilfsfunktion für Bilanz pro Zyklus (wie im UI unter dem Pfeil)
 function calculateCycleProfit(selectedRecipe, productionConfig, resources, OUTPUT_TARGETS, RESOURCES, INPUT_SOURCES) {
-  const inputsArr = Array.isArray(productionConfig?.inputs) ? productionConfig.inputs : [];
-  const allInputsFromStock = selectedRecipe.inputs.every((input, idx) => {
-    const inputConfig = inputsArr[idx];
-    return inputConfig && inputConfig.source === INPUT_SOURCES.GLOBAL_STORAGE;
-  });
-  const purchaseCost = selectedRecipe.inputs.reduce((sum, input, idx) => {
-    const inputConfig = inputsArr[idx];
-    if (inputConfig && inputConfig.source === INPUT_SOURCES.PURCHASE_MODULE) {
-      return sum + RESOURCES[input.resourceId].basePrice * input.amount;
-    }
-    return sum;
-  }, 0);
+  // Always subtract input costs, regardless of source
+  const inputCost = selectedRecipe.inputs.reduce(
+    (sum, input) => sum + RESOURCES[input.resourceId].basePrice * input.amount,
+    0
+  );
   const sellIncome = RESOURCES[selectedRecipe.output.resourceId].basePrice * selectedRecipe.output.amount;
-  const isSelling = productionConfig?.outputTarget === OUTPUT_TARGETS.AUTO_SELL;
-  const isStoring = productionConfig?.outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE;
-  let balance = 0;
-  if (allInputsFromStock && isStoring) {
-    balance = 0;
-  } else if (isSelling) {
-    balance = sellIncome - purchaseCost;
-  } else {
-    balance = -purchaseCost;
-  }
+  const isBlackMarketSell = productionConfig?.outputTarget === OUTPUT_TARGETS.BLACK_MARKET;
+  let balance = isBlackMarketSell ? (sellIncome - inputCost) : -inputCost;
   return balance;
 }
 
@@ -403,9 +390,8 @@ const ProductionLine = () => {
   // Bilanzwerte direkt im Render ermitteln, damit sie immer aktuell sind
   const inputCost = selectedRecipe.inputs.reduce((sum, input) => sum + RESOURCES[input.resourceId].basePrice * input.amount, 0);
   const sellIncome = RESOURCES[selectedRecipe.output.resourceId].basePrice * selectedRecipe.output.amount;
-  const isSelling = productionConfig?.outputTarget === OUTPUT_TARGETS.AUTO_SELL;
-  // Bonus auf den Gewinn anwenden
-  let balance = isSelling ? (sellIncome - inputCost) : -inputCost;
+  const isBlackMarketSell = productionConfig?.outputTarget === OUTPUT_TARGETS.BLACK_MARKET;
+  let balance = isBlackMarketSell ? (sellIncome - inputCost) : -inputCost;
   if (totalBonus > 0) {
     balance = Math.round(balance * (1 + totalBonus));
   }
@@ -624,8 +610,8 @@ const ProductionLine = () => {
             {selectedRecipe.inputs.map((input, idx) => {
               const resource = RESOURCES[input.resourceId];
               const inputConfig = productionConfig.inputs[idx];
-              const isGlobalStorage = (inputConfig?.source || INPUT_SOURCES.PURCHASE_MODULE) === INPUT_SOURCES.GLOBAL_STORAGE;
-              const isAutoBuy = (inputConfig?.source || INPUT_SOURCES.PURCHASE_MODULE) === INPUT_SOURCES.PURCHASE_MODULE;
+              const isGlobalStorage = (inputConfig?.source || INPUT_SOURCES.BLACK_MARKET) === INPUT_SOURCES.GLOBAL_STORAGE;
+              const isBlackMarket = (inputConfig?.source || INPUT_SOURCES.BLACK_MARKET) === INPUT_SOURCES.BLACK_MARKET;
               const stock = resources[input.resourceId]?.amount ?? 0;
               const singlePrice = resource.basePrice;
               const totalPrice = singlePrice * input.amount;
@@ -684,7 +670,7 @@ const ProductionLine = () => {
                     )}
                     <Box sx={{ display: 'flex', alignItems: 'center', height: 48, mt: { xs: 2, md: 2.5 }, width: '100%' }}>
                       <ToggleButtonGroup
-                        value={inputConfig?.source || INPUT_SOURCES.PURCHASE_MODULE}
+                        value={inputConfig?.source || INPUT_SOURCES.BLACK_MARKET}
                         exclusive
                         onChange={(_, newSource) => {
                           if (newSource) {
@@ -713,10 +699,10 @@ const ProductionLine = () => {
                               flexDirection: 'column',
                               alignItems: 'center',
                               gap: 1,
-                              color: (inputConfig?.source || INPUT_SOURCES.PURCHASE_MODULE) === INPUT_SOURCES.GLOBAL_STORAGE ? 'primary.main' : 'text.secondary',
-                              bgcolor: (inputConfig?.source || INPUT_SOURCES.PURCHASE_MODULE) === INPUT_SOURCES.GLOBAL_STORAGE ? 'primary.50' : 'grey.100',
+                              color: (inputConfig?.source || INPUT_SOURCES.BLACK_MARKET) === INPUT_SOURCES.GLOBAL_STORAGE ? 'primary.main' : 'text.secondary',
+                              bgcolor: (inputConfig?.source || INPUT_SOURCES.BLACK_MARKET) === INPUT_SOURCES.GLOBAL_STORAGE ? 'primary.50' : 'grey.100',
                               border: '2px solid',
-                              borderColor: (inputConfig?.source || INPUT_SOURCES.PURCHASE_MODULE) === INPUT_SOURCES.GLOBAL_STORAGE ? 'primary.main' : 'grey.300',
+                              borderColor: (inputConfig?.source || INPUT_SOURCES.BLACK_MARKET) === INPUT_SOURCES.GLOBAL_STORAGE ? 'primary.main' : 'grey.300',
                               transition: 'all 0.2s',
                               width: { xs: '100%', md: 'auto' },
                               justifyContent: 'center',
@@ -728,9 +714,9 @@ const ProductionLine = () => {
                           </ToggleButton>
                         </MuiTooltip>
                         {resource.purchasable && (
-                          <MuiTooltip title="Auto purchase" arrow>
+                          <MuiTooltip title="Get from black market" arrow>
                             <ToggleButton 
-                              value={INPUT_SOURCES.PURCHASE_MODULE}
+                              value={INPUT_SOURCES.BLACK_MARKET}
                               sx={{
                                 flex: 1,
                                 py: { xs: 1.5, md: 0.5 },
@@ -742,16 +728,16 @@ const ProductionLine = () => {
                                 flexDirection: 'column',
                                 alignItems: 'center',
                                 gap: 1,
-                                color: (inputConfig?.source || INPUT_SOURCES.PURCHASE_MODULE) === INPUT_SOURCES.PURCHASE_MODULE ? 'success.dark' : 'text.secondary',
-                                bgcolor: (inputConfig?.source || INPUT_SOURCES.PURCHASE_MODULE) === INPUT_SOURCES.PURCHASE_MODULE ? 'success.50' : 'grey.100',
+                                color: (inputConfig?.source || INPUT_SOURCES.BLACK_MARKET) === INPUT_SOURCES.BLACK_MARKET ? 'warning.dark' : 'text.secondary',
+                                bgcolor: (inputConfig?.source || INPUT_SOURCES.BLACK_MARKET) === INPUT_SOURCES.BLACK_MARKET ? 'warning.50' : 'grey.100',
                                 border: '2px solid',
-                                borderColor: (inputConfig?.source || INPUT_SOURCES.PURCHASE_MODULE) === INPUT_SOURCES.PURCHASE_MODULE ? 'success.main' : 'grey.300',
+                                borderColor: (inputConfig?.source || INPUT_SOURCES.BLACK_MARKET) === INPUT_SOURCES.BLACK_MARKET ? 'warning.main' : 'grey.300',
                                 transition: 'all 0.2s',
                                 minHeight: { xs: 40, md: 32 },
                               }}
                             >
-                              <ShoppingCart sx={{ fontSize: 20 }} />
-                              <Box sx={{ display: { xs: 'block', md: 'none' } }}>Auto purchase</Box>
+                              <BlackMarketIcon sx={{ fontSize: 20 }} />
+                              <Box sx={{ display: { xs: 'block', md: 'none' } }}>Black Market</Box>
                             </ToggleButton>
                           </MuiTooltip>
                         )}
@@ -823,7 +809,6 @@ const ProductionLine = () => {
               }}>
                 &#8594;
               </Typography>
-              {/* Bilanz unter dem Pfeil anzeigen */}
               {(() => {
                 // Prüfe Inputquellen
                 const allInputsFromStock = selectedRecipe.inputs.every((input, idx) => {
@@ -831,42 +816,41 @@ const ProductionLine = () => {
                   return inputConfig && inputConfig.source === INPUT_SOURCES.GLOBAL_STORAGE;
                 });
                 // Einkaufskosten nur für eingekaufte Inputs
-                const purchaseCost = selectedRecipe.inputs.reduce((sum, input, idx) => {
-                  const inputConfig = productionConfig.inputs[idx];
-                  if (inputConfig && inputConfig.source === INPUT_SOURCES.PURCHASE_MODULE) {
-                    return sum + RESOURCES[input.resourceId].basePrice * input.amount;
-                  }
-                  return sum;
-                }, 0);
-                // Verkaufserlös
+                const inputCost = selectedRecipe.inputs.reduce((sum, input) => sum + RESOURCES[input.resourceId].basePrice * input.amount, 0);
                 const sellIncome = RESOURCES[selectedRecipe.output.resourceId].basePrice * selectedRecipe.output.amount;
-                const isSelling = productionConfig?.outputTarget === OUTPUT_TARGETS.AUTO_SELL;
+                const isBlackMarketSell = productionConfig?.outputTarget === OUTPUT_TARGETS.BLACK_MARKET;
                 const isStoring = productionConfig?.outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE;
                 let balance = 0;
                 if (allInputsFromStock && isStoring) {
                   balance = 0;
-                } else if (isSelling) {
-                  balance = sellIncome - purchaseCost;
+                } else if (isBlackMarketSell) {
+                  balance = sellIncome - inputCost;
                 } else {
-                  balance = -purchaseCost;
+                  balance = -inputCost;
                 }
                 const color = balance >= 0 ? 'success.main' : 'error.main';
                 const sign = balance > 0 ? '+' : '';
                 return (
-                  <Typography
-                    variant="h3"
-                    sx={{
-                      color,
-                      fontWeight: 800,
-                      fontSize: { xs: '1.8rem', md: '2.2rem' },
-                      mt: 1,
-                      textAlign: 'center',
-                      width: '100%',
-                      animation: 'pulseFast 1.2s infinite',
-                    }}
-                  >
-                    {sign}{balance} $
-                  </Typography>
+                  <>
+                    <Typography
+                      variant="h3"
+                      sx={{
+                        color,
+                        fontWeight: 800,
+                        fontSize: { xs: '1.8rem', md: '2.2rem' },
+                        mt: 1,
+                        textAlign: 'center',
+                        width: '100%',
+                        animation: 'pulseFast 1.2s infinite',
+                      }}
+                    >
+                      {sign}{balance} $
+                    </Typography>
+                    {/* Debug-Ausgabe */}
+                    <Typography variant="caption" sx={{ color: '#888', fontSize: '0.95rem', textAlign: 'center', width: '100%' }}>
+                      [Debug] inputCost: {inputCost} | sellIncome: {sellIncome} | balance: {balance}
+                    </Typography>
+                  </>
                 );
               })()}
               {totalBonus > 0 && (
@@ -912,6 +896,11 @@ const ProductionLine = () => {
               onError={e => { e.target.onerror = null; e.target.src = '/images/production/Placeholder.png'; }}
             />
             {renderResourceIcons(selectedRecipe.output.resourceId, selectedRecipe.output.amount)}
+            {productionConfig.outputTarget === OUTPUT_TARGETS.BLACK_MARKET && (
+              <Typography variant="caption" sx={{ color: 'success.main', mt: 0.5, mb: 0.5, fontSize: '0.98rem', fontWeight: 400, textAlign: 'center' }}>
+                {RESOURCES[selectedRecipe.output.resourceId]?.name}: {RESOURCES[selectedRecipe.output.resourceId]?.basePrice}$ · Total: {RESOURCES[selectedRecipe.output.resourceId]?.basePrice * selectedRecipe.output.amount}$
+              </Typography>
+            )}
 
             {/* Output handling for research points: only store, no sell */}
             {selectedRecipe.output.resourceId === 'research_points' ? (
@@ -1023,9 +1012,9 @@ const ProductionLine = () => {
                       <Box sx={{ display: { xs: 'block', md: 'none' } }}>Store in stock</Box>
                     </ToggleButton>
                   </MuiTooltip>
-                  <MuiTooltip title="Sell the produced resources automatically for credits." arrow>
+                  <MuiTooltip title="Sell the produced resources to the black market for credits." arrow>
                     <ToggleButton
-                      value={OUTPUT_TARGETS.AUTO_SELL}
+                      value={OUTPUT_TARGETS.BLACK_MARKET}
                       sx={{
                         flex: 1,
                         py: { xs: 1.5, md: 0.5 },
@@ -1037,15 +1026,15 @@ const ProductionLine = () => {
                         flexDirection: 'column',
                         alignItems: 'center',
                         gap: 1,
-                        color: (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.AUTO_SELL ? 'success.dark' : 'text.secondary',
-                        bgcolor: (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.AUTO_SELL ? 'success.50' : 'grey.100',
+                        color: (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.BLACK_MARKET ? 'warning.dark' : 'text.secondary',
+                        bgcolor: (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.BLACK_MARKET ? 'warning.50' : 'grey.100',
                         border: '2px solid',
-                        borderColor: (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.AUTO_SELL ? 'success.main' : 'grey.300',
+                        borderColor: (productionConfig.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE) === OUTPUT_TARGETS.BLACK_MARKET ? 'warning.main' : 'grey.300',
                         transition: 'all 0.2s',
                       }}
                     >
-                      <SellIcon sx={{ fontSize: 20 }} />
-                      <Box sx={{ display: { xs: 'block', md: 'none' } }}>Sell automatically</Box>
+                      <BlackMarketSellIcon sx={{ fontSize: 20 }} />
+                      <Box sx={{ display: { xs: 'block', md: 'none' } }}>Sell to Black Market</Box>
                     </ToggleButton>
                   </MuiTooltip>
                 </ToggleButtonGroup>
