@@ -485,6 +485,17 @@ const Missions = () => {
                   Unlock {currentMission.rewards.unlockModule.charAt(0).toUpperCase() + currentMission.rewards.unlockModule.slice(1)} Module
                 </Typography>
               )}
+              {currentMission.rewards.passiveBonus && currentMission.rewards.passiveBonus.type === 'production_speed' && (
+                <Typography variant="body2" sx={{ color: '#fff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <img
+                    src="/images/icons/speed.png"
+                    alt="speed"
+                    style={{ width: 20, height: 20, marginRight: 8 }}
+                    onError={e => { e.target.onerror = null; e.target.src = "/images/icons/placeholder.png"; }}
+                  />
+                  +{(currentMission.rewards.passiveBonus.value * 100).toFixed(0)}% Production Speed
+                </Typography>
+              )}
             </Box>
           )}
         </DialogContent>

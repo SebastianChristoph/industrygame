@@ -46,7 +46,8 @@ import {
   renameProductionLine,
   toggleProduction,
   unlockModule,
-  spendCredits
+  spendCredits,
+  setOutputTarget
 } from '../store/gameSlice';
 import { PRODUCTION_RECIPES, RESOURCES, OUTPUT_TARGETS, INPUT_SOURCES } from '../config/resources';
 import { MODULES } from '../config/modules';
@@ -66,6 +67,8 @@ import StorageInfoDialog from '../components/StorageInfoDialog';
 import useMediaQuery from '@mui/material/useMediaQuery';
 import { useTheme } from '@mui/material/styles';
 import { motion } from 'framer-motion';
+import { FaWarehouse } from 'react-icons/fa';
+import { GiPirateSkull } from 'react-icons/gi';
 
 // Inject Orbitron font into the document head if not already present
 if (typeof document !== 'undefined' && !document.getElementById('orbitron-font')) {
@@ -408,6 +411,7 @@ const ProductionLines = () => {
   const unlockedModules = useSelector(state => state.game.unlockedModules);
   const unlockedRecipes = useSelector(state => state.game.unlockedRecipes);
   const statistics = useSelector(state => state.game.statistics);
+  const productionSpeed = useSelector(state => state.game?.passiveBonuses?.productionSpeed ?? 1.0);
   const theme = useTheme ? useTheme() : undefined;
   const isMobile = theme ? useMediaQuery(theme.breakpoints.down('sm')) : false;
   
@@ -693,21 +697,22 @@ const ProductionLines = () => {
       field: 'name',
       headerName: 'Name',
       flex: 1,
-      minWidth: 150
+      minWidth: 120
     },
     {
       field: 'totalBalance',
       headerName: 'Total Balance',
       width: 150,
-      align: 'right',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: (params) => {
         const config = productionConfigs[params.row.id];
         const status = productionStatus[params.row.id];
         const { balance } = calculateLineBalanceLogic(config, status);
         const colorTotal = balance > 0 ? 'success.main' : balance < 0 ? 'error.main' : 'warning.main';
         return (
-          <Box sx={{ display: 'flex', alignItems: 'center', height: '100%' }}>
-            <Typography color={colorTotal}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', width: '100%' }}>
+            <Typography color={colorTotal} sx={{ textAlign: 'center', width: '100%' }}>
               {balance >= 0 ? '+' : ''}{formatMoney(balance)}$
             </Typography>
           </Box>
@@ -717,8 +722,9 @@ const ProductionLines = () => {
     {
       field: 'balancePerPing',
       headerName: 'Balance per Ping',
-      width: 150,
-      align: 'right',
+      width: 170,
+      align: 'center',
+      headerAlign: 'center',
       renderCell: (params) => {
         const config = productionConfigs[params.row.id];
         const status = productionStatus[params.row.id];
@@ -740,17 +746,32 @@ const ProductionLines = () => {
       renderCell: (params) => {
         const config = productionConfigs[params.row.id];
         const outputTarget = config?.outputTarget || OUTPUT_TARGETS.GLOBAL_STORAGE;
+        const handleToggleOutput = (e) => {
+          e.stopPropagation();
+          const newTarget = outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE
+            ? OUTPUT_TARGETS.BLACK_MARKET
+            : OUTPUT_TARGETS.GLOBAL_STORAGE;
+          dispatch(setOutputTarget({
+            productionLineId: params.row.id,
+            target: newTarget
+          }));
+        };
         return (
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%' }}>
-            {outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE ? (
-              <StorageIcon fontSize="medium" sx={{ color: '#fff' }} />
-            ) : (
-              <LocalShippingIcon fontSize="medium" sx={{ color: '#fff' }} />
-            )}
+            <Tooltip title={outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE ? 'Storage (click to sell)' : 'Sell (click to store)'}>
+              <IconButton size="small" onClick={handleToggleOutput}>
+                {outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE ? (
+                  <FaWarehouse style={{ color: '#fff', fontSize: 24 }} />
+                ) : (
+                  <GiPirateSkull style={{ color: '#fff', fontSize: 24 }} />
+                )}
+              </IconButton>
+            </Tooltip>
           </Box>
         );
       }
     },
+    
     {
       field: 'actions',
       headerName: 'Actions',
@@ -1087,26 +1108,15 @@ const ProductionLines = () => {
                           dispatch(toggleProduction(line.id));
                         }} 
                         disabled={!recipe || (!canProduce && !status?.isActive)}
+                        sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,0.08)', '&:hover': { bgcolor: 'rgba(255,255,255,0.18)' } }}
                       >
                         {status?.isActive ? <Stop fontSize="small" /> : <PlayArrow fontSize="small" />}
                       </IconButton>
-                      <IconButton 
-                        size="small" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleRenameClick(line.id, line.name);
-                        }}
-                      >
+                      {/* Always show edit/delete icons, even on mobile */}
+                      <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleRenameClick(line.id, line.name); }} sx={{ color: '#fff', bgcolor: 'rgba(255,255,255,0.08)', '&:hover': { bgcolor: 'rgba(255,255,255,0.18)' } }}>
                         <EditIcon fontSize="small" />
                       </IconButton>
-                      <IconButton 
-                        size="small" 
-                        color="error" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteClick(line.id);
-                        }}
-                      >
+                      <IconButton size="small" color="error" onClick={(e) => { e.stopPropagation(); handleDeleteClick(line.id); }}>
                         <DeleteIcon fontSize="small" />
                       </IconButton>
                     </Box>
@@ -1124,9 +1134,20 @@ const ProductionLines = () => {
                     <Box sx={{ flex: 1 }} />
                     <Typography variant="body2" color={balance > 0 ? 'success.main' : balance < 0 ? 'error.main' : 'warning.main'} sx={{ fontWeight: 700 }}>{balance >= 0 ? '+' : ''}{formatMoney(balance)}$</Typography>
                     <Typography variant="body2" color={balancePerPing > 0 ? 'success.main' : balancePerPing < 0 ? 'error.main' : 'warning.main'} sx={{ fontWeight: 700, ml: 1 }}>{balancePerPing >= 0 ? '+' : ''}{formatMoney(balancePerPing)}$/ping</Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ ml: 1 }}>
-                      ({config?.outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE ? 'Storage' : 'Sell'})
-                    </Typography>
+                    {/* Output target icon/text: icon only on mobile, icon+text on desktop */}
+                    <Box sx={{ ml: 1, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      {config?.outputTarget === OUTPUT_TARGETS.GLOBAL_STORAGE ? (
+                        <>
+                          <FaWarehouse style={{ color: '#fff', fontSize: 20 }} />
+                          <Box sx={{ display: { xs: 'none', sm: 'block' }, ml: 0.5 }}>Storage</Box>
+                        </>
+                      ) : (
+                        <>
+                          <GiPirateSkull style={{ color: '#fff', fontSize: 20 }} />
+                          <Box sx={{ display: { xs: 'none', sm: 'block' }, ml: 0.5 }}>Black Market</Box>
+                        </>
+                      )}
+                    </Box>
                   </Box>
                   <Box sx={{ width: '100%', mb: 1 }}>
                     {/* Progressbar */}
@@ -1175,7 +1196,7 @@ const ProductionLines = () => {
               borderBottom: '2px solid',
               borderColor: 'divider',
               fontWeight: 700,
-              fontSize: '1.05rem',
+              fontSize: { xs: '0.95rem', sm: '1.05rem', md: '0.92rem' },
             },
             '& .MuiDataGrid-columnHeader': {
               bgcolor: '#23272b !important',

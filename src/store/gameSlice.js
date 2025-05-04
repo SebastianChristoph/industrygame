@@ -32,6 +32,10 @@ const initialState = {
   researchedTechnologies: [],
   unlockedRecipes: [],
   unlockedResources: [],
+  // Passive bonuses state
+  passiveBonuses: {
+    productionSpeed: 1.0 // Base multiplier is 1.0 (100%)
+  },
   // Mission state
   missions: {
     data: MISSIONS,
@@ -179,6 +183,10 @@ const gameSlice = createSlice({
         const recipe = PRODUCTION_RECIPES[config.recipe];
         if (!recipe) return;
 
+        // Erhöhe die Pings
+        status.currentPings = (status.currentPings || 0) + 1;
+        status.totalPings = (status.totalPings || 0) + 1;
+        
         // Prüfe, ob genug Ressourcen im Lager sind (für alle Inputs aus GLOBAL_STORAGE)
         let hasEnough = true;
         for (let i = 0; i < recipe.inputs.length; i++) {
@@ -206,12 +214,10 @@ const gameSlice = createSlice({
           status.error = null;
         }
 
-        // Erhöhe die Pings
-        status.currentPings = (status.currentPings || 0) + 1;
-        status.totalPings = (status.totalPings || 0) + 1;
-        
         // Wenn genug Pings für eine Produktion erreicht wurden
-        if (status.currentPings >= recipe.productionTime) {
+        const productionSpeed = state.passiveBonuses?.productionSpeed ?? 1.0;
+        const adjustedProductionTime = Math.ceil(recipe.productionTime / productionSpeed);
+        if (status.currentPings >= adjustedProductionTime) {
           status.currentPings = 0;
           
           // Verarbeite Inputs
@@ -334,6 +340,12 @@ const gameSlice = createSlice({
             }
             if (mission.rewards.researchPoints) {
               state.researchPoints += mission.rewards.researchPoints;
+            }
+            // Handle passive bonuses
+            if (mission.rewards.passiveBonus) {
+              if (mission.rewards.passiveBonus.type === 'production_speed') {
+                state.passiveBonuses.productionSpeed *= (1 + mission.rewards.passiveBonus.value);
+              }
             }
           }
         }
@@ -472,6 +484,12 @@ const gameSlice = createSlice({
           }
           if (mission.rewards.researchPoints) {
             state.researchPoints += mission.rewards.researchPoints;
+          }
+          // Handle passive bonuses
+          if (mission.rewards.passiveBonus) {
+            if (mission.rewards.passiveBonus.type === 'production_speed') {
+              state.passiveBonuses.productionSpeed *= (1 + mission.rewards.passiveBonus.value);
+            }
           }
         }
       }
