@@ -61,12 +61,12 @@ export const PRODUCTION_RECIPES = {
 
   gunpowder: { id: 'gunpowder', name: 'Gunpowder', productionTime: 5, inputs: [{ resourceId: 'coal', amount: 2 }, { resourceId: 'oil', amount: 1 }], output: { resourceId: 'gunpowder', amount: 2 } },
   bullet: { id: 'bullet', name: 'Bullet', productionTime: 10, inputs: [{ resourceId: 'gunpowder', amount: 2 }], output: { resourceId: 'bullet', amount: 4 } },
-  rifle: { id: 'rifle', name: 'Rifle', productionTime: 20, inputs: [{ resourceId: 'bullet', amount: 4 }, { resourceId: 'iron', amount: 2 }], output: { resourceId: 'rifle', amount: 1 } },
+  rifle: { id: 'rifle', name: 'Rifle', productionTime: 20, inputs: [{ resourceId: 'bullet', amount: 4 },{ resourceId: 'metal_plate', amount: 2 }], output: { resourceId: 'rifle', amount: 1 } },
   tank: { id: 'tank', name: 'Tank', productionTime: 40, inputs: [{ resourceId: 'rifle', amount: 2 }, { resourceId: 'steel', amount: 4 }], output: { resourceId: 'tank', amount: 1 } },
   research_points_agriculture: {
     id: 'research_points_agriculture',
     name: 'Agriculture Research',
-    productionTime: 10,
+    productionTime: 3,
     inputs: [
       { resourceId: 'seeds', amount: 1 },
       { resourceId: 'water', amount: 1 }
@@ -76,7 +76,7 @@ export const PRODUCTION_RECIPES = {
   research_points_technology: {
     id: 'research_points_technology',
     name: 'Technology Research',
-    productionTime: 10,
+    productionTime: 3,
     inputs: [
       { resourceId: 'iron', amount: 1 },
       { resourceId: 'copper', amount: 1 }
@@ -86,7 +86,7 @@ export const PRODUCTION_RECIPES = {
   research_points_weapon: {
     id: 'research_points_weapon',
     name: 'Weapons Research',
-    productionTime: 10,
+    productionTime: 3,
     inputs: [
       { resourceId: 'coal', amount: 1 },
       { resourceId: 'oil', amount: 1 }
@@ -96,7 +96,7 @@ export const PRODUCTION_RECIPES = {
   research_points_business: {
     id: 'research_points_business',
     name: 'Business Research',
-    productionTime: 10,
+    productionTime: 3,
     inputs: [
       { resourceId: 'research_points', amount: 1 }
     ],

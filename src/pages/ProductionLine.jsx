@@ -1016,18 +1016,19 @@ const ProductionLine = () => {
                 mb: 1,
                 px: 2,
                 py: 2,
-                bgcolor: 'grey.50',
+                bgcolor: '#23272b',
+                color: '#fff',
                 borderRadius: 2,
                 boxShadow: 1,
                 border: '1px solid',
-                borderColor: 'grey.200',
+                borderColor: '#444',
                 width: '100%',
                 maxWidth: { xs: '100%', md: 180 },
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
               }}>
-                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1, fontWeight: 600, letterSpacing: 0.2 }}>
+                <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, letterSpacing: 0.2, color: '#fff' }}>
                   Output handling:
                 </Typography>
                 <Box sx={{
@@ -1050,13 +1051,41 @@ const ProductionLine = () => {
                   <Storage sx={{ fontSize: 24, mr: 1 }} />
                   Store in stock
                   {!isMobile && (
-                    <MuiTooltip title={"Research points cannot be sold. They are automatically stored and used for unlocking technologies."} arrow>
-                      <InfoOutlined sx={{ fontSize: 20, ml: 1, color: 'primary.main', cursor: 'pointer' }} />
+                    <MuiTooltip 
+                      title={
+                        <span style={{ color: '#fff' }}>
+                          Research points cannot be sold. They are automatically stored and used for unlocking technologies.
+                        </span>
+                      } 
+                      arrow
+                    >
+                      <InfoOutlined 
+                        sx={{ 
+                          fontSize: 20, 
+                          ml: 1, 
+                          color: 'primary.main', 
+                          cursor: 'pointer',
+                          bgcolor: '#23272b',
+                          borderRadius: '50%',
+                          p: 0.5
+                        }} 
+                      />
                     </MuiTooltip>
                   )}
                 </Box>
                 {isMobile && (
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1, textAlign: 'center' }}>
+                  <Typography 
+                    variant="body2" 
+                    sx={{ 
+                      mt: 1, 
+                      textAlign: 'center', 
+                      bgcolor: '#23272b', 
+                      color: '#fff', 
+                      p: 1.5, 
+                      borderRadius: 2, 
+                      fontWeight: 500
+                    }}
+                  >
                     Research points cannot be sold. They are automatically stored and used for unlocking technologies.
                   </Typography>
                 )}

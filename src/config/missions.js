@@ -27,19 +27,19 @@ export const MISSIONS = {
         type: 'PRODUCE_RESOURCE',
         resourceId: 'corn',
         amount: 100,
-        description: 'Produce at least 100x Corn'
+        description: 'Store at least 100 Corn'
       },
       {
         type: 'PRODUCE_RESOURCE',
         resourceId: 'wheat',
         amount: 50,
-        description: 'Produce at least 50x Wheat'
+        description: 'Store at least 50 Wheat'
       },
       {
         type: 'PRODUCTION_RATE',
         resourceId: 'corn',
         rate: 1,
-        description: 'Maintain a production rate of 1 Corn per Ping'
+        description: 'Maintain a production rate of at least 1 Corn per Ping'
       }
     ],
     rewards: {
@@ -51,45 +51,58 @@ export const MISSIONS = {
   },
 
   // Chapter 1: Basic Survival
-mission2: {
-  id: 'mission2',
-  chapter: 1,
-  title: 'Mission 2: First Line of Defense',
-  image: '/images/missions/mission2.png',
-  description: `"Food alone won't save you. Patrols report sightings of armed machines sweeping through nearby ruins. It's only a matter of time before they find you. You must build your first weapons and unlock the means to fight back. This is no longer just survival — it's resistance."`,
-  conditions: [
-    {
-      type: 'UNLOCK_MODULE',
-      moduleId: 'weapons',
-      description: 'Unlock the Weapons Module'
+  mission2: {
+    id: 'mission2',
+    chapter: 1,
+    title: 'Mission 2: First Line of Defense',
+    image: '/images/missions/mission2.png',
+    description: `Food alone won't save you. Patrols report sightings of armed machines sweeping through nearby ruins. It's only a matter of time before they find you. You must build your first weapons and unlock the means to fight back. But even resistance fighters need supplies — make sure your people are fed as well as armed. This is no longer just survival — it's resistance.`,
+    conditions: [
+      {
+        type: 'PRODUCE_RESOURCE',
+        resourceId: 'gunpowder',
+        amount: 50,
+        description: 'Store at least 50 Gunpowder'
+      },
+      {
+        type: 'PRODUCE_RESOURCE',
+        resourceId: 'bullet',
+        amount: 200,
+        description: 'Store at least 200 Bullets'
+      },
+      {
+        type: 'PRODUCTION_RATE',
+        resourceId: 'corn',
+        rate: 1,
+        description: 'Maintain a production rate of at least 1 Corn per Ping'
+      },
+      {
+        type: 'RESEARCH_TECH',
+        researchId: 'EXPLOSIVES',
+        description: 'Research Explosives Engineering'
+      },
+      {
+        type: 'UNLOCK_MODULE',
+        moduleId: 'weapons',
+        description: 'Unlock the Weapons Module'
+      },
+      {
+        type: 'RESEARCH_TECH',
+        researchId: 'AMMUNITION',
+        description: 'Research Ammunition Manufacturing'
+      },
+    ],
+    rewards: {
+      credits: 10000,
+      resources: {
+        rifle: 100
+      },
+      unlockModule: 'technology'
     },
-    {
-      type: 'PRODUCE_RESOURCE',
-      resourceId: 'gunpowder',
-      amount: 50,
-      description: 'Produce at least 50x Gunpowder'
-    },
-    {
-      type: 'PRODUCE_RESOURCE',
-      resourceId: 'bullet',
-      amount: 200,
-      description: 'Produce at least 200x Bullet'
-    },
-    {
-      type: 'RESEARCH_TECH',
-      researchId: 'explosives_engineering',
-      description: 'Research Explosives Engineering'
-    }
-  ],
-  rewards: {
-    credits: 7500,
+    completionText: `The smell of gunpowder fills the air. You've crafted your first line of defense — crude, but effective. Your scouts have spotted machine patrols hesitating at the edge of your territory. They know you're armed. Some of their weapons were left behind — now in your hands. In the heat of battle, you've learned more than just how to fight — you've taken your first steps toward understanding their technology. Now, you must prepare for escalation.`,
+    isActive: false,
+    isCompleted: false
   },
-  completionText: `"The smell of gunpowder fills the air. You've crafted your first line of defense — crude, but effective. Your scouts have spotted machine patrols hesitating at the edge of your territory. They know you're armed. Now, you must prepare for escalation."`,
-  isActive: false,
-  isCompleted: false
-},
-
-
 };
 
 // Helper function to check mission conditions

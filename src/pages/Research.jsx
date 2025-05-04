@@ -348,7 +348,36 @@ const Research = () => {
                 fullWidth
                 disabled={!hasEnoughPoints}
                 onClick={hasEnoughPoints ? () => handleUnlockModule(module.id) : undefined}
-                sx={{ mb: 2, bgcolor: !hasEnoughPoints ? 'grey.400' : undefined, color: '#fff' }}
+                sx={{
+                  mb: 2,
+                  bgcolor: !hasEnoughPoints ? '#b71c1c' : undefined,
+                  color: '#fff',
+                  border: !hasEnoughPoints ? '2.5px solid #ff5252' : undefined,
+                  boxShadow: !hasEnoughPoints ? '0 0 16px 2px #ff5252' : undefined,
+                  fontWeight: 900,
+                  fontSize: '1.1rem',
+                  letterSpacing: 1,
+                  textTransform: 'uppercase',
+                  position: 'relative',
+                  '& .MuiButton-startIcon': {
+                    marginRight: 1,
+                  },
+                  '&.Mui-disabled': {
+                    bgcolor: '#b71c1c',
+                    color: '#fff',
+                    border: '2.5px solid #ff5252',
+                    boxShadow: '0 0 16px 2px #ff5252',
+                    opacity: 1,
+                  },
+                }}
+                startIcon={
+                  !hasEnoughPoints ? (
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" style={{ display: 'block' }}>
+                      <circle cx="12" cy="12" r="10" fill="#ff5252" />
+                      <text x="12" y="17" textAnchor="middle" fontSize="16" fill="#fff" fontWeight="bold">!</text>
+                    </svg>
+                  ) : null
+                }
               >
                 {hasEnoughPoints ? 'Unlock (500 research points)' : 'Not enough research points (500 needed)'}
               </Button>

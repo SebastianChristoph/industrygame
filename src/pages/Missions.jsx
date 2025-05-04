@@ -346,7 +346,16 @@ const Missions = () => {
       if (currentMission.rewards.researchPoints) {
         dispatch({ type: 'game/addResearchPoints', payload: currentMission.rewards.researchPoints });
       }
-      // Weitere Rewards hier ergänzen
+      // Handle resource rewards
+      if (currentMission.rewards.resources) {
+        Object.entries(currentMission.rewards.resources).forEach(([resourceId, amount]) => {
+          dispatch({ type: 'game/addResource', payload: { resourceId, amount } });
+        });
+      }
+      // Handle module unlock
+      if (currentMission.rewards.unlockModule) {
+        dispatch({ type: 'game/unlockModule', payload: currentMission.rewards.unlockModule });
+      }
     }
     // Mission abschließen
     dispatch(completeMission(currentMission.id));
@@ -420,9 +429,20 @@ const Missions = () => {
       )}
 
       {/* Completion Modal: Zeige completionText und Rewards, Auszahlung erst beim Schließen */}
-      <Dialog open={pendingCompletion} onClose={() => setPendingCompletion(false)} maxWidth="sm" fullWidth>
-        <DialogTitle>Mission Complete</DialogTitle>
-        <DialogContent>
+      <Dialog open={pendingCompletion} onClose={() => setPendingCompletion(false)} maxWidth="sm" fullWidth
+        PaperProps={{
+          sx: {
+            backgroundColor: "#232b2f",
+            color: "#fff",
+            borderRadius: 2,
+            boxShadow: 12,
+          }
+        }}
+      >
+        <DialogTitle sx={{ backgroundColor: "#232b2f", color: "#fff", fontWeight: 800 }}>
+          Mission Complete
+        </DialogTitle>
+        <DialogContent sx={{ backgroundColor: "#232b2f" }}>
           <DialogContentText sx={{ whiteSpace: 'pre-line', color: '#fff', mb: 2 }}>
             {currentMission?.completionText?.replace(/^"|"$/g, '')}
           </DialogContentText>
@@ -443,10 +463,32 @@ const Missions = () => {
                   {currentMission.rewards.researchPoints} Research Points
                 </Typography>
               )}
+              {currentMission.rewards.resources && Object.entries(currentMission.rewards.resources).map(([resourceId, amount]) => (
+                <Typography key={resourceId} variant="body2" sx={{ color: '#fff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <img
+                    src={getResourceImageWithFallback(resourceId, "icon")[0]}
+                    alt={resourceId}
+                    style={{ width: 20, height: 20, marginRight: 8 }}
+                    onError={e => { e.target.onerror = null; e.target.src = "/images/icons/placeholder.png"; }}
+                  />
+                  {amount} {resourceId.charAt(0).toUpperCase() + resourceId.slice(1)}
+                </Typography>
+              ))}
+              {currentMission.rewards.unlockModule && (
+                <Typography variant="body2" sx={{ color: '#fff', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <img
+                    src="/images/icons/module.png"
+                    alt="module"
+                    style={{ width: 20, height: 20, marginRight: 8 }}
+                    onError={e => { e.target.onerror = null; e.target.src = "/images/icons/placeholder.png"; }}
+                  />
+                  Unlock {currentMission.rewards.unlockModule.charAt(0).toUpperCase() + currentMission.rewards.unlockModule.slice(1)} Module
+                </Typography>
+              )}
             </Box>
           )}
         </DialogContent>
-        <DialogActions>
+        <DialogActions sx={{ backgroundColor: "#232b2f" }}>
           <Button onClick={handleClaimRewards} variant="contained" color="success" sx={{ fontWeight: 700, fontSize: '1.1rem' }}>
             Claim Rewards
           </Button>
